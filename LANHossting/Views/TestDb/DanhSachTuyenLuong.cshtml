@@ -1,0 +1,53 @@
+@model List<LANHossting.Models.DmTuyenLuong>
+@{
+    ViewData["Title"] = "Danh Sách Tuyến Luồng";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">🚢 Danh Sách Tuyến Luồng</h1>
+    
+    <div class="mb-3">
+        <a href="@Url.Action("Index", "TestDb")" class="btn btn-secondary">← Quay lại</a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Mã Tuyến</th>
+                        <th>Tên Tuyến</th>
+                        <th>Mô Tả</th>
+                        <th>Trạng Thái</th>
+                        <th>Ngày Tạo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td><strong>@item.MaTuyen</strong></td>
+                                <td>@item.TenTuyen</td>
+                                <td>@item.MoTa</td>
+                                <td>
+                                    <span class="badge @(item.TrangThai == "Hoạt động" ? "bg-success" : "bg-secondary")">
+                                        @item.TrangThai
+                                    </span>
+                                </td>
+                                <td>@item.NgayTao.ToString("dd/MM/yyyy")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">Chưa có dữ liệu</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

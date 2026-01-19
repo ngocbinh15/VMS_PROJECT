@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VMS - Quản Lý Phao Chi Tiết</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-lg fixed-top glass-nav">
+    <div class="container-fluid px-4">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+        <div class="bg-primary text-white p-2 rounded-3 lh-1"><i class="bi bi-bullseye"></i></div>
+        <span class="brand-gradient">VMS</span>
+      </a>
+      <div class="d-flex align-items-center gap-3">
+        <div class="text-end d-none d-sm-block">
+          <div class="fw-bold text-dark small">Phòng Kỹ Thuật</div>
+          <div class="text-muted" style="font-size: 0.7rem;">Nam Trung Bộ</div>
+        </div>
+        <div
+          class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold"
+          style="width: 40px; height: 40px;">KT</div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid px-4 pb-5">
+
+    <div class="d-flex justify-content-between align-items-end mb-4 animate-fade-in">
+      <div>
+        <h4 class="fw-bold mb-1 text-dark">Quản Lý Hệ Thống Phao</h4>
+        <div class="text-muted small">Danh sách các phao báo hiệu hàng hải trong khu vực quản lý.</div>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-light border fw-bold text-secondary btn-modern"><i class="bi bi-clock-history me-1"></i>
+          Lịch Sử</button>
+        <button class="btn btn-primary-modern btn-modern d-flex align-items-center gap-2" data-bs-toggle="modal"
+          data-bs-target="#buoyDetailModal"><i class="bi bi-plus-lg"></i> Thêm Phao</button>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-4 animate-fade-in" style="animation-delay: 0.1s;">
+      <div class="col-md-3">
+        <div class="stat-card d-flex align-items-center gap-3">
+          <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-layers-fill"></i></div>
+          <div>
+            <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Tổng Số Phao</h6>
+            <h4 class="fw-bold mb-0">110</h4>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card d-flex align-items-center gap-3">
+          <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-check-circle-fill"></i></div>
+          <div>
+            <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Hoạt Động Tốt</h6>
+            <h4 class="fw-bold mb-0">105</h4>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card d-flex align-items-center gap-3">
+          <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-wrench-adjustable"></i></div>
+          <div>
+            <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Đang Bảo Trì</h6>
+            <h4 class="fw-bold mb-0">3</h4>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card d-flex align-items-center gap-3">
+          <div class="stat-icon bg-secondary bg-opacity-10 text-secondary"><i class="bi bi-box-seam"></i></div>
+          <div>
+            <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Dự Phòng</h6>
+            <h4 class="fw-bold mb-0">2</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-card animate-fade-in" style="animation-delay: 0.2s;">
+      <div
+        class="p-3 border-bottom border-light bg-white d-flex flex-wrap gap-3 align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3 flex-grow-1">
+          <div class="position-relative" style="min-width: 300px;">
+            <i class="bi bi-search position-absolute text-muted" style="left: 12px; top: 11px;"></i>
+            <input type="text" class="search-input" id="searchInput" placeholder="Tìm kiếm theo ký hiệu, số phao...">
+          </div>
+          <select class="form-select border-light bg-light fw-semibold text-secondary"
+            style="width: auto; border-radius: 12px;">
+            <option>Tất cả đơn vị</option>
+            <option>Trạm Vũng Tàu</option>
+            <option>Trạm Quy Nhơn</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-responsive no-scrollbar">
+        <table class="table table-custom w-100 align-middle mb-0">
+          <thead>
+            <tr>
+              <th class="ps-4 text-center" width="5%">STT</th>
+              <th width="15%">Ký hiệu</th>
+              <th width="12%">Số phao</th>
+              <th width="10%" class="text-center">Đường kính (m)</th>
+              <th width="20%">Vị trí (Tọa độ)</th>
+              <th width="12%">Thời điểm sử dụng</th>
+              <th width="12%">Sửa chữa gần nhất</th>
+              <th width="10%" class="text-center">Trạng thái</th>
+              <th width="10%" class="text-end pe-4">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="buoyTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="px-4 py-3 border-top border-light d-flex justify-content-between align-items-center bg-white">
+        <div class="d-flex align-items-center gap-2"><small class="text-muted fw-bold">Hiển thị</small><select
+            class="form-select form-select-sm border-0 bg-light fw-bold" style="width: auto;">
+            <option>10</option>
+            <option>20</option>
+          </select></div>
+        <nav>
+          <ul class="pagination pagination-sm mb-0 gap-1">
+            <li class="page-item active"><a class="page-link border-0 rounded-2" href="#">1</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="buoyDetailModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header border-bottom-0 pb-0">
+          <h5 class="modal-title fw-bold text-primary">Thông Tin Phao Báo Hiệu</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pt-2">
+          <ul class="nav nav-tabs nav-tabs-custom mb-4" id="buoyTabs" role="tablist">
+            <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#general">Thông
+                tin chung</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#structure">Xích Phao
+              </button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#light">Đèn báo
+                hiệu</button></li>
+          </ul>
+          <div class="tab-content" id="buoyTabsContent">
+            <div class="tab-pane fade show active" id="general">
+              <div class="row g-3">
+                <div class="col-md-3"><label class="form-label-sm">Ký hiệu tài sản</label><input type="text"
+                    class="form-control fw-bold text-primary" value="KCHT40861"></div>
+                <div class="col-md-3"><label class="form-label-sm">Tên phao, tiêu</label><input type="text"
+                    class="form-control" value="Phao T2,6-020-23"></div>
+                <div class="col-md-3"><label class="form-label-sm">Số phao</label><input type="text"
+                    class="form-control" value="Phao 1"></div>
+                <div class="col-md-3"><label class="form-label-sm">Đường kính phao (m)</label><input type="number"
+                    class="form-control" value="2.60"></div>
+                <div class="col-md-3"><label class="form-label-sm">Thời gian sử dụng (năm)</label><input type="number"
+                    class="form-control" value="0"></div>
+                <div class="col-md-3"><label class="form-label-sm">Thời điểm thay, thả</label><input type="date"
+                    class="form-control" value="2024-08-23"></div>
+                <div class="col-md-3"><label class="form-label-sm">Sửa chữa gần nhất</label><input type="date"
+                    class="form-control"></div>
+                <div class="col-md-3"><label class="form-label-sm">Chiều cao toàn bộ (m)</label><input type="number"
+                    class="form-control" value="7.47"></div>
+                <div class="col-md-3"><label class="form-label-sm">Hình dạng</label><select class="form-select">
+                    <option>Hình tháp lưới</option>
+                    <option>Hình trụ</option>
+                  </select></div>
+                <div class="col-md-3"><label class="form-label-sm">Vật liệu</label><input type="text"
+                    class="form-control" value="Thép"></div>
+                <div class="col-md-3"><label class="form-label-sm">Màu sắc</label><select class="form-select">
+                    <option>Màu xanh lục</option>
+                    <option>Màu đỏ</option>
+                  </select></div>
+                <div class="col-md-3"><label class="form-label-sm">Hình ảnh</label><input type="file"
+                    class="form-control form-control-sm"></div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="structure">
+              <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">XÍCH PHAO</h6>
+              <div class="row g-3 mb-4">
+                <div class="col-md-4"><label class="form-label-sm">Đường kính xích phao (Ø)</label>
+                  <div class="input-group"><input type="number" class="form-control" value="36.00"><span
+                      class="input-group-text">mm</span></div>
+                </div>
+                <div class="col-md-4"><label class="form-label-sm">Chiều dài xích phao (m)</label>
+                  <div class="input-group"><input type="number" class="form-control" value="15.00"><span
+                      class="input-group-text">m</span></div>
+                </div>
+                <div class="col-md-4"><label class="form-label-sm">Thời điểm sử dụng xích phao</label><input type="date"
+                    class="form-control"></div>
+              </div>
+              <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">XÍCH RỪA</h6>
+              <div class="row g-3 mb-4">
+                <div class="col-md-4"><label class="form-label-sm">Đường kính xích rùa (Ø)</label>
+                  <div class="input-group"><input type="number" class="form-control" value="40.00"><span
+                      class="input-group-text">mm</span></div>
+                </div>
+                <div class="col-md-4"><label class="form-label-sm">Chiều dài xích rùa (m)</label>
+                  <div class="input-group"><input type="number" class="form-control" value="20.00"><span
+                      class="input-group-text">m</span></div>
+                </div>
+                <div class="col-md-4"><label class="form-label-sm">Thời điểm sử dụng xích rùa</label><input type="date"
+                    class="form-control"></div>
+              </div>
+              <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">RỪA</h6>
+              <div class="row g-3 mb-4">
+                <div class="col-md-4"><label class="form-label-sm">Trọng lượng rùa (tấn)</label>
+                  <div class="input-group"><input type="number" class="form-control" value="6.00"><span
+                      class="input-group-text">tấn</span></div>
+                </div>
+                <div class="col-md-4"><label class="form-label-sm">Thời điểm sử dụng rùa</label><input type="date"
+                    class="form-control"></div>
+                <div class="col-md-4"><label class="form-label-sm">Trạm quản lý</label><select class="form-select">
+                    <option>Trạm quản lý báo hiệu lương hàng hải Quy Nhơn</option>
+                    <option>Trạm Vũng Tàu</option>
+                  </select></div>
+                <div class="col-md-4"><label class="form-label-sm">Tình/Thành phố</label><select class="form-select">
+                    <option>Gia Lai</option>
+                    <option>Hà Nội</option>
+                  </select></div>
+
+                <div class="col-md-4"><label class="form-label-sm">Kinh độ (Độ°phút'Giây"E)</label><input type="text"
+                    class="form-control font-monospace" value="109°15'07.0&quot;E"></div>
+                <div class="col-md-4"><label class="form-label-sm">Vĩ độ (Độ°phút'Giây"N)</label><input type="text"
+                    class="form-control font-monospace" value="13°43'59.8&quot;N"></div>
+                <div class="col-md-4"><label class="form-label-sm">Đơn vị văn hành</label><select class="form-select">
+                    <option>Công ty Bảo đảm an toàn hàng hải Nam Trung Bộ</option>
+                  </select></div>
+                <div class="col-md-4"><label class="form-label-sm">Tình trạng</label><select class="form-select">
+                    <option>Không sử dụng</option>
+                    <option>Đang sử dụng</option>
+                  </select></div>
+                <div class="col-md-4"><label class="form-label-sm">Diễn tích</label><input type="number"
+                    class="form-control" value="0.00"></div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="light">
+              <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">ĐÈN BÁO HIỆU TRÊN PHAO</h6>
+              <div class="row g-3 mb-4">
+                <div class="col-md-4"><label class="form-label-sm">Chủng loại đèn trên phao</label><input type="text"
+                    class="form-control fw-bold" value="led NMA.AIS.LED132.B"></div>
+                <div class="col-md-4"><label class="form-label-sm">Kết nối AIS</label><select class="form-select">
+                    <option>Có</option>
+                    <option>Không</option>
+                  </select></div>
+                <div class="col-md-4"><label class="form-label-sm">Đặc tính ánh sáng</label><input type="text"
+                    class="form-control" value="Ánh sáng xanh lục, chớp đơn, chu kỳ 3s"></div>
+                <div class="col-md-4"><label class="form-label-sm">Chiếu xa tầm sáng lên độ</label><input type="number"
+                    class="form-control" value="4.70"></div>
+                <div class="col-md-4"><label class="form-label-sm">Nguồn cấp năng lượng</label><select
+                    class="form-select">
+                    <option>Ắc quy và năng lượng mặt trời</option>
+                    <option>Ắc-quy & NLMT</option>
+                  </select></div>
+                <div class="col-md-4"><label class="form-label-sm">Thời điểm sử dụng đèn</label><input type="text"
+                    class="form-control" value="2024"></div>
+                <div class="col-md-4"><label class="form-label-sm">Thời điểm sửa chữa đèn gần nhất
+                    (dd-MM-yyyy)</label><input type="date" class="form-control"></div>
+                <div class="col-md-4"><label class="form-label-sm">Số quyết định tăng của đèn</label><input type="text"
+                    class="form-control"></div>
+                <div class="col-md-4"><label class="form-label-sm">Ngày quyết định tăng</label><input type="date"
+                    class="form-control"></div>
+                <div class="col-md-4"><label class="form-label-sm">Hộ số (cod.docx, vis.xfsx, bzt, rar)</label><input
+                    type="file" class="form-control form-control-sm"></div>
+                <div class="col-md-4"><label class="form-label-sm">Hình ảnh (jpg, png)</label><input type="file"
+                    class="form-control form-control-sm"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-top-0 pt-0">
+          <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Hủy bỏ</button>
+          <button type="button" class="btn btn-primary-modern btn-modern" id="saveBtn" style="display: none;">Lưu Thông
+            Tin</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
+  <script src="./js/scripts.js"></script>
+  <script>
+    // Khởi tạo Flatpickr cho tất cả trường ngày
+    document.addEventListener('DOMContentLoaded', function () {
+      // Datepicker cho tất cả input[type="date"]
+      const dateInputs = document.querySelectorAll('input[type="date"]');
+      dateInputs.forEach(input => {
+        flatpickr(input, {
+          locale: 'vn',
+          dateFormat: 'd/m/Y',
+          allowInput: true,
+          enableTime: false
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,115 @@
+@{
+    ViewData["Title"] = "Test Kết Nối Database VMS_DB";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">🔍 Test Kết Nối Database VMS_DB</h1>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Trạng Thái Kết Nối</h4>
+        </div>
+        <div class="card-body">
+            <div class="alert @(ViewBag.ConnectionStatus.Contains("thành công") ? "alert-success" : "alert-danger")" role="alert">
+                <h5>@ViewBag.ConnectionStatus</h5>
+            </div>
+
+            @if (ViewBag.ErrorDetails != null)
+            {
+                <div class="alert alert-warning mt-3">
+                    <h6>Chi tiết lỗi:</h6>
+                    <pre style="white-space: pre-wrap;">@ViewBag.ErrorDetails</pre>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (ViewBag.ConnectionStatus.Contains("thành công"))
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">📊 Thống Kê Dữ Liệu</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card border-primary">
+                                    <div class="card-body text-center">
+                                        <h3 class="text-primary">@ViewBag.SoLuongTuyenLuong</h3>
+                                        <p class="mb-0">Tuyến Luồng</p>
+                                        <a href="@Url.Action("DanhSachTuyenLuong")" class="btn btn-sm btn-outline-primary mt-2">Xem danh sách</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card border-info">
+                                    <div class="card-body text-center">
+                                        <h3 class="text-info">@ViewBag.SoLuongPhao</h3>
+                                        <p class="mb-0">Phao</p>
+                                        <a href="@Url.Action("DanhSachPhao")" class="btn btn-sm btn-outline-info mt-2">Xem danh sách</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card border-warning">
+                                    <div class="card-body text-center">
+                                        <h3 class="text-warning">@ViewBag.SoLuongKho</h3>
+                                        <p class="mb-0">Kho</p>
+                                        <a href="@Url.Action("DanhSachKho")" class="btn btn-sm btn-outline-warning mt-2">Xem danh sách</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card border-success">
+                                    <div class="card-body text-center">
+                                        <h3 class="text-success">@ViewBag.SoLuongVatLieu</h3>
+                                        <p class="mb-0">Vật Liệu</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card border-danger">
+                                    <div class="card-body text-center">
+                                        <h3 class="text-danger">@ViewBag.SoLuongTaiKhoan</h3>
+                                        <p class="mb-0">Tài Khoản</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">🔗 API Test</h4>
+                </div>
+                <div class="card-body">
+                    <button id="btnGetInfo" class="btn btn-primary">Lấy Thông Tin Database (JSON)</button>
+                    <pre id="apiResult" class="mt-3 bg-light p-3" style="display:none; max-height: 400px; overflow-y: auto;"></pre>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('btnGetInfo').addEventListener('click', function() {
+            fetch('@Url.Action("GetDatabaseInfo", "TestDb")')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('apiResult').style.display = 'block';
+                    document.getElementById('apiResult').textContent = JSON.stringify(data, null, 2);
+                })
+                .catch(error => {
+                    document.getElementById('apiResult').style.display = 'block';
+                    document.getElementById('apiResult').textContent = 'Error: ' + error;
+                });
+        });
+    </script>
+}
