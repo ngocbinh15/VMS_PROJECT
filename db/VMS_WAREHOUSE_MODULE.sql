@@ -5,7 +5,7 @@ GO
 -- MODULE QUẢN LÝ KHO VẬT LIỆU + AUTHENTICATION/SESSION CHO VMS
 -- =============================================================================
 -- PHẦN DÙNG CHUNG (Warehouse + Buoy):
--- 1. VaiTro: Phân quyền 3 cấp (Admin, Giám sát, Nhân viên)
+-- 1. VaiTro: Phân quyền 2 cấp (Admin, Nhân viên)
 -- 2. TaiKhoan: Quản lý tài khoản cơ bản
 -- 3. PhienLamViec: Log phiên làm việc từ đăng nhập → đăng xuất
 -- 
@@ -316,8 +316,7 @@ INSERT INTO VaiTro
   (MaVaiTro, TenVaiTro, MoTa)
 VALUES
   (N'ADMIN', N'Quản trị viên', N'Toàn quyền: Tạo user, phân quyền, xem tất cả'),
-  (N'GIAM_SAT', N'Giám sát', N'Xem tất cả phiếu nhập xuất, báo cáo tồn kho'),
-  (N'NHAN_VIEN', N'Nhân viên kho', N'Chỉ xem và thao tác phiếu của mình');
+  (N'NHAN_VIEN', N'Nhân viên kho', N'Xem tất cả phiếu nhập xuất, báo cáo tồn kho, thao tác phiếu');
 
 -- Đơn vị tính
 INSERT INTO DonViTinh
@@ -845,7 +844,7 @@ GO
 -- =============================================================================
 CREATE PROCEDURE sp_LayLichSuPhienLamViec
   @TaiKhoanId INT = NULL,
-  -- NULL = Tất cả (chỉ Admin/Giám sát)
+  -- NULL = Tất cả (chỉ Admin)
   @TuNgay DATE = NULL,
   @DenNgay DATE = NULL
 AS
@@ -1132,8 +1131,8 @@ AS
     LEFT JOIN TaiKhoan nd ON pnx.NguoiDuyet = nd.Id;
 GO
 
--- View: Giám sát và Admin xem tất cả phiếu + thống kê
-CREATE VIEW vw_BaoCao_TatCaPhieu_GiamSat
+-- View: Nhân viên và Admin xem tất cả phiếu + thống kê
+CREATE VIEW vw_BaoCao_TatCaPhieu
 AS
   SELECT
     pnx.Id,
@@ -1198,7 +1197,7 @@ GO
 CREATE PROCEDURE sp_XemPhieu_TheoQuyen
   @TaiKhoanId INT,
   @VaiTroMa NVARCHAR(20),
-  -- 'ADMIN', 'GIAM_SAT', 'NHAN_VIEN'
+  -- 'ADMIN', 'NHAN_VIEN'
   @LoaiPhieu NVARCHAR(20) = NULL,
   -- Lọc loại phiếu
   @TuNgay DATE = NULL,
@@ -1208,23 +1207,11 @@ AS
 BEGIN
   SET NOCOUNT ON;
 
-  IF @VaiTroMa = N'NHAN_VIEN'
+  IF @VaiTroMa IN (N'NHAN_VIEN', N'ADMIN')
     BEGIN
-    -- Nhân viên chỉ xem phiếu của mình
+    -- Nhân viên và Admin xem tất cả
     SELECT *
-    FROM vw_BaoCao_PhieuTheoNhanVien
-    WHERE TaiKhoanId = @TaiKhoanId
-      AND (@LoaiPhieu IS NULL OR LoaiPhieu = @LoaiPhieu)
-      AND (@TuNgay IS NULL OR NgayPhieu >= @TuNgay)
-      AND (@DenNgay IS NULL OR NgayPhieu <= @DenNgay)
-      AND (@TrangThai IS NULL OR TrangThai = @TrangThai)
-    ORDER BY NgayPhieu DESC, MaPhieu DESC;
-  END
-  ELSE IF @VaiTroMa IN (N'GIAM_SAT', N'ADMIN')
-    BEGIN
-    -- Giám sát và Admin xem tất cả
-    SELECT *
-    FROM vw_BaoCao_TatCaPhieu_GiamSat
+    FROM vw_BaoCao_TatCaPhieu
     WHERE (@LoaiPhieu IS NULL OR LoaiPhieu = @LoaiPhieu)
       AND (@TuNgay IS NULL OR NgayPhieu >= @TuNgay)
       AND (@DenNgay IS NULL OR NgayPhieu <= @DenNgay)
@@ -1254,53 +1241,9 @@ AS
 BEGIN
   SET NOCOUNT ON;
 
-  IF @VaiTroMa = N'NHAN_VIEN'
+  IF @VaiTroMa IN (N'NHAN_VIEN', N'ADMIN')
     BEGIN
-    -- Nhân viên chỉ xem lịch sử do mình tạo
-    SELECT
-      ls.Id,
-      ls.ThoiGian,
-      vl.MaVatLieu,
-      vl.TenVatLieu,
-      nh.TenNhom AS NhomVatLieu,
-      k.MaKho,
-      k.TenKho,
-      k.LoaiKho,
-      ls.LoaiThayDoi,
-      CASE ls.LoaiThayDoi
-            WHEN N'NHAP' THEN N'Nhập kho'
-            WHEN N'XUAT' THEN N'Xuất kho'
-            WHEN N'CHUYEN_DI' THEN N'Chuyển đi'
-            WHEN N'CHUYEN_DEN' THEN N'Chuyển đến'
-            WHEN N'DIEU_CHINH' THEN N'Điều chỉnh'
-            WHEN N'KIEM_KE' THEN N'Kiểm kê'
-            ELSE ls.LoaiThayDoi
-        END AS TenLoaiThayDoi,
-      ls.SoLuongTruoc,
-      ls.SoLuongThayDoi,
-      ls.SoLuongSau,
-      kq.TenKho AS KhoLienQuan,
-      pnx.MaPhieu,
-      tk.HoTen AS NguoiThucHien,
-      ls.LyDo,
-      ls.GhiChu
-    FROM LichSuVatLieu ls
-      INNER JOIN VatLieu vl ON ls.VatLieuId = vl.Id
-      LEFT JOIN NhomVatLieu nh ON vl.NhomVatLieuId = nh.Id
-      INNER JOIN Kho k ON ls.KhoId = k.Id
-      LEFT JOIN Kho kq ON ls.KhoLienQuanId = kq.Id
-      LEFT JOIN PhieuNhapXuat pnx ON ls.PhieuNhapXuatId = pnx.Id
-      INNER JOIN TaiKhoan tk ON ls.TaiKhoanId = tk.Id
-    WHERE ls.TaiKhoanId = @TaiKhoanId
-      AND (@VatLieuId IS NULL OR ls.VatLieuId = @VatLieuId)
-      AND (@KhoId IS NULL OR ls.KhoId = @KhoId)
-      AND (@TuNgay IS NULL OR CAST(ls.ThoiGian AS DATE) >= @TuNgay)
-      AND (@DenNgay IS NULL OR CAST(ls.ThoiGian AS DATE) <= @DenNgay)
-    ORDER BY ls.ThoiGian DESC;
-  END
-  ELSE IF @VaiTroMa IN (N'GIAM_SAT', N'ADMIN')
-    BEGIN
-    -- Giám sát và Admin xem tất cả lịch sử
+    -- Nhân viên và Admin xem tất cả lịch sử
     SELECT
       ls.Id,
       ls.ThoiGian,
@@ -1573,7 +1516,7 @@ PRINT N'Module Quản lý Kho đã được tạo thành công!';
 PRINT N'=================================================================';
 PRINT N'';
 PRINT N'TÍNH NĂNG CHÍNH:';
-PRINT N'1. Phân quyền 3 cấp: Admin, Giám sát, Nhân viên';
+PRINT N'1. Phân quyền 2 cấp: Admin, Nhân viên';
 PRINT N'2. Kho Mẹ + 30 Kho Con';
 PRINT N'3. Phiếu nhập/xuất/chuyển kho với truy xuất nguồn gốc đầy đủ';
 PRINT N'4. Log phiên làm việc & lịch sử vật liệu chi tiết';
@@ -1588,7 +1531,7 @@ PRINT N'  MODULE CẤU TRÚC:';
 PRINT N'══════════════════════════════════════════════════════════════════════════════';
 PRINT N'';
 PRINT N'📦 PHẦN 1: AUTHENTICATION & SESSION (Dùng chung cho Warehouse + Buoy)';
-PRINT N'   ├─ VaiTro: ADMIN, GIAM_SAT, NHAN_VIEN';
+PRINT N'   ├─ VaiTro: ADMIN, NHAN_VIEN';
 PRINT N'   ├─ TaiKhoan: User accounts cơ bản (username, password, email, phone)';
 PRINT N'   ├─ PhienLamViec: Session tracking (IP, device, login/logout time)';
 PRINT N'   └─ SPs: sp_DangNhap, sp_DangXuat, sp_TaoTaiKhoan, sp_ThayDoiVaiTro, sp_KhoaTaiKhoan';
@@ -1624,13 +1567,13 @@ PRINT N'  - sp_BaoCao_HoatDongTheoPhien: Chi tiết hoạt động 1 phiên';
 PRINT N'';
 PRINT N'[Quản trị - Admin only, dùng chung]';
 PRINT N'  - sp_TaoTaiKhoan: Tạo tài khoản mới';
-PRINT N'  - sp_ThayDoiVaiTro: Phân quyền nhân viên ↔ giám sát';
+PRINT N'  - sp_ThayDoiVaiTro: Phân quyền nhân viên';
 PRINT N'  - sp_KhoaTaiKhoan: Khóa/Mở khóa/Xóa tài khoản';
 PRINT N'';
 PRINT N'VIEWS - Warehouse only:';
 PRINT N'  - vw_TonKho_TheoKhoCon: Tồn kho từng kho con';
 PRINT N'  - vw_TonKho_TongHop: Tổng hợp tồn kho tất cả kho';
 PRINT N'  - vw_BaoCao_PhieuTheoNhanVien: Phiếu của nhân viên';
-PRINT N'  - vw_BaoCao_TatCaPhieu_GiamSat: Tất cả phiếu (Giám sát/Admin)';
+PRINT N'  - vw_BaoCao_TatCaPhieu: Tất cả phiếu (Nhân viên/Admin)';
 PRINT N'=================================================================';
 GO

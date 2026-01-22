@@ -10,6 +10,18 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
+// ✅ THÊM 2: Cấu hình Session cho Authentication
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(2); // Session timeout 2 giờ
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.Name = ".VMS.Session";
+});
+
+// ✅ THÊM 3: HttpContextAccessor để truy cập Session
+builder.Services.AddHttpContextAccessor();
+
 // ✅ GIỮ NGUYÊN: cấu hình LAN
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -31,10 +43,13 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+// ✅ THÊM 4: Sử dụng Session
+app.UseSession();
+
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Login}/{action=Index}/{id?}");
 
 app.Run();

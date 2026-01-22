@@ -1,0 +1,145 @@
+@{
+    ViewData["Title"] = "Dashboard - Quản Trị Viên";
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+        .navbar-custom {
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .card-dashboard {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+        .card-dashboard:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        .icon-box {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="#">
+                <i class="bi bi-shield-check me-2"></i>VMS - ADMIN
+            </a>
+            <div class="d-flex align-items-center text-white">
+                <i class="bi bi-person-circle me-2"></i>
+                <span class="me-3">@ViewBag.FullName (@ViewBag.Role)</span>
+                <a href="@Url.Action("Logout", "Login")" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-box-arrow-right me-1"></i>Đăng xuất
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h2 class="mb-4 fw-bold">
+            <i class="bi bi-speedometer2 me-2 text-primary"></i>
+            Dashboard Quản Trị Viên
+        </h2>
+        
+        <div class="row g-4">
+            <!-- Card Quản lý Phao -->
+            <div class="col-md-6">
+                <div class="card card-dashboard">
+                    <div class="card-body p-4">
+                        <div class="icon-box bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-droplet-fill"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">Quản Lý Phao</h4>
+                        <p class="text-muted mb-3">
+                            Quản lý phao báo hiệu, tuyến luồng, và vị trí phao
+                        </p>
+                        <a href="@Url.Action("Dashboard", "Phao")" class="btn btn-primary">
+                            <i class="bi bi-arrow-right-circle me-2"></i>Truy cập
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Quản lý Kho -->
+            <div class="col-md-6">
+                <div class="card card-dashboard">
+                    <div class="card-body p-4">
+                        <div class="icon-box bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-box-seam-fill"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">Quản Lý Kho</h4>
+                        <p class="text-muted mb-3">
+                            Quản lý vật liệu, tồn kho, nhập xuất kho
+                        </p>
+                        <a href="@Url.Action("Dashboard", "Kho")" class="btn btn-success">
+                            <i class="bi bi-arrow-right-circle me-2"></i>Truy cập
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Quản lý Tài khoản -->
+            <div class="col-md-6">
+                <div class="card card-dashboard">
+                    <div class="card-body p-4">
+                        <div class="icon-box bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">Quản Lý Tài Khoản</h4>
+                        <p class="text-muted mb-3">
+                            Quản lý người dùng, vai trò, phân quyền
+                        </p>
+                        <a href="#" class="btn btn-warning text-white">
+                            <i class="bi bi-arrow-right-circle me-2"></i>Truy cập
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Báo cáo -->
+            <div class="col-md-6">
+                <div class="card card-dashboard">
+                    <div class="card-body p-4">
+                        <div class="icon-box bg-info bg-opacity-10 text-info">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                        <h4 class="fw-bold mb-2">Báo Cáo & Thống Kê</h4>
+                        <p class="text-muted mb-3">
+                            Xem báo cáo, thống kê và phân tích dữ liệu
+                        </p>
+                        <a href="#" class="btn btn-info text-white">
+                            <i class="bi bi-arrow-right-circle me-2"></i>Truy cập
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

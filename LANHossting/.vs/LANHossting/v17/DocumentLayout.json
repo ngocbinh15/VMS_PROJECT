@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|f:\\soure_code\\aavms_project\\lanhossting\\views\\login\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|solutionrelative:views\\login\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|f:\\soure_code\\aavms_project\\lanhossting\\views\\testdb\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|solutionrelative:views\\testdb\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
@@ -37,11 +41,24 @@
       "DocumentGroups": [
         {
           "DockedHeight": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\Login\\Index.cshtml",
+              "RelativeDocumentMoniker": "Views\\Login\\Index.cshtml",
+              "ToolTip": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\Login\\Index.cshtml",
+              "RelativeToolTip": "Views\\Login\\Index.cshtml",
+              "ViewState": "AgIAAL0AAAAAAAAAAAAAAMYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-01-19T16:08:32.914Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "appsettings.Development.json",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\appsettings.Development.json",
               "RelativeDocumentMoniker": "appsettings.Development.json",
@@ -53,7 +70,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "DanhSachPhao.cshtml",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\TestDb\\DanhSachPhao.cshtml",
               "RelativeDocumentMoniker": "Views\\TestDb\\DanhSachPhao.cshtml",
@@ -65,7 +82,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "Microsoft.NET.Sdk.DefaultItems.Shared.targets",
               "DocumentMoniker": "C:\\Program Files\\dotnet\\sdk\\9.0.306\\Sdks\\Microsoft.NET.Sdk\\targets\\Microsoft.NET.Sdk.DefaultItems.Shared.targets",
               "ToolTip": "C:\\Program Files\\dotnet\\sdk\\9.0.306\\Sdks\\Microsoft.NET.Sdk\\targets\\Microsoft.NET.Sdk.DefaultItems.Shared.targets",
@@ -75,7 +92,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "DanhSachTuyenLuong.cshtml",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\TestDb\\DanhSachTuyenLuong.cshtml",
               "RelativeDocumentMoniker": "Views\\TestDb\\DanhSachTuyenLuong.cshtml",
@@ -87,20 +104,19 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "Index.cshtml",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\TestDb\\Index.cshtml",
               "RelativeDocumentMoniker": "Views\\TestDb\\Index.cshtml",
               "ToolTip": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\TestDb\\Index.cshtml",
               "RelativeToolTip": "Views\\TestDb\\Index.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAA0AAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-01-16T15:35:20.162Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-16T15:35:20.162Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "appsettings.json",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\appsettings.json",
               "RelativeDocumentMoniker": "appsettings.json",
@@ -112,7 +128,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "Program.cs",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",

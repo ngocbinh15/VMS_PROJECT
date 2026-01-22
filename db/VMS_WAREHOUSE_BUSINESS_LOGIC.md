@@ -128,7 +128,7 @@ Module quản lý kho vật liệu được thiết kế để:
 
 | Bảng           | Mục đích                                          | Ghi chú                          |
 | -------------- | ------------------------------------------------- | -------------------------------- |
-| `VaiTro`       | Định nghĩa 3 vai trò: ADMIN, GIAM_SAT, NHAN_VIEN  | Master data                      |
+| `VaiTro`       | Định nghĩa 2 vai trò: ADMIN, NHAN_VIEN  | Master data                      |
 | `TaiKhoan`     | Thông tin người dùng, mật khẩu (hash), trạng thái | Self-referencing FK cho NguoiTao |
 | `PhienLamViec` | Session tracking từ đăng nhập → đăng xuất         | Lưu IP, thiết bị                 |
 
@@ -191,19 +191,6 @@ ThanhTien AS (SoLuong * DonGia) PERSISTED
 
 ✗ KHÔNG thể tự khóa tài khoản mình
 ✗ KHÔNG thể tự thay đổi vai trò mình
-```
-
-#### **GIAM_SAT (Giám sát)**
-
-```sql
-✓ Xem tất cả phiếu nhập/xuất/chuyển kho
-✓ Xem lịch sử thao tác của tất cả nhân viên
-✓ Xem tồn kho toàn hệ thống
-✓ Duyệt phiếu (nếu cấu hình workflow)
-✓ Báo cáo tổng hợp (vw_BaoCao_TatCaPhieu_GiamSat)
-
-✗ KHÔNG thể tạo/xóa/khóa tài khoản
-✗ KHÔNG thể phân quyền
 ```
 
 #### **NHAN_VIEN (Nhân viên kho)**
@@ -588,7 +575,7 @@ Xích phao 10mm - Kho_01
 2026-01-10 09:00:00 | NHAP      | 0 → +100 → 100kg  | PN2026000050 | NV_A
 2026-01-12 14:30:00 | XUAT      | 100 → -20 → 80kg  | PX2026000075 | NV_B
 2026-01-13 10:15:00 | CHUYEN_DI | 80 → -30 → 50kg   | PCK2026000012 | NV_A
-2026-01-15 08:20:00 | DIEU_CHINH| 50 → +5 → 55kg    | (Kiểm kê)     | GIAM_SAT_1
+2026-01-15 08:20:00 | DIEU_CHINH| 50 → +5 → 55kg    | (Kiểm kê)     | NV_C
 ```
 
 ### 7.3 Phân quyền xem Audit Log

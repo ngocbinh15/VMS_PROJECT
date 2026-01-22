@@ -170,3 +170,4 @@ F:\Soure_Code\AAVMS_Project\LANHossting\obj\Debug\net8.0\refint\LANHossting.dll
 F:\Soure_Code\AAVMS_Project\LANHossting\obj\Debug\net8.0\LANHossting.pdb
 F:\Soure_Code\AAVMS_Project\LANHossting\obj\Debug\net8.0\LANHossting.genruntimeconfig.cache
 F:\Soure_Code\AAVMS_Project\LANHossting\obj\Debug\net8.0\ref\LANHossting.dll
+F:\Soure_Code\AAVMS_Project\LANHossting\obj\Debug\net8.0\LANHossting.sourcelink.json
