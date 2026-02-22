@@ -123,25 +123,29 @@ namespace LANHossting.Models
 
         public int? KhoMeId { get; set; }
 
-        [MaxLength(200)]
         public string? DiaChi { get; set; }
 
-        [MaxLength(100)]
-        public string? NguoiQuanLy { get; set; }
+        public int? NguoiPhuTrach { get; set; }
 
-        [MaxLength(20)]
-        public string? SoDienThoai { get; set; }
+        [Column(TypeName = "decimal(10, 2)")]
+        public decimal? DienTich { get; set; }
+
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal? SucChua { get; set; }
 
         [MaxLength(50)]
         public string TrangThai { get; set; } = "Hoạt động";
 
-        public DateTime NgayTao { get; set; } = DateTime.Now;
+        public string? MoTa { get; set; }
 
-        public DateTime? NgayCapNhat { get; set; }
+        public DateTime NgayTao { get; set; } = DateTime.Now;
 
         // Navigation properties
         [ForeignKey("KhoMeId")]
         public virtual Kho? KhoMe { get; set; }
+
+        [ForeignKey("NguoiPhuTrach")]
+        public virtual TaiKhoan? NguoiPhuTrachNavigation { get; set; }
         
         public virtual ICollection<Kho> KhoConList { get; set; } = new List<Kho>();
         public virtual ICollection<TonKho> TonKhoList { get; set; } = new List<TonKho>();
@@ -209,6 +213,9 @@ namespace LANHossting.Models
         public string TenVatLieu { get; set; } = string.Empty;
 
         public int? NhomVatLieuId { get; set; }
+
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal DonGia { get; set; } = 0;
 
         [Required]
         public int DonViTinhId { get; set; }
@@ -401,37 +408,54 @@ namespace LANHossting.Models
         public int VatLieuId { get; set; }
 
         [Required]
-        public int PhieuNhapXuatId { get; set; }
+        public int KhoId { get; set; }
 
-        public DateTime ThoiGian { get; set; } = DateTime.Now;
+        public int? PhieuNhapXuatId { get; set; }
 
         [Required]
-        [MaxLength(20)]
-        public string HanhDong { get; set; } = string.Empty; // NHAP, XUAT, CHUYEN
+        public int PhienLamViecId { get; set; }
+
+        [Required]
+        public int TaiKhoanId { get; set; }
+
+        [Required]
+        [MaxLength(50)]
+        public string LoaiThayDoi { get; set; } = string.Empty;
 
         [Column(TypeName = "decimal(18, 3)")]
-        public decimal SoLuong { get; set; }
+        public decimal? SoLuongTruoc { get; set; }
 
-        [Column(TypeName = "decimal(18, 2)")]
-        public decimal? DonGia { get; set; }
+        [Column(TypeName = "decimal(18, 3)")]
+        public decimal? SoLuongThayDoi { get; set; }
 
-        public int? KhoId { get; set; }
+        [Column(TypeName = "decimal(18, 3)")]
+        public decimal? SoLuongSau { get; set; }
 
-        public int? NguoiThucHienId { get; set; }
+        public int? KhoLienQuanId { get; set; }
+
+        public string? LyDo { get; set; }
 
         public string? GhiChu { get; set; }
+
+        public DateTime ThoiGian { get; set; } = DateTime.Now;
 
         // Navigation properties
         [ForeignKey("VatLieuId")]
         public virtual VatLieu? VatLieu { get; set; }
 
-        [ForeignKey("PhieuNhapXuatId")]
-        public virtual PhieuNhapXuat? PhieuNhapXuat { get; set; }
-
         [ForeignKey("KhoId")]
         public virtual Kho? Kho { get; set; }
 
-        [ForeignKey("NguoiThucHienId")]
-        public virtual TaiKhoan? NguoiThucHien { get; set; }
+        [ForeignKey("PhieuNhapXuatId")]
+        public virtual PhieuNhapXuat? PhieuNhapXuat { get; set; }
+
+        [ForeignKey("PhienLamViecId")]
+        public virtual PhienLamViec? PhienLamViec { get; set; }
+
+        [ForeignKey("TaiKhoanId")]
+        public virtual TaiKhoan? TaiKhoan { get; set; }
+
+        [ForeignKey("KhoLienQuanId")]
+        public virtual Kho? KhoLienQuan { get; set; }
     }
 }

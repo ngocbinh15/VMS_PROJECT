@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|f:\\soure_code\\aavms_project\\lanhossting\\views\\testdb\\danhsachkho.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|solutionrelative:views\\testdb\\danhsachkho.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|f:\\soure_code\\aavms_project\\lanhossting\\controllers\\khoapicontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|solutionrelative:controllers\\khoapicontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -50,19 +54,32 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "DanhSachKho.cshtml",
+              "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\TestDb\\DanhSachKho.cshtml",
+              "RelativeDocumentMoniker": "Views\\TestDb\\DanhSachKho.cshtml",
+              "ToolTip": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\TestDb\\DanhSachKho.cshtml*",
+              "RelativeToolTip": "Views\\TestDb\\DanhSachKho.cshtml*",
+              "ViewState": "AgIAAB0AAAAAAAAAAAAhwC8AAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-02-22T19:06:35.971Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "KhoAPIController.cs",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Controllers\\KhoAPIController.cs",
               "RelativeDocumentMoniker": "Controllers\\KhoAPIController.cs",
               "ToolTip": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Controllers\\KhoAPIController.cs",
               "RelativeToolTip": "Controllers\\KhoAPIController.cs",
-              "ViewState": "AgIAAMgBAAAAAAAAAAAAAM0BAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAC4AAAAAAAAAAAAUwDMAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-28T16:34:07.787Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Index.cshtml",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\Login\\Index.cshtml",
               "RelativeDocumentMoniker": "Views\\Login\\Index.cshtml",
@@ -74,7 +91,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "appsettings.Development.json",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\appsettings.Development.json",
               "RelativeDocumentMoniker": "appsettings.Development.json",
@@ -86,7 +103,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "DanhSachPhao.cshtml",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\TestDb\\DanhSachPhao.cshtml",
               "RelativeDocumentMoniker": "Views\\TestDb\\DanhSachPhao.cshtml",
@@ -98,7 +115,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "Microsoft.NET.Sdk.DefaultItems.Shared.targets",
               "DocumentMoniker": "C:\\Program Files\\dotnet\\sdk\\9.0.306\\Sdks\\Microsoft.NET.Sdk\\targets\\Microsoft.NET.Sdk.DefaultItems.Shared.targets",
               "ToolTip": "C:\\Program Files\\dotnet\\sdk\\9.0.306\\Sdks\\Microsoft.NET.Sdk\\targets\\Microsoft.NET.Sdk.DefaultItems.Shared.targets",
@@ -108,7 +125,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "DanhSachTuyenLuong.cshtml",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\TestDb\\DanhSachTuyenLuong.cshtml",
               "RelativeDocumentMoniker": "Views\\TestDb\\DanhSachTuyenLuong.cshtml",
@@ -120,7 +137,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "Index.cshtml",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\TestDb\\Index.cshtml",
               "RelativeDocumentMoniker": "Views\\TestDb\\Index.cshtml",
@@ -132,7 +149,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "appsettings.json",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\appsettings.json",
               "RelativeDocumentMoniker": "appsettings.json",
@@ -144,7 +161,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "Program.cs",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",

@@ -113,6 +113,55 @@ namespace LANHossting.Data
                 .WithMany(d => d.VatLieuList)
                 .HasForeignKey(v => v.DonViTinhId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Kho -> NguoiPhuTrach (TaiKhoan)
+            modelBuilder.Entity<Kho>()
+                .HasOne(k => k.NguoiPhuTrachNavigation)
+                .WithMany()
+                .HasForeignKey(k => k.NguoiPhuTrach)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // LichSuVatLieu -> VatLieu
+            modelBuilder.Entity<LichSuVatLieu>()
+                .HasOne(l => l.VatLieu)
+                .WithMany()
+                .HasForeignKey(l => l.VatLieuId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // LichSuVatLieu -> Kho
+            modelBuilder.Entity<LichSuVatLieu>()
+                .HasOne(l => l.Kho)
+                .WithMany()
+                .HasForeignKey(l => l.KhoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // LichSuVatLieu -> KhoLienQuan
+            modelBuilder.Entity<LichSuVatLieu>()
+                .HasOne(l => l.KhoLienQuan)
+                .WithMany()
+                .HasForeignKey(l => l.KhoLienQuanId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // LichSuVatLieu -> TaiKhoan
+            modelBuilder.Entity<LichSuVatLieu>()
+                .HasOne(l => l.TaiKhoan)
+                .WithMany()
+                .HasForeignKey(l => l.TaiKhoanId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // LichSuVatLieu -> PhienLamViec
+            modelBuilder.Entity<LichSuVatLieu>()
+                .HasOne(l => l.PhienLamViec)
+                .WithMany()
+                .HasForeignKey(l => l.PhienLamViecId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // LichSuVatLieu -> PhieuNhapXuat
+            modelBuilder.Entity<LichSuVatLieu>()
+                .HasOne(l => l.PhieuNhapXuat)
+                .WithMany()
+                .HasForeignKey(l => l.PhieuNhapXuatId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

@@ -1,14 +1,23 @@
 ﻿using LANHossting.Data;
+using LANHossting.Application.Interfaces;
+using LANHossting.Application.Services;
+using LANHossting.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ THÊM 1: đăng ký DbContext
+// DbContext with EF logging
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")
     )
+    .LogTo(Console.WriteLine, LogLevel.Information)
+    .EnableSensitiveDataLogging(builder.Environment.IsDevelopment())
 );
+
+// Clean Architecture DI
+builder.Services.AddScoped<ITonKhoRepository, TonKhoRepository>();
+builder.Services.AddScoped<ITonKhoService, TonKhoService>();
 
 // ✅ THÊM 2: Cấu hình Session cho Authentication
 builder.Services.AddSession(options =>
