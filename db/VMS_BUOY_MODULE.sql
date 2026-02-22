@@ -9,8 +9,8 @@
 --              position validation, and historical tracking
 -- =============================================
 
-USE VMS_DB;
-GO
+-- USE VMS_DB;
+-- GO
 
 -- =============================================
 -- SECTION 1: DANH MỤC (DICTIONARIES)

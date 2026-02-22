@@ -418,7 +418,7 @@
       const whName = document.getElementById('currentWarehouse').options[document.getElementById('currentWarehouse').selectedIndex].text;
       const date = new Date();
       const dateStr = `Ngày ${date.getDate()} tháng ${date.getMonth() + 1} năm ${date.getFullYear()}`;
-
+200
       const startRow = 7;
       const endRow = startRow + mockData.length - 1;
 

@@ -1,1 +1,122 @@
-[]
+[
+  {
+    "ContainingType": "LANHossting.Controllers.KhoAPIController",
+    "Method": "GetDanhSachKho",
+    "RelativePath": "api/kho/danhsachkho",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.KhoAPIController",
+    "Method": "GetDonViTinh",
+    "RelativePath": "api/kho/donvitinh",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.KhoAPIController",
+    "Method": "ExportExcel",
+    "RelativePath": "api/kho/export",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "khoId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.KhoAPIController",
+    "Method": "LuuGiaoDich",
+    "RelativePath": "api/kho/giaodich",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "LANHossting.Controllers.GiaoDichRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.KhoAPIController",
+    "Method": "GetLichSu",
+    "RelativePath": "api/kho/lichsu",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "khoId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.KhoAPIController",
+    "Method": "GetNhomVatLieu",
+    "RelativePath": "api/kho/nhomvatlieu",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.KhoAPIController",
+    "Method": "ThemVatLieu",
+    "RelativePath": "api/kho/themvatlieu",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "LANHossting.Controllers.VatLieuRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.KhoAPIController",
+    "Method": "GetTonKho",
+    "RelativePath": "api/kho/tonkho",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "khoId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.KhoAPIController",
+    "Method": "GetVatLieu",
+    "RelativePath": "api/kho/vatlieu",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  }
+]

@@ -1,121 +1,1211 @@
 @{
-    ViewData["Title"] = "Dashboard - Quản Lý Kho";
+    ViewData["Title"] = "Quản Lý Kho";
+    Layout = null;
 }
 
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"]</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a0ca3;
+            --secondary: #4cc9f0;
+            --success: #10b981;
+            --danger: #ef476f;
+            --warning: #f59e0b;
+            --border-radius: 16px;
+            --card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+        }
+
         body {
-            background: linear-gradient(135deg, #f8fafc 0%, #d1fae5 100%);
-            min-height: 100vh;
             font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            color: #334155;
+            padding-top: 80px;
+            overflow-x: hidden;
         }
-        .navbar-custom {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
         }
-        .card-dashboard {
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            padding: 12px 0;
+        }
+
+        .brand-gradient {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--border-radius);
             border: none;
-            border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            transition: transform 0.3s ease;
+            padding: 24px;
+            box-shadow: var(--card-shadow);
+            transition: 0.3s ease;
         }
-        .card-dashboard:hover {
+
+        .stat-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
-        .icon-box {
-            width: 64px;
-            height: 64px;
+
+        .stat-icon-wrapper {
+            width: 50px;
+            height: 50px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
+            font-size: 1.5rem;
             margin-bottom: 16px;
+        }
+
+        .table-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            border: none;
+            overflow: hidden;
+        }
+
+        .table-custom thead th {
+            background: #f8fafc;
+            color: #64748b;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .table-custom td {
+            padding: 16px 20px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .currency-num {
+            font-feature-settings: "tnum";
+            font-weight: 600;
+        }
+
+        .badge-modern {
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .btn-primary-modern {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: none;
+            color: white;
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-weight: 600;
+            box-shadow: 0 4px 6px -1px rgba(67, 97, 238, 0.4);
+            transition: 0.2s;
+        }
+
+        .btn-primary-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(67, 97, 238, 0.5);
+        }
+
+        .btn-outline-modern {
+            background: white;
+            border: 2px solid #e2e8f0;
+            color: #475569;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .btn-outline-modern:hover {
+            border-color: var(--success);
+            color: var(--success);
+            background: #ecfdf5;
+        }
+
+        .search-input-modern {
+            background: #f1f5f9;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 16px 12px 45px;
+        }
+
+        .search-input-modern:focus {
+            background: white;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+
+        .action-btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            background: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-action.active-import {
+            background: #ecfdf5;
+            border-color: #10b981;
+            color: #059669;
+        }
+
+        .btn-action.active-export {
+            background: #fef2f2;
+            border-color: #ef476f;
+            color: #be123c;
+        }
+
+        .btn-action.active-transfer {
+            background: #fffbeb;
+            border-color: #f59e0b;
+            color: #b45309;
+        }
+
+        .search-results-dropdown {
+            position: absolute;
+            top: 105%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            z-index: 1050;
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-item {
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-item:hover {
+            background-color: #f1f5f9;
+        }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
         }
     </style>
 </head>
+
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
-        <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="#">
-                <i class="bi bi-box-seam me-2"></i>VMS - Quản Lý Kho
-            </a>
-            <div class="d-flex align-items-center text-white">
-                <i class="bi bi-person-circle me-2"></i>
-                <span class="me-3">@ViewBag.FullName (@ViewBag.Role)</span>
-                <a href="@Url.Action("Logout", "Login")" class="btn btn-outline-light btn-sm">
-                    <i class="bi bi-box-arrow-right me-1"></i>Đăng xuất
-                </a>
+    <nav class="navbar navbar-expand-lg fixed-top glass-nav">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand brand-gradient fs-4" href="#">VMS Warehouse</a>
+            <div class="d-flex gap-3 align-items-center">
+                <div class="dropdown">
+                    <select class="form-select form-select-sm rounded-pill bg-light border-0 fw-semibold" id="warehouseSelector" onchange="switchWarehouse()">
+                        <option value="">-- Chọn Kho --</option>
+                    </select>
+                </div>
+                <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold" onclick="showHistory()">
+                    <i class="bi bi-clock-history me-1"></i>Nhật Ký
+                </button>
+                <button class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold" onclick="logout()">
+                    <i class="bi bi-box-arrow-right me-1"></i>Đăng Xuất
+                </button>
             </div>
         </div>
     </nav>
 
-    <div class="container mt-5">
-        <h2 class="mb-4 fw-bold">
-            <i class="bi bi-speedometer2 me-2 text-success"></i>
-            Dashboard Quản Lý Kho
-        </h2>
-        
-        <div class="row g-4">
-            <!-- Card Quản lý Vật liệu -->
+    <div class="container-fluid px-4 py-4">
+        <div class="row g-3 mb-4">
             <div class="col-md-4">
-                <div class="card card-dashboard">
-                    <div class="card-body p-4">
-                        <div class="icon-box bg-success bg-opacity-10 text-success">
-                            <i class="bi bi-box"></i>
-                        </div>
-                        <h5 class="fw-bold mb-2">Vật Liệu</h5>
-                        <p class="text-muted mb-3">Danh mục vật liệu</p>
-                        <a href="#" class="btn btn-success btn-sm">
-                            <i class="bi bi-arrow-right me-1"></i>Xem
-                        </a>
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-archive-fill"></i>
                     </div>
+                    <h6 class="text-uppercase text-muted small mb-1">Tổng Vật Tư</h6>
+                    <h2 class="fw-bold mb-0" id="totalItems">0</h2>
                 </div>
             </div>
-
-            <!-- Card Tồn kho -->
             <div class="col-md-4">
-                <div class="card card-dashboard">
-                    <div class="card-body p-4">
-                        <div class="icon-box bg-primary bg-opacity-10 text-primary">
-                            <i class="bi bi-clipboard-data"></i>
-                        </div>
-                        <h5 class="fw-bold mb-2">Tồn Kho</h5>
-                        <p class="text-muted mb-3">Theo dõi tồn kho</p>
-                        <a href="#" class="btn btn-primary btn-sm">
-                            <i class="bi bi-arrow-right me-1"></i>Xem
-                        </a>
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-stack"></i>
                     </div>
+                    <h6 class="text-uppercase text-muted small mb-1">Tổng Tồn Kho</h6>
+                    <h2 class="fw-bold mb-0 currency-num" id="totalStock">0</h2>
                 </div>
             </div>
-
-            <!-- Card Nhập xuất -->
             <div class="col-md-4">
-                <div class="card card-dashboard">
-                    <div class="card-body p-4">
-                        <div class="icon-box bg-warning bg-opacity-10 text-warning">
-                            <i class="bi bi-arrow-left-right"></i>
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-cash-coin"></i>
+                    </div>
+                    <h6 class="text-uppercase text-muted small mb-1">Tổng Thành Tiền</h6>
+                    <h2 class="fw-bold mb-0 currency-num" id="totalValue">0</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="table-card">
+                    <div class="p-4 border-bottom bg-white">
+                        <div class="row align-items-center">
+                            <div class="col-lg-6 mb-3 mb-lg-0">
+                                <div class="position-relative">
+                                    <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                                    <input type="text" class="form-control search-input-modern" id="searchInput" placeholder="Tìm kiếm vật tư theo mã hoặc tên..." oninput="searchMaterial()">
+                                    <div class="search-results-dropdown" id="searchResults"></div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 d-flex gap-2 justify-content-lg-end">
+                                <button class="btn btn-outline-modern" data-bs-toggle="modal" data-bs-target="#addMaterialModal">
+                                    <i class="bi bi-plus-circle me-2"></i>Thêm Vật Tư
+                                </button>
+                                <button class="btn btn-primary-modern" onclick="exportReport()">
+                                    <i class="bi bi-file-earmark-excel me-2"></i>Xuất Excel
+                                </button>
+                            </div>
                         </div>
-                        <h5 class="fw-bold mb-2">Nhập/Xuất</h5>
-                        <p class="text-muted mb-3">Phiếu nhập xuất</p>
-                        <a href="#" class="btn btn-warning btn-sm text-white">
-                            <i class="bi bi-arrow-right me-1"></i>Xem
-                        </a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-custom mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4 text-center" style="width:50px">#</th>
+                                    <th>Mã Vật Tư</th>
+                                    <th>Tên Vật Tư</th>
+                                    <th>ĐVT</th>
+                                    <th class="text-end">Đơn Giá</th>
+                                    <th class="text-center">Tồn Kho</th>
+                                    <th class="text-end pe-4">Thành Tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody id="materialTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="p-4 border-top bg-light d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">Hiển thị <span id="displayCount">0</span> vật tư</span>
+                        <div id="pagination" class="d-flex gap-1"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="modal fade" id="actionModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 bg-light px-4 pt-4 pb-3">
+                    <div>
+                        <h5 class="fw-bold mb-1">Giao Dịch Vật Tư</h5>
+                        <small class="text-muted" id="modalWarehouseName">Chưa chọn kho</small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 py-3">
+                    <div class="action-btn-group mb-4">
+                        <button class="btn-action" onclick="selectAction('NHAP')">
+                            <i class="bi bi-box-arrow-in-down fs-2 mb-2"></i>
+                            <span class="small">NHẬP KHO</span>
+                        </button>
+                        <button class="btn-action" onclick="selectAction('XUAT')">
+                            <i class="bi bi-box-arrow-up fs-2 mb-2"></i>
+                            <span class="small">XUẤT KHO</span>
+                        </button>
+                        <button class="btn-action" onclick="selectAction('DIEUCHUYEN')">
+                            <i class="bi bi-arrow-left-right fs-2 mb-2"></i>
+                            <span class="small">ĐIỀU CHUYỂN</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Kho đích (cho điều chuyển) -->
+                    <div id="transferWarehouseSection" class="mb-3 d-none">
+                        <label class="small fw-bold text-muted mb-2">KHO ĐÍCH (Điều Chuyển Đến)</label>
+                        <select class="form-select" id="transferToWarehouse">
+                            <option value="">-- Chọn kho đích --</option>
+                        </select>
+                    </div>
+
+                    <!-- Form nhập thông tin -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="small fw-bold text-muted mb-2">VẬT TƯ <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="materialSearch" placeholder="Tìm và chọn vật tư..." readonly onclick="this.removeAttribute('readonly'); this.select();" oninput="searchMaterialInModal()">
+                            <input type="hidden" id="selectedMaterialId">
+                            <div class="search-results-dropdown" id="modalSearchResults" style="position:relative;"></div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="small fw-bold text-muted mb-2">SỐ LƯỢNG <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="quantityInput" min="0.001" step="0.001" value="1">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="small fw-bold text-muted mb-2">ĐƠN GIÁ</label>
+                            <input type="number" class="form-control" id="donGiaInput" min="0" step="0.01" value="0" placeholder="0">
+                        </div>
+                    </div>
+                    
+                    <!-- Thông tin bổ sung (chỉ hiện khi NHẬP) -->
+                    <div id="nhapKhoExtraFields" class="d-none">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="small fw-bold text-muted mb-2">SỐ LÔ</label>
+                                <input type="text" class="form-control" id="soLoInput" placeholder="VD: LOT2026-001">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small fw-bold text-muted mb-2">NGÀY SẢN XUẤT</label>
+                                <input type="date" class="form-control" id="ngaySanXuatInput">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small fw-bold text-muted mb-2">NGÀY HẾT HẠN</label>
+                                <input type="date" class="form-control" id="ngayHetHanInput">
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="small fw-bold text-muted mb-2">VỊ TRÍ TRONG KHO</label>
+                                <input type="text" class="form-control" id="viTriInput" placeholder="VD: Kệ A - Tầng 1">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small fw-bold text-muted mb-2">TÌNH TRẠNG</label>
+                                <select class="form-select" id="tinhTrangInput">
+                                    <option value="Tốt">Tốt</option>
+                                    <option value="Hỏng">Hỏng</option>
+                                    <option value="Cần bảo trì">Cần bảo trì</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="small fw-bold text-muted mb-2">NHÀ CUNG CẤP</label>
+                                <input type="text" class="form-control" id="nhaCungCapInput" placeholder="Tên nhà cung cấp">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2 mb-3">
+                        <input type="text" class="form-control" id="noteInput" placeholder="Ghi chú (tuỳ chọn)">
+                        <button class="btn btn-primary fw-bold px-4" onclick="commitAction()">
+                            <i class="bi bi-plus-lg me-1"></i>Thêm
+                        </button>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0">Danh Sách Dự Thảo</h6>
+                        <span class="badge bg-primary rounded-pill" id="draftCount">0 mục</span>
+                    </div>
+                    <div class="position-relative" style="min-height: 200px;">
+                        <div class="table-responsive" id="draftTableContainer" style="max-height: 250px; overflow-y: auto;">
+                            <table class="table table-sm mb-0 align-middle">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th class="ps-3">Vật Tư</th>
+                                        <th class="text-center">Hành động</th>
+                                        <th class="text-end">Số lượng</th>
+                                        <th class="text-end">Đơn giá</th>
+                                        <th class="text-end">Thành tiền</th>
+                                        <th class="text-end pe-3">Xoá</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sessionListBody" class="border-top-0"></tbody>
+                            </table>
+                            <div id="emptyState" class="d-flex flex-column align-items-center justify-content-center text-muted p-4 h-100 w-100 position-absolute top-0 start-0 bg-white" style="z-index: 5;">
+                                <div class="bg-light rounded-circle p-3 mb-2"><i class="bi bi-basket2 fs-1 opacity-25"></i></div>
+                                <small class="fw-semibold">Chưa có giao dịch nào</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tổng cộng -->
+                    <div id="draftSummary" class="bg-light rounded-3 p-3 mt-3 d-none">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <small class="text-muted d-block">Tổng số dòng</small>
+                                <strong id="summaryCount">0</strong>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted d-block">Tổng số lượng</small>
+                                <strong id="summaryQty">0</strong>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted d-block">Tổng thành tiền</small>
+                                <strong class="text-primary" id="summaryTotal">0 đ</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-3 fw-bold" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-dark rounded-3 fw-bold px-4" onclick="finishAndSave()">
+                        <i class="bi bi-check-lg me-1"></i>Hoàn Tất
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="historyModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 bg-light">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2"></i>Nhật Ký Giao Dịch</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th class="ps-4">Tên Phiếu (Log)</th>
+                                    <th>Kho thực hiện</th>
+                                    <th class="text-end pe-4">Chi tiết</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="emptyHistoryMsg" class="text-center text-muted py-5 d-none">Chưa có nhật ký nào</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="transactionDetailModal" tabindex="-1" style="z-index: 1060;">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow rounded-4">
+                <div class="modal-header bg-primary text-white border-0">
+                    <div>
+                        <h6 class="modal-title fw-bold mb-0" id="detailModalTitle">Chi Tiết Phiếu</h6>
+                        <small id="detailModalSubtitle" class="opacity-75">...</small>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="table-responsive no-scrollbar" style="max-height: 400px;">
+                        <table class="table table-striped mb-0 align-middle">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th class="ps-4">Vật Tư</th>
+                                    <th class="text-center">Hành động</th>
+                                    <th class="text-end pe-4">Số lượng</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detailTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 py-2">
+                    <button type="button" class="btn btn-sm btn-secondary fw-bold" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addMaterialModal" tabindex="-1" style="z-index: 1070;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-primary text-white border-0">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>Thêm Vật Tư Mới</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted text-uppercase mb-1">Mã Vật Tư</label>
+                        <input type="text" class="form-control fw-bold" id="newMatCode" placeholder="Nhập mã (VD: VT001)...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="small fw-bold text-muted text-uppercase mb-1">Tên Vật Tư</label>
+                        <input type="text" class="form-control" id="newMatName" placeholder="Nhập tên vật tư...">
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="small fw-bold text-muted mb-1">Nhóm Vật Liệu</label>
+                            <select class="form-select" id="newMatGroup">
+                                <option value="">-- Chọn nhóm --</option>
+                            </select>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="small fw-bold text-muted mb-1">Đơn Vị Tính</label>
+                            <select class="form-select" id="newMatUnit">
+                                <option value="">-- Chọn ĐVT --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary fw-bold" onclick="saveNewMaterial()">Lưu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // GLOBAL STATE
+        let currentWarehouseId = null;
+        let currentAction = null;
+        let draftTransactions = [];
+        let allMaterials = [];
+        let allWarehouses = [];
+        let allNhomVatLieu = [];
+        let allDonViTinh = [];
+        let stockData = [];
+        let currentPage = 1;
+        const itemsPerPage = 20;
+        const userId = @ViewBag.UserId;
+
+        // INITIALIZE
+        document.addEventListener('DOMContentLoaded', async function () {
+            await loadWarehouses();
+            await loadNhomVatLieu();
+            await loadDonViTinh();
+            await loadMaterials();
+        });
+
+        // LOAD WAREHOUSES
+        async function loadWarehouses() {
+            try {
+                const response = await fetch('/api/kho/danhsachkho');
+                allWarehouses = await response.json();
+                const selector = document.getElementById('warehouseSelector');
+                const transferSelector = document.getElementById('transferToWarehouse');
+                selector.innerHTML = '<option value="">-- Chọn Kho --</option>';
+                transferSelector.innerHTML = '<option value="">-- Chọn kho đích --</option>';
+                allWarehouses.forEach(wh => {
+                    const prefix = wh.loaiKho === 'KHO_ME' ? '★ ' : '  └ ';
+                    selector.innerHTML += `<option value="${wh.id}">${prefix}${wh.tenKho}</option>`;
+                    transferSelector.innerHTML += `<option value="${wh.id}">${wh.tenKho}</option>`;
+                });
+            } catch (error) {
+                console.error('Error loading warehouses:', error);
+            }
+        }
+
+        // LOAD NHÓM VẬT LIỆU
+        async function loadNhomVatLieu() {
+            try {
+                const response = await fetch('/api/kho/nhomvatlieu');
+                allNhomVatLieu = await response.json();
+                const selector = document.getElementById('newMatGroup');
+                selector.innerHTML = '';
+                allNhomVatLieu.forEach(nhom => {
+                    selector.innerHTML += `<option value="${nhom.id}">${nhom.tenNhom}</option>`;
+                });
+            } catch (error) {
+                console.error('Error loading nhom vat lieu:', error);
+            }
+        }
+
+        // LOAD ĐƠN VỊ TÍNH
+        async function loadDonViTinh() {
+            try {
+                const response = await fetch('/api/kho/donvitinh');
+                allDonViTinh = await response.json();
+                const selector = document.getElementById('newMatUnit');
+                selector.innerHTML = '';
+                allDonViTinh.forEach(dvt => {
+                    selector.innerHTML += `<option value="${dvt.id}">${dvt.tenDonVi}</option>`;
+                });
+            } catch (error) {
+                console.error('Error loading don vi tinh:', error);
+            }
+        }
+
+        // LOAD MATERIALS
+        async function loadMaterials() {
+            try {
+                const response = await fetch('/api/kho/vatlieu');
+                allMaterials = await response.json();
+                if (currentWarehouseId) {
+                    await loadStockData();
+                } else {
+                    renderEmptyTable();
+                }
+            } catch (error) {
+                console.error('Error loading materials:', error);
+            }
+        }
+
+        // LOAD STOCK DATA
+        async function loadStockData() {
+            if (!currentWarehouseId) return;
+            try {
+                console.log('Loading stock data for warehouse ID:', currentWarehouseId);
+                const response = await fetch(`/api/kho/tonkho?khoId=${currentWarehouseId}`);
+                console.log('Response status:', response.status);
+                
+                const responseData = await response.json();
+                console.log('Response data:', responseData);
+                
+                if (!response.ok) {
+                    console.error('API Error:', responseData.message || 'Unknown error');
+                    stockData = [];
+                    renderTable();
+                    return;
+                }
+                
+                // Đảm bảo stockData là array
+                if (Array.isArray(responseData)) {
+                    stockData = responseData;
+                } else {
+                    console.error('Response is not an array:', responseData);
+                    stockData = [];
+                }
+                
+                console.log('Stock data loaded:', stockData.length, 'items');
+                renderTable();
+            } catch (error) {
+                console.error('Error loading stock:', error);
+                stockData = [];
+                renderTable();
+            }
+        }
+
+        // SWITCH WAREHOUSE
+        async function switchWarehouse() {
+            const selector = document.getElementById('warehouseSelector');
+            currentWarehouseId = selector.value ? parseInt(selector.value) : null;
+            if (currentWarehouseId) {
+                await loadStockData();
+                document.getElementById('selectedWarehouseName').textContent = selector.options[selector.selectedIndex].text.trim();
+            } else {
+                stockData = [];
+                renderEmptyTable();
+            }
+        }
+
+        // RENDER EMPTY TABLE
+        function renderEmptyTable() {
+            const tbody = document.getElementById('materialTableBody');
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-5">
+                <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+                Vui lòng chọn kho để xem tồn kho
+            </td></tr>`;
+            document.getElementById('totalItems').textContent = '0';
+            document.getElementById('totalStock').textContent = '0';
+            document.getElementById('totalValue').textContent = '0 đ';
+            document.getElementById('displayCount').textContent = '0';
+            document.getElementById('pagination').innerHTML = '';
+        }
+
+        // RENDER TABLE
+        function renderTable() {
+            const tbody = document.getElementById('materialTableBody');
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const paginatedData = stockData.slice(start, end);
+
+            tbody.innerHTML = '';
+            let totalStock = 0;
+            let totalValue = 0;
+
+            if (stockData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-5">
+                    <i class="bi bi-box-seam fs-1 d-block mb-2 opacity-50"></i>
+                    Không có dữ liệu tồn kho cho kho này
+                </td></tr>`;
+            } else {
+                paginatedData.forEach((item, index) => {
+                    const stock = item.soLuongTon || 0;
+                    const donGia = item.donGia || 0;
+                    const thanhTien = stock * donGia;
+                    totalStock += stock;
+                    totalValue += thanhTien;
+                    const stt = start + index + 1;
+
+                    const row = `<tr class="animate-fade-in" onclick="openActionModal(${item.vatLieuId})" style="cursor:pointer;">
+                        <td class="ps-4 text-center text-muted">${stt}</td>
+                        <td><span class="badge bg-secondary bg-opacity-10 text-dark px-2 py-1">${item.maVatLieu}</span></td>
+                        <td>${item.tenVatLieu}</td>
+                        <td><span class="text-muted">${item.donViTinh}</span></td>
+                        <td class="text-end currency-num">${donGia.toLocaleString('vi-VN', {minimumFractionDigits: 2})}</td>
+                        <td class="text-center"><span class="badge ${stock < 10 ? 'bg-danger' : 'bg-success'} rounded-pill px-3">${stock.toLocaleString('vi-VN')}</span></td>
+                        <td class="text-end pe-4 fw-bold currency-num">${thanhTien.toLocaleString('vi-VN')}</td>
+                    </tr>`;
+                    tbody.innerHTML += row;
+                });
+            }
+
+            // Total stats from all stock data (not just paginated)
+            totalStock = stockData.reduce((sum, i) => sum + (i.soLuongTon || 0), 0);
+            totalValue = stockData.reduce((sum, i) => {
+                const qty = i.soLuongTon || 0;
+                const price = i.donGia || 0;
+                return sum + (qty * price);
+            }, 0);
+
+            document.getElementById('totalItems').textContent = stockData.length;
+            document.getElementById('totalStock').textContent = totalStock.toLocaleString('vi-VN');
+            document.getElementById('totalValue').textContent = totalValue.toLocaleString('vi-VN') + ' đ';
+            document.getElementById('displayCount').textContent = stockData.length;
+            renderPagination();
+        }
+
+        // PAGINATION
+        function renderPagination() {
+            const totalPages = Math.ceil(stockData.length / itemsPerPage);
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+            for (let i = 1; i <= totalPages; i++) {
+                pagination.innerHTML += `<button class="btn btn-sm ${i === currentPage ? 'btn-primary' : 'btn-outline-secondary'}" onclick="goToPage(${i})">${i}</button>`;
+            }
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            renderTable();
+        }
+
+        // SEARCH MATERIAL (MAIN TABLE)
+        function searchMaterial() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            if (query.length === 0) {
+                document.getElementById('searchResults').style.display = 'none';
+                return;
+            }
+            
+            const results = stockData.filter(m => 
+                m.maVatLieu.toLowerCase().includes(query) || 
+                m.tenVatLieu.toLowerCase().includes(query)
+            );
+            const dropdown = document.getElementById('searchResults');
+            dropdown.innerHTML = '';
+            if (results.length > 0) {
+                results.slice(0, 5).forEach(mat => {
+                    dropdown.innerHTML += `<div class="result-item" onclick="selectMaterialFromSearch(${mat.vatLieuId})">
+                        <span><strong>${mat.maVatLieu}</strong> - ${mat.tenVatLieu}</span>
+                        <span class="badge bg-${mat.soLuongTon < 10 ? 'danger' : 'success'}">${mat.soLuongTon}</span>
+                    </div>`;
+                });
+                dropdown.style.display = 'block';
+            } else {
+                dropdown.innerHTML = '<div class="text-muted text-center p-3">Không tìm thấy vật tư</div>';
+                dropdown.style.display = 'block';
+            }
+        }
+
+        function selectMaterialFromSearch(id) {
+            openActionModal(id);
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchResults').style.display = 'none';
+        }
+
+        // OPEN ACTION MODAL
+        function openActionModal(materialId = null) {
+            if (!currentWarehouseId) {
+                alert('Vui lòng chọn kho trước!');
+                return;
+            }
+            const modal = new bootstrap.Modal(document.getElementById('actionModal'));
+            modal.show();
+            if (materialId) {
+                const mat = stockData.find(m => m.vatLieuId === materialId);
+                if (mat) {
+                    document.getElementById('materialSearch').value = `${mat.maVatLieu} - ${mat.tenVatLieu}`;
+                    document.getElementById('materialSearch').dataset.materialId = materialId;
+                }
+            }
+        }
+
+        // SELECT ACTION
+        function selectAction(action) {
+            currentAction = action;
+            document.querySelectorAll('.btn-action').forEach(btn => btn.classList.remove('active-import', 'active-export', 'active-transfer'));
+            const btn = event.currentTarget;
+            if (action === 'NHAP') btn.classList.add('active-import');
+            else if (action === 'XUAT') btn.classList.add('active-export');
+            else if (action === 'DIEUCHUYEN') btn.classList.add('active-transfer');
+
+            const transferSection = document.getElementById('transferWarehouseSection');
+            const nhapExtraFields = document.getElementById('nhapKhoExtraFields');
+            
+            if (action === 'DIEUCHUYEN') {
+                transferSection.classList.remove('d-none');
+                nhapExtraFields.classList.add('d-none');
+            } else if (action === 'NHAP') {
+                transferSection.classList.add('d-none');
+                nhapExtraFields.classList.remove('d-none');
+            } else {
+                transferSection.classList.add('d-none');
+                nhapExtraFields.classList.add('d-none');
+            }
+        }
+
+        // SEARCH MATERIAL IN MODAL
+        function searchMaterialInModal() {
+            const query = document.getElementById('materialSearch').value.toLowerCase();
+            const results = allMaterials.filter(m => 
+                m.maVatLieu.toLowerCase().includes(query) || 
+                m.tenVatLieu.toLowerCase().includes(query)
+            );
+            const dropdown = document.getElementById('modalSearchResults');
+            dropdown.innerHTML = '';
+            if (query.length > 0 && results.length > 0) {
+                results.slice(0, 5).forEach(mat => {
+                    dropdown.innerHTML += `<div class="result-item" onclick="selectMaterialInModal(${mat.id}, '${mat.maVatLieu}', '${mat.tenVatLieu.replace(/'/g, "\\'")}')">
+                        <span><strong>${mat.maVatLieu}</strong> - ${mat.tenVatLieu}</span>
+                        <span class="badge bg-light text-dark">${mat.donViTinh}</span>
+                    </div>`;
+                });
+                dropdown.style.display = 'block';
+            } else {
+                dropdown.style.display = 'none';
+            }
+        }
+
+        function selectMaterialInModal(id, code, name) {
+            document.getElementById('materialSearch').value = `${code} - ${name}`;
+            document.getElementById('materialSearch').dataset.materialId = id;
+            document.getElementById('selectedMaterialId').value = id;
+            document.getElementById('modalSearchResults').style.display = 'none';
+            
+            // Lấy đơn giá hiện tại từ stockData nếu có
+            const stockItem = stockData.find(s => s.vatLieuId === id);
+            if (stockItem && stockItem.donGia > 0) {
+                document.getElementById('donGiaInput').value = stockItem.donGia;
+            }
+        }
+
+        // COMMIT ACTION
+        function commitAction() {
+            if (!currentAction) {
+                alert('Vui lòng chọn hành động (NHẬP/XUẤT/ĐIỀU CHUYỂN)');
+                return;
+            }
+            const materialId = parseInt(document.getElementById('materialSearch').dataset.materialId || document.getElementById('selectedMaterialId').value);
+            const quantity = parseFloat(document.getElementById('quantityInput').value);
+            const donGia = parseFloat(document.getElementById('donGiaInput').value) || 0;
+            const note = document.getElementById('noteInput').value;
+
+            if (!materialId || quantity <= 0) {
+                alert('Vui lòng chọn vật tư và nhập số lượng hợp lệ');
+                return;
+            }
+
+            let targetWarehouseId = null;
+            if (currentAction === 'DIEUCHUYEN') {
+                targetWarehouseId = parseInt(document.getElementById('transferToWarehouse').value);
+                if (!targetWarehouseId) {
+                    alert('Vui lòng chọn kho đích cho điều chuyển');
+                    return;
+                }
+            }
+
+            // Lấy thông tin bổ sung cho nhập kho
+            let extraData = {};
+            if (currentAction === 'NHAP') {
+                extraData = {
+                    soLo: document.getElementById('soLoInput').value || null,
+                    ngaySanXuat: document.getElementById('ngaySanXuatInput').value || null,
+                    ngayHetHan: document.getElementById('ngayHetHanInput').value || null,
+                    viTri: document.getElementById('viTriInput').value || null,
+                    tinhTrangVatLieu: document.getElementById('tinhTrangInput').value || 'Tốt',
+                    nhaCungCap: document.getElementById('nhaCungCapInput').value || null
+                };
+            }
+
+            const mat = allMaterials.find(m => m.id === materialId);
+            draftTransactions.push({
+                vatLieuId: materialId,
+                maVatLieu: mat ? mat.maVatLieu : '',
+                tenVatLieu: mat ? mat.tenVatLieu : 'N/A',
+                soLuong: quantity,
+                donGia: donGia,
+                thanhTien: quantity * donGia,
+                loaiPhieu: currentAction,
+                khoNhanId: targetWarehouseId,
+                ghiChu: note,
+                ...extraData
+            });
+
+            renderDraftList();
+            resetInputFields();
+        }
+        
+        function resetInputFields() {
+            document.getElementById('materialSearch').value = '';
+            document.getElementById('materialSearch').dataset.materialId = '';
+            document.getElementById('selectedMaterialId').value = '';
+            document.getElementById('quantityInput').value = '1';
+            document.getElementById('donGiaInput').value = '0';
+            document.getElementById('noteInput').value = '';
+            document.getElementById('soLoInput').value = '';
+            document.getElementById('ngaySanXuatInput').value = '';
+            document.getElementById('ngayHetHanInput').value = '';
+            document.getElementById('viTriInput').value = '';
+            document.getElementById('tinhTrangInput').value = 'Tốt';
+            document.getElementById('nhaCungCapInput').value = '';
+        }
+
+        // RENDER DRAFT LIST
+        function renderDraftList() {
+            const tbody = document.getElementById('sessionListBody');
+            tbody.innerHTML = '';
+            let totalQty = 0;
+            let totalAmount = 0;
+            
+            draftTransactions.forEach((item, index) => {
+                const actionColor = item.loaiPhieu === 'NHAP' ? 'success' : item.loaiPhieu === 'XUAT' ? 'danger' : 'warning';
+                const thanhTien = item.soLuong * (item.donGia || 0);
+                totalQty += item.soLuong;
+                totalAmount += thanhTien;
+                
+                const row = `<tr>
+                    <td class="ps-3">
+                        <div class="fw-bold">${item.tenVatLieu}</div>
+                        <small class="text-muted">${item.maVatLieu}</small>
+                    </td>
+                    <td class="text-center"><span class="badge bg-${actionColor}">${item.loaiPhieu}</span></td>
+                    <td class="text-end fw-bold">${item.soLuong.toLocaleString('vi-VN')}</td>
+                    <td class="text-end">${(item.donGia || 0).toLocaleString('vi-VN')}</td>
+                    <td class="text-end fw-bold text-primary">${thanhTien.toLocaleString('vi-VN')}</td>
+                    <td class="text-end pe-3"><button class="btn btn-sm btn-outline-danger" onclick="removeDraft(${index})"><i class="bi bi-trash"></i></button></td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+            
+            document.getElementById('draftCount').textContent = `${draftTransactions.length} mục`;
+            document.getElementById('emptyState').style.display = draftTransactions.length === 0 ? 'flex' : 'none';
+            
+            // Cập nhật summary
+            const summaryDiv = document.getElementById('draftSummary');
+            if (draftTransactions.length > 0) {
+                summaryDiv.classList.remove('d-none');
+                document.getElementById('summaryCount').textContent = draftTransactions.length;
+                document.getElementById('summaryQty').textContent = totalQty.toLocaleString('vi-VN');
+                document.getElementById('summaryTotal').textContent = totalAmount.toLocaleString('vi-VN') + ' đ';
+            } else {
+                summaryDiv.classList.add('d-none');
+            }
+        }
+
+        function removeDraft(index) {
+            draftTransactions.splice(index, 1);
+            renderDraftList();
+        }
+
+        // FINISH AND SAVE
+        async function finishAndSave() {
+            if (draftTransactions.length === 0) {
+                alert('Chưa có giao dịch nào!');
+                return;
+            }
+
+            try {
+                // Chuyển đổi format cho API
+                const items = draftTransactions.map(t => ({
+                    vatLieuId: t.vatLieuId,
+                    loaiPhieu: t.loaiPhieu,
+                    soLuong: t.soLuong,
+                    donGia: t.donGia || 0,
+                    khoNhanId: t.khoNhanId || null,
+                    soLo: t.soLo || null,
+                    ngaySanXuat: t.ngaySanXuat || null,
+                    ngayHetHan: t.ngayHetHan || null,
+                    viTri: t.viTri || null,
+                    tinhTrangVatLieu: t.tinhTrangVatLieu || 'Tốt',
+                    nhaCungCap: t.nhaCungCap || null,
+                    ghiChu: t.ghiChu || null
+                }));
+
+                const payload = {
+                    khoId: currentWarehouseId,
+                    ghiChu: draftTransactions[0]?.ghiChu || null,
+                    items: items
+                };
+
+                const response = await fetch('/api/kho/giaodich', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert('Lưu giao dịch thành công!');
+                    draftTransactions = [];
+                    renderDraftList();
+                    await loadStockData();
+                    bootstrap.Modal.getInstance(document.getElementById('actionModal')).hide();
+                } else {
+                    const error = await response.text();
+                    alert('Lỗi: ' + error);
+                }
+            } catch (error) {
+                console.error('Error saving transaction:', error);
+                alert('Có lỗi xảy ra khi lưu giao dịch');
+            }
+        }
+
+        // SHOW HISTORY
+        async function showHistory() {
+            try {
+                const response = await fetch('/api/kho/lichsu');
+                const history = await response.json();
+                const tbody = document.getElementById('historyTableBody');
+                tbody.innerHTML = '';
+                if (history.length === 0) {
+                    document.getElementById('emptyHistoryMsg').classList.remove('d-none');
+                } else {
+                    document.getElementById('emptyHistoryMsg').classList.add('d-none');
+                    history.forEach(log => {
+                        const row = `<tr>
+                            <td class="ps-4 fw-bold">${log.soPhieu}</td>
+                            <td>${log.tenKho}</td>
+                            <td class="text-end pe-4"><button class="btn btn-sm btn-outline-primary" onclick="showTransactionDetail(${log.phieuId})">Xem</button></td>
+                        </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                }
+                new bootstrap.Modal(document.getElementById('historyModal')).show();
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+
+        // SHOW TRANSACTION DETAIL
+        async function showTransactionDetail(phieuId) {
+            try {
+                const response = await fetch(`/api/kho/lichsu?phieuId=${phieuId}`);
+                const details = await response.json();
+                const tbody = document.getElementById('detailTableBody');
+                tbody.innerHTML = '';
+                details.forEach(item => {
+                    const actionColor = item.loaiGiaoDich === 'NHAP' ? 'success' : item.loaiGiaoDich === 'XUAT' ? 'danger' : 'warning';
+                    const row = `<tr>
+                        <td class="ps-4">${item.tenVatLieu}</td>
+                        <td class="text-center"><span class="badge bg-${actionColor}">${item.loaiGiaoDich}</span></td>
+                        <td class="text-end pe-4 fw-bold">${item.soLuong}</td>
+                    </tr>`;
+                    tbody.innerHTML += row;
+                });
+                document.getElementById('detailModalTitle').textContent = 'Chi Tiết Phiếu';
+                new bootstrap.Modal(document.getElementById('transactionDetailModal')).show();
+            } catch (error) {
+                console.error('Error loading detail:', error);
+            }
+        }
+
+        // EXPORT EXCEL
+        function exportReport() {
+            if (!currentWarehouseId) {
+                alert('Vui lòng chọn kho trước khi xuất báo cáo!');
+                return;
+            }
+            window.location.href = `/api/kho/export?khoId=${currentWarehouseId}`;
+        }
+
+        // ADD NEW MATERIAL
+        async function saveNewMaterial() {
+            const code = document.getElementById('newMatCode').value.trim();
+            const name = document.getElementById('newMatName').value.trim();
+            const groupId = parseInt(document.getElementById('newMatGroup').value);
+            const unitId = parseInt(document.getElementById('newMatUnit').value);
+
+            if (!code || !name) {
+                alert('Vui lòng nhập đầy đủ thông tin!');
+                return;
+            }
+
+            if (!groupId || !unitId) {
+                alert('Vui lòng chọn nhóm vật liệu và đơn vị tính!');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/kho/themvatlieu', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        maVatLieu: code, 
+                        tenVatLieu: name, 
+                        nhomVatLieuId: groupId, 
+                        donViTinhId: unitId 
+                    })
+                });
+
+                if (response.ok) {
+                    alert('Thêm vật tư thành công!');
+                    await loadMaterials();
+                    if (currentWarehouseId) {
+                        await loadStockData();
+                    }
+                    bootstrap.Modal.getInstance(document.getElementById('addMaterialModal')).hide();
+                    document.getElementById('newMatCode').value = '';
+                    document.getElementById('newMatName').value = '';
+                } else {
+                    const error = await response.json();
+                    alert('Lỗi: ' + (error.message || 'Không thể thêm vật tư'));
+                }
+            } catch (error) {
+                console.error('Error adding material:', error);
+                alert('Có lỗi xảy ra khi thêm vật tư');
+            }
+        }
+
+        // LOGOUT
+        function logout() {
+            if (confirm('Bạn có chắc muốn đăng xuất?')) {
+                window.location.href = '/Login/Logout';
+            }
+        }
+    </script>
 </body>
+
 </html>

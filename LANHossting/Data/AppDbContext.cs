@@ -23,9 +23,12 @@ namespace LANHossting.Data
         public DbSet<TaiKhoan> TaiKhoan { get; set; }
         public DbSet<PhienLamViec> PhienLamViec { get; set; }
         public DbSet<Kho> Kho { get; set; }
+        public DbSet<NhomVatLieu> NhomVatLieu { get; set; }
+        public DbSet<DonViTinh> DonViTinh { get; set; }
         public DbSet<VatLieu> VatLieu { get; set; }
         public DbSet<TonKho> TonKho { get; set; }
         public DbSet<PhieuNhapXuat> PhieuNhapXuat { get; set; }
+        public DbSet<ChiTietPhieuNhapXuat> ChiTietPhieuNhapXuat { get; set; }
         public DbSet<LichSuVatLieu> LichSuVatLieu { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -76,32 +79,39 @@ namespace LANHossting.Data
                 .HasForeignKey(p => p.KhoNguonId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // PhieuNhapXuat -> Kho (KhoNhan)
+            // PhieuNhapXuat -> Kho (KhoNhap)
             modelBuilder.Entity<PhieuNhapXuat>()
-                .HasOne(p => p.KhoNhan)
+                .HasOne(p => p.KhoNhap)
                 .WithMany()
-                .HasForeignKey(p => p.KhoNhanId)
+                .HasForeignKey(p => p.KhoNhapId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // PhieuNhapXuat -> VatLieu
-            modelBuilder.Entity<PhieuNhapXuat>()
-                .HasOne(p => p.VatLieu)
-                .WithMany(v => v.PhieuNhapXuatList)
-                .HasForeignKey(p => p.VatLieuId)
+            // ChiTietPhieuNhapXuat -> VatLieu
+            modelBuilder.Entity<ChiTietPhieuNhapXuat>()
+                .HasOne(ct => ct.VatLieu)
+                .WithMany()
+                .HasForeignKey(ct => ct.VatLieuId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // PhieuNhapXuat -> TaiKhoan (NguoiLap)
-            modelBuilder.Entity<PhieuNhapXuat>()
-                .HasOne(p => p.NguoiLap)
-                .WithMany()
-                .HasForeignKey(p => p.NguoiLapId)
+            // ChiTietPhieuNhapXuat -> PhieuNhapXuat
+            modelBuilder.Entity<ChiTietPhieuNhapXuat>()
+                .HasOne(ct => ct.PhieuNhapXuat)
+                .WithMany(p => p.ChiTietList)
+                .HasForeignKey(ct => ct.PhieuNhapXuatId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // VatLieu -> NhomVatLieu
+            modelBuilder.Entity<VatLieu>()
+                .HasOne(v => v.NhomVatLieu)
+                .WithMany(n => n.VatLieuList)
+                .HasForeignKey(v => v.NhomVatLieuId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // PhieuNhapXuat -> TaiKhoan (NguoiDuyet)
-            modelBuilder.Entity<PhieuNhapXuat>()
-                .HasOne(p => p.NguoiDuyet)
-                .WithMany()
-                .HasForeignKey(p => p.NguoiDuyetId)
+            // VatLieu -> DonViTinh
+            modelBuilder.Entity<VatLieu>()
+                .HasOne(v => v.DonViTinh)
+                .WithMany(d => d.VatLieuList)
+                .HasForeignKey(v => v.DonViTinhId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

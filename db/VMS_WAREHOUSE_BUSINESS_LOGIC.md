@@ -26,7 +26,7 @@
 Module quản lý kho vật liệu được thiết kế để:
 
 - **Quản lý tập trung** vật liệu phục vụ bảo dưỡng phao báo hiệu hàng hải
-- **Phân quyền chặt chẽ** 3 cấp độ: Admin, Giám sát, Nhân viên
+- **Phân quyền chặt chẽ** 2 cấp độ: Admin, Nhân viên
 - **Truy xuất nguồn gốc hoàn toàn** (Full Audit Trail) mọi thao tác
 - **Theo dõi phiên làm việc** từ đăng nhập → đăng xuất
 - **Quản lý đa kho** (1 kho mẹ + 30 kho con)
@@ -35,7 +35,7 @@ Module quản lý kho vật liệu được thiết kế để:
 
 | **Yêu cầu**              | **Mô tả**                                      | **Độ ưu tiên** |
 | ------------------------ | ---------------------------------------------- | -------------- |
-| **Phân quyền**           | RBAC 3 cấp với ràng buộc nghiêm ngặt           | ⭐⭐⭐⭐⭐     |
+| **Phân quyền**           | RBAC 2 cấp với ràng buộc nghiêm ngặt           | ⭐⭐⭐⭐⭐     |
 | **Audit Trail**          | Log đầy đủ mọi thay đổi (Who, What, When, Why) | ⭐⭐⭐⭐⭐     |
 | **Session Tracking**     | Theo dõi phiên làm việc, IP, thiết bị          | ⭐⭐⭐⭐⭐     |
 | **Inventory Management** | Quản lý tồn kho real-time, cảnh báo tồn kho    | ⭐⭐⭐⭐       |
@@ -48,25 +48,18 @@ Module quản lý kho vật liệu được thiết kế để:
 ┌─────────────────────────────────────────────────────────────┐
 │                        ADMIN                                │
 │  • Tạo/xóa/khóa tài khoản                                   │
-│  • Phân quyền Nhân viên ↔ Giám sát                          │
+│  • Phân quyền Nhân viên                                     │
 │  • Xem tất cả dữ liệu                                       │
 │  • Quản lý hệ thống                                         │
 └─────────────────────────────────────────────────────────────┘
                           ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                     GIÁM SÁT                                │
+│                    NHÂN VIÊN KHO                            │
+│  • Tạo phiếu nhập/xuất/chuyển kho                           │
 │  • Xem tất cả phiếu nhập/xuất/chuyển kho                    │
 │  • Xem tồn kho toàn hệ thống                                │
 │  • Xem lịch sử thao tác của tất cả nhân viên                │
-│  • Duyệt phiếu (nếu cấu hình workflow)                      │
-└─────────────────────────────────────────────────────────────┘
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    NHÂN VIÊN KHO                            │
-│  • Tạo phiếu nhập/xuất/chuyển kho                           │
-│  • CHỈ xem phiếu của MÌNH tạo                               │
-│  • CHỈ xem lịch sử vật liệu do MÌNH thay đổi                │
-│  • Không có quyền xem dữ liệu của người khác                │
+│  • Thao tác và quản lý vật liệu                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -128,7 +121,7 @@ Module quản lý kho vật liệu được thiết kế để:
 
 | Bảng           | Mục đích                                          | Ghi chú                          |
 | -------------- | ------------------------------------------------- | -------------------------------- |
-| `VaiTro`       | Định nghĩa 2 vai trò: ADMIN, NHAN_VIEN  | Master data                      |
+| `VaiTro`       | Định nghĩa 2 vai trò: ADMIN, NHAN_VIEN            | Master data                      |
 | `TaiKhoan`     | Thông tin người dùng, mật khẩu (hash), trạng thái | Self-referencing FK cho NguoiTao |
 | `PhienLamViec` | Session tracking từ đăng nhập → đăng xuất         | Lưu IP, thiết bị                 |
 
@@ -187,7 +180,7 @@ ThanhTien AS (SoLuong * DonGia) PERSISTED
 ✓ Xem tất cả phiếu nhập/xuất/chuyển kho
 ✓ Xem lịch sử thao tác của tất cả nhân viên
 ✓ Xem tồn kho toàn hệ thống
-✓ Báo cáo tổng hợp (vw_BaoCao_TatCaPhieu_GiamSat)
+✓ Báo cáo tổng hợp (vw_BaoCao_TatCaPhieu)
 
 ✗ KHÔNG thể tự khóa tài khoản mình
 ✗ KHÔNG thể tự thay đổi vai trò mình
@@ -199,12 +192,13 @@ ThanhTien AS (SoLuong * DonGia) PERSISTED
 ✓ Tạo phiếu nhập kho (sp_NhapKho)
 ✓ Tạo phiếu xuất kho (sp_XuatKho)
 ✓ Tạo phiếu chuyển kho (sp_ChuyenKho)
-✓ Xem phiếu CỦA MÌNH tạo (vw_BaoCao_PhieuTheoNhanVien)
-✓ Xem lịch sử vật liệu DO MÌNH thay đổi
+✓ Xem tất cả phiếu nhập/xuất/chuyển kho (vw_BaoCao_TatCaPhieu)
+✓ Xem lịch sử vật liệu của tất cả nhân viên
+✓ Xem tồn kho toàn hệ thống
+✓ Báo cáo tổng hợp
 
-✗ KHÔNG xem được phiếu của người khác
-✗ KHÔNG xem được lịch sử do người khác tạo
-✗ KHÔNG thể xem tổng hợp toàn hệ thống
+✗ KHÔNG thể tạo/xóa/khóa tài khoản
+✗ KHÔNG thể phân quyền
 ```
 
 ### 3.2 Ràng buộc bảo mật
@@ -228,17 +222,11 @@ END
 Hệ thống sử dụng **Application-Level RLS** thông qua Views và Stored Procedures:
 
 ```sql
--- Nhân viên chỉ xem phiếu của mình
-CREATE VIEW vw_BaoCao_PhieuTheoNhanVien AS
+-- Nhân viên và Admin xem tất cả phiếu
+CREATE VIEW vw_BaoCao_TatCaPhieu AS
 SELECT ...
 FROM PhieuNhapXuat pnx
-WHERE pnx.TaiKhoanId = @CurrentUserId -- Filtered by session
-
--- Giám sát xem tất cả
-CREATE VIEW vw_BaoCao_TatCaPhieu_GiamSat AS
-SELECT ...
-FROM PhieuNhapXuat pnx
--- No filter, all data visible
+-- No filter, all data visible for NHAN_VIEN and ADMIN
 ```
 
 ---
@@ -581,16 +569,16 @@ Xích phao 10mm - Kho_01
 ### 7.3 Phân quyền xem Audit Log
 
 ```sql
--- Nhân viên: Chỉ xem lịch sử DO MÌNH tạo
+-- Nhân viên/Admin: Xem TẤT CẢ lịch sử
 EXEC sp_BaoCao_LichSuVatLieu
     @TaiKhoanId = 5,
     @VaiTroMa = 'NHAN_VIEN'
-→ WHERE LichSuVatLieu.TaiKhoanId = 5
+→ WHERE 1=1 (No filter - all data visible)
 
--- Giám sát/Admin: Xem TẤT CẢ lịch sử
+-- Admin: Xem TẤT CẢ lịch sử
 EXEC sp_BaoCao_LichSuVatLieu
     @TaiKhoanId = 1,
-    @VaiTroMa = 'GIAM_SAT'
+    @VaiTroMa = 'ADMIN'
 → WHERE 1=1 (No filter)
 ```
 
@@ -638,12 +626,12 @@ VaiTro = 'NHAN_VIEN'
 
 ### 8.3 Nhóm Reporting
 
-| SP                            | Mục đích               | Phân quyền        |
-| ----------------------------- | ---------------------- | ----------------- |
-| `sp_XemPhieu_TheoQuyen`       | Xem phiếu theo vai trò | Tất cả (filtered) |
-| `sp_BaoCao_LichSuVatLieu`     | Lịch sử vật liệu       | Tất cả (filtered) |
-| `sp_BaoCao_HoatDongTheoPhien` | Chi tiết 1 phiên       | Tất cả            |
-| `sp_LayLichSuPhienLamViec`    | Lịch sử tất cả phiên   | Giám sát/Admin    |
+| SP                            | Mục đích               | Phân quyền |
+| ----------------------------- | ---------------------- | ---------- |
+| `sp_XemPhieu_TheoQuyen`       | Xem phiếu theo vai trò | Tất cả     |
+| `sp_BaoCao_LichSuVatLieu`     | Lịch sử vật liệu       | Tất cả     |
+| `sp_BaoCao_HoatDongTheoPhien` | Chi tiết 1 phiên       | Tất cả     |
+| `sp_LayLichSuPhienLamViec`    | Lịch sử tất cả phiên   | Admin      |
 
 ### 8.4 Nhóm Admin (ADMIN ONLY)
 
@@ -655,12 +643,12 @@ VaiTro = 'NHAN_VIEN'
 
 ### 8.5 Views (Read-only)
 
-| View                           | Mục đích                | Phân quyền           |
-| ------------------------------ | ----------------------- | -------------------- |
-| `vw_TonKho_TheoKhoCon`         | Tồn kho từng kho con    | Tất cả               |
-| `vw_TonKho_TongHop`            | Tổng hợp tồn kho        | Giám sát/Admin       |
-| `vw_BaoCao_PhieuTheoNhanVien`  | Phiếu của nhân viên     | Nhân viên (filtered) |
-| `vw_BaoCao_TatCaPhieu_GiamSat` | Tất cả phiếu + thống kê | Giám sát/Admin       |
+| View                          | Mục đích                | Phân quyền |
+| ----------------------------- | ----------------------- | ---------- |
+| `vw_TonKho_TheoKhoCon`        | Tồn kho từng kho con    | Tất cả     |
+| `vw_TonKho_TongHop`           | Tổng hợp tồn kho        | Tất cả     |
+| `vw_BaoCao_PhieuTheoNhanVien` | Phiếu của nhân viên     | Tất cả     |
+| `vw_BaoCao_TatCaPhieu`        | Tất cả phiếu + thống kê | Tất cả     |
 
 ---
 
@@ -912,20 +900,20 @@ EXEC sp_ChuyenKho
 -- 3. Log ghi 2 bên: CHUYEN_DI + CHUYEN_DEN
 ```
 
-### Use Case 3: Giám sát xem báo cáo tổng hợp
+### Use Case 3: Nhân viên xem báo cáo tổng hợp
 
 ```sql
 -- Xem tất cả phiếu trong tháng 1/2026
 EXEC sp_XemPhieu_TheoQuyen
-    @TaiKhoanId = 1,
-    @VaiTroMa = 'GIAM_SAT',
+    @TaiKhoanId = 5,
+    @VaiTroMa = 'NHAN_VIEN',
     @TuNgay = '2026-01-01',
     @DenNgay = '2026-01-31'
 
 -- Xem lịch sử 1 vật liệu cụ thể
 EXEC sp_BaoCao_LichSuVatLieu
-    @TaiKhoanId = 1,
-    @VaiTroMa = 'GIAM_SAT',
+    @TaiKhoanId = 5,
+    @VaiTroMa = 'NHAN_VIEN',
     @VatLieuId = 5,
     @TuNgay = '2026-01-01',
     @DenNgay = '2026-01-31'
@@ -941,13 +929,13 @@ EXEC sp_TaoTaiKhoan
     @MatKhau = 'hashed_password',
     @HoTen = N'Nguyễn Văn E',
     @Email = 'nv05@vms.vn',
-    @VaiTroId = 3  -- NHAN_VIEN
+    @VaiTroId = 2  -- NHAN_VIEN
 
--- Thăng cấp lên Giám sát
+-- Thay đổi vai trò (nếu cần)
 EXEC sp_ThayDoiVaiTro
     @TaiKhoanAdmin = 1,
     @TaiKhoanId = 10,
-    @VaiTroMoi = 2  -- GIAM_SAT
+    @VaiTroMoi = 1  -- ADMIN (chỉ trong trường hợp đặc biệt)
 
 -- Khóa tài khoản
 EXEC sp_KhoaTaiKhoan
