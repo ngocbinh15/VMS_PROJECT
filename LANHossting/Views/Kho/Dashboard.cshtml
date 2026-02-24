@@ -1422,13 +1422,107 @@
             }
         }
 
-        // EXPORT EXCEL
+        // EXPORT EXCEL — Same HTML-table-to-Blob approach as FE/KHO/js/scripts.js
+        // Reads directly from stockData (the EXACT variable that renderTable() uses)
+        // No separate library, no re-filtering, no API call
+        //
+        // IMPORTANT: All closing HTML tags are built via concatenation ('</'+  'tag>')
+        // to prevent the browser HTML parser from misinterpreting them as closing
+        // the actual document tags, which would break the <script> block.
         function exportReport() {
             if (!currentWarehouseId) {
                 showToast('warning', 'Vui lòng chọn kho trước khi xuất báo cáo!');
                 return;
             }
-            window.location.href = `/api/kho/export?khoId=${currentWarehouseId}`;
+            if (!stockData || stockData.length === 0) {
+                showToast('warning', 'Không có dữ liệu tồn kho để xuất!');
+                return;
+            }
+
+            var selector = document.getElementById('warehouseSelector');
+            var whName = selector.options[selector.selectedIndex] ? selector.options[selector.selectedIndex].text.trim() : 'Kho';
+            var date = new Date();
+            var dateStr = 'Ngày ' + date.getDate() + ' tháng ' + (date.getMonth() + 1) + ' năm ' + date.getFullYear();
+
+            var startRow = 7;
+            var endRow = startRow + stockData.length - 1;
+
+            // Build header via string concat — avoids literal closing tags in script block
+            var h = '';
+            h += '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+            h += '<head><meta charset="UTF-8">';
+            h += '<style>';
+            h += 'table{border-collapse:collapse;width:100%;font-family:"Times New Roman",Times,serif;font-size:11pt}';
+            h += 'td,th{border:1px solid #000;padding:5px;text-align:center;vertical-align:middle}';
+            h += '.text-left{text-align:left}.text-right{text-align:right}';
+            h += '.header-title{font-size:20px;font-weight:bold;text-transform:uppercase;border:none!important}';
+            h += '.no-border{border:none!important}.bold{font-weight:bold}';
+            h += '<' + '/style>';
+            h += '<' + '/head>';
+            h += '<body><table>';
+            h += '<tr><td colspan="17" class="header-title no-border" style="text-align:center;font-weight:bold;font-size:25px">BIÊN BẢN KIỂM KÊ VẬT TƯ THÀNH PHẨM<' + '/td><' + '/tr>';
+            h += '<tr><td colspan="17" class="no-border" style="text-align:center;font-weight:bold;">Thời điểm kiểm kê: ' + dateStr + ' - Kho: ' + whName + '<' + '/td><' + '/tr>';
+            h += '<tr><td colspan="17" class="no-border"><' + '/td><' + '/tr>';
+            h += '<tr style="background-color:#f0f0f0;font-weight:bold;">';
+            h += '<th rowspan="2">STT<' + '/th><th rowspan="2">Mã VT<' + '/th><th rowspan="2" style="width:250px">Tên nhãn hiệu, quy cách<' + '/th><th rowspan="2">ĐVT<' + '/th><th rowspan="2">Đơn giá<' + '/th>';
+            h += '<th colspan="2">Theo sổ kế toán<' + '/th><th colspan="2">Kiểm kê<' + '/th><th colspan="2">Thừa<' + '/th><th colspan="2">Thiếu<' + '/th>';
+            h += '<th rowspan="2">Còn tốt 100%<' + '/th><th rowspan="2">Kém phẩm chất<' + '/th><th rowspan="2">Mất phẩm chất<' + '/th><th rowspan="2">Ghi chú<' + '/th>';
+            h += '<' + '/tr>';
+            h += '<tr style="background-color:#f0f0f0;font-weight:bold;">';
+            h += '<th>SL<' + '/th><th>Thành tiền<' + '/th><th>SL<' + '/th><th>Thành tiền<' + '/th><th>SL<' + '/th><th>Thành tiền<' + '/th><th>SL<' + '/th><th>Thành tiền<' + '/th>';
+            h += '<' + '/tr>';
+            h += '<tr style="font-style:italic;text-align:center">';
+            h += '<td>A<' + '/td><td>B<' + '/td><td>C<' + '/td><td>D<' + '/td><td>1<' + '/td><td>2<' + '/td><td>3<' + '/td><td>4<' + '/td><td>5<' + '/td><td>6<' + '/td><td>7<' + '/td><td>8<' + '/td><td>9<' + '/td><td>10<' + '/td><td>11<' + '/td><td>12<' + '/td><td>13<' + '/td>';
+            h += '<' + '/tr>';
+
+            // DATA ROWS — reads directly from stockData (same variable renderTable uses)
+            stockData.forEach(function(item, index) {
+                var stock = item.soLuongTon || 0;
+                var price = item.donGia || 0;
+                var cr = startRow + index;
+                h += '<tr>';
+                h += '<td>' + (index + 1) + '<' + '/td>';
+                h += '<td class="text-left" style="mso-number-format:\'\\@@\'">'; h += item.maVatLieu; h += '<' + '/td>';
+                h += '<td class="text-left">' + item.tenVatLieu + '<' + '/td>';
+                h += '<td>' + item.donViTinh + '<' + '/td>';
+                h += '<td class="text-right" x:num="' + price + '" style="mso-number-format:\'#,##0.00\'">' + price + '<' + '/td>';
+                h += '<td class="text-center" x:num="' + stock + '">' + stock + '<' + '/td>';
+                h += '<td class="text-right" x:num x:fmla="=F' + cr + '*E' + cr + '" style="mso-number-format:\'#,##0.00\'"><' + '/td>';
+                h += '<td><' + '/td>';
+                h += '<td class="text-right" x:num x:fmla="=H' + cr + '*E' + cr + '" style="mso-number-format:\'#,##0.00\'"><' + '/td>';
+                h += '<td><' + '/td>';
+                h += '<td class="text-right" x:num x:fmla="=J' + cr + '*E' + cr + '" style="mso-number-format:\'#,##0.00\'"><' + '/td>';
+                h += '<td><' + '/td>';
+                h += '<td class="text-right" x:num x:fmla="=L' + cr + '*E' + cr + '" style="mso-number-format:\'#,##0.00\'"><' + '/td>';
+                h += '<td><' + '/td><td><' + '/td><td><' + '/td><td><' + '/td>';
+                h += '<' + '/tr>';
+            });
+
+            // TOTAL ROW
+            h += '<tr style="font-weight:bold">';
+            h += '<td colspan="5" class="text-center">CỘNG<' + '/td>';
+            h += '<td><' + '/td>';
+            h += '<td x:num x:fmla="=SUM(G' + startRow + ':G' + endRow + ')" style="mso-number-format:\'\\#\\,\\#\\#0\';text-align:right"><' + '/td>';
+            h += '<td><' + '/td>';
+            h += '<td x:num x:fmla="=SUM(I' + startRow + ':I' + endRow + ')" style="mso-number-format:\'\\#\\,\\#\\#0\';text-align:right"><' + '/td>';
+            h += '<td><' + '/td>';
+            h += '<td x:num x:fmla="=SUM(K' + startRow + ':K' + endRow + ')" style="mso-number-format:\'\\#\\,\\#\\#0\';text-align:right"><' + '/td>';
+            h += '<td><' + '/td>';
+            h += '<td x:num x:fmla="=SUM(M' + startRow + ':M' + endRow + ')" style="mso-number-format:\'\\#\\,\\#\\#0\';text-align:right"><' + '/td>';
+            h += '<td><' + '/td><td><' + '/td><td><' + '/td><td><' + '/td>';
+            h += '<' + '/tr>';
+
+            h += '<' + '/table><' + '/body><' + '/html>';
+
+            var blob = new Blob([h], { type: 'application/vnd.ms-excel' });
+            var link = document.createElement('a');
+            var url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'BienBanKiemKe_' + currentWarehouseId + '_' + new Date().toISOString().slice(0, 10) + '.xls');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('success', 'Đã xuất ' + stockData.length + ' vật tư ra file Excel!');
         }
 
         // ─── ADD NEW MATERIAL ──────────────────────────────

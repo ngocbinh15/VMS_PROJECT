@@ -502,3 +502,22 @@
       link.click();
       document.body.removeChild(link);
     }
+
+    // PUBLIC GETTER: Expose current displayed dataset for external consumers
+    // Returns the EXACT data that renderTable() is using, with stock for current warehouse
+    window.getDisplayedData = function () {
+      const whId = document.getElementById('currentWarehouse').value;
+      const whName = document.getElementById('currentWarehouse').options[document.getElementById('currentWarehouse').selectedIndex].text;
+      return {
+        warehouseId: whId,
+        warehouseName: whName,
+        items: mockData.map(item => ({
+          id: item.id,
+          name: item.name,
+          unit: item.unit,
+          price: item.price,
+          group: item.group,
+          stock: item.stocks[whId] || 0
+        }))
+      };
+    };
