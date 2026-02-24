@@ -311,11 +311,14 @@
                             <div class="col-lg-6 mb-3 mb-lg-0">
                                 <div class="position-relative">
                                     <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
-                                    <input type="text" class="form-control search-input-modern" id="searchInput" placeholder="Tìm kiếm vật tư theo mã hoặc tên..." oninput="searchMaterial()">
+                                    <input type="text" class="form-control search-input-modern" id="searchInput" placeholder="Tìm kiếm vật tư theo mã hoặc tên..." oninput="debounce(searchMaterial, 'main')">
                                     <div class="search-results-dropdown" id="searchResults"></div>
                                 </div>
                             </div>
                             <div class="col-lg-6 d-flex gap-2 justify-content-lg-end">
+                                <button class="btn btn-outline-modern" onclick="openActionModal()">
+                                    <i class="bi bi-arrow-left-right me-2"></i>Giao Dịch
+                                </button>
                                 <button class="btn btn-outline-modern" data-bs-toggle="modal" data-bs-target="#addMaterialModal">
                                     <i class="bi bi-plus-circle me-2"></i>Thêm Vật Tư
                                 </button>
@@ -389,14 +392,16 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label class="small fw-bold text-muted mb-2">VẬT TƯ <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="materialSearch" placeholder="Nhấn để chọn vật tư..." readonly onclick="clearMaterialSelection()" oninput="searchMaterialInModal()">
-                                <button class="btn btn-outline-secondary" type="button" onclick="clearMaterialSelection()" title="Chọn lại vật tư">
-                                    <i class="bi bi-x-lg"></i>
-                                </button>
+                            <div class="position-relative">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="materialSearch" placeholder="Nhấn để chọn vật tư..." readonly onclick="clearMaterialSelection()" oninput="debounce(searchMaterialInModal, 'modal')">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="clearMaterialSelection()" title="Chọn lại vật tư">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                                <input type="hidden" id="selectedMaterialId">
+                                <div class="search-results-dropdown" id="modalSearchResults"></div>
                             </div>
-                            <input type="hidden" id="selectedMaterialId">
-                            <div class="search-results-dropdown" id="modalSearchResults" style="position:relative;"></div>
                         </div>
                         <div class="col-md-3">
                             <label class="small fw-bold text-muted mb-2">SỐ LƯỢNG <span class="text-danger">*</span></label>
@@ -459,7 +464,7 @@
                                 </thead>
                                 <tbody id="sessionListBody" class="border-top-0"></tbody>
                             </table>
-                            <div id="emptyState" class="d-flex flex-column align-items-center justify-content-center text-muted p-4 h-100 w-100 position-absolute top-0 start-0 bg-white" style="z-index: 5;">
+                            <div id="emptyState" class="flex-column align-items-center justify-content-center text-muted p-4 h-100 w-100 position-absolute top-0 start-0 bg-white" style="z-index: 5; display: flex;">
                                 <div class="bg-light rounded-circle p-3 mb-2"><i class="bi bi-basket2 fs-1 opacity-25"></i></div>
                                 <small class="fw-semibold">Chưa có giao dịch nào</small>
                             </div>
@@ -654,6 +659,24 @@
         let stockData = [];
         let currentPage = 1;
         const itemsPerPage = 20;
+        let _searchTimer = null;
+        let _modalSearchTimer = null;
+
+        // ── HELPER: Debounce wrapper ──
+        function debounce(fn, timerId, delay = 300) {
+            if (timerId === 'main') { clearTimeout(_searchTimer); _searchTimer = setTimeout(fn, delay); }
+            else { clearTimeout(_modalSearchTimer); _modalSearchTimer = setTimeout(fn, delay); }
+        }
+
+        // ── HELPER: Remove Vietnamese diacritics for search ──
+        function removeDiacritics(str) {
+            return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
+        }
+        function searchMatch(text, query) {
+            const t = removeDiacritics(text.toLowerCase());
+            const q = removeDiacritics(query.toLowerCase());
+            return t.includes(q);
+        }
 
         // INITIALIZE
         document.addEventListener('DOMContentLoaded', async function () {
@@ -798,7 +821,7 @@
                     totalValue += thanhTien;
                     const stt = start + index + 1;
 
-                    const row = `<tr class="animate-fade-in" onclick="openActionModal(${item.vatLieuId})" style="cursor:pointer;">
+                    const row = `<tr class="animate-fade-in">
                         <td class="ps-4 text-center text-muted">${stt}</td>
                         <td><span class="badge bg-secondary bg-opacity-10 text-dark px-2 py-1">${item.maVatLieu}</span></td>
                         <td>${item.tenVatLieu}</td>
@@ -844,15 +867,15 @@
 
         // SEARCH MATERIAL (MAIN TABLE)
         function searchMaterial() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
+            const query = document.getElementById('searchInput').value.trim();
             if (query.length === 0) {
                 document.getElementById('searchResults').style.display = 'none';
                 return;
             }
             
             const results = stockData.filter(m => 
-                m.maVatLieu.toLowerCase().includes(query) || 
-                m.tenVatLieu.toLowerCase().includes(query)
+                searchMatch(m.maVatLieu, query) || 
+                searchMatch(m.tenVatLieu, query)
             );
             const dropdown = document.getElementById('searchResults');
             dropdown.innerHTML = '';
@@ -882,6 +905,11 @@
                 alert('Vui lòng chọn kho trước!');
                 return;
             }
+            // Update warehouse name in modal header
+            const selector = document.getElementById('warehouseSelector');
+            const whName = selector.options[selector.selectedIndex]?.text?.trim() || '';
+            document.getElementById('modalWarehouseName').textContent = whName;
+            
             const modal = new bootstrap.Modal(document.getElementById('actionModal'));
             modal.show();
             if (materialId) {
@@ -963,10 +991,10 @@
 
         // SEARCH MATERIAL IN MODAL — uses stockData (TonKho-filtered by warehouse)
         function searchMaterialInModal() {
-            const query = document.getElementById('materialSearch').value.toLowerCase();
+            const query = document.getElementById('materialSearch').value.trim();
             const results = stockData.filter(m => 
-                m.maVatLieu.toLowerCase().includes(query) || 
-                m.tenVatLieu.toLowerCase().includes(query)
+                searchMatch(m.maVatLieu, query) || 
+                searchMatch(m.tenVatLieu, query)
             );
             const dropdown = document.getElementById('modalSearchResults');
             dropdown.innerHTML = '';
@@ -1105,7 +1133,8 @@
             });
             
             document.getElementById('draftCount').textContent = `${draftTransactions.length} mục`;
-            document.getElementById('emptyState').style.display = draftTransactions.length === 0 ? 'flex' : 'none';
+            const emptyEl = document.getElementById('emptyState');
+            emptyEl.style.display = draftTransactions.length === 0 ? 'flex' : 'none';
             
             // Cập nhật summary
             const summaryDiv = document.getElementById('draftSummary');
