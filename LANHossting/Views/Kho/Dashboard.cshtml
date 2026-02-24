@@ -335,6 +335,7 @@
                                     <th>ĐVT</th>
                                     <th class="text-end">Đơn Giá</th>
                                     <th class="text-center">Tồn Kho</th>
+                                    <th class="text-center">Khả Dụng</th>
                                     <th class="text-end pe-4">Thành Tiền</th>
                                 </tr>
                             </thead>
@@ -388,7 +389,12 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label class="small fw-bold text-muted mb-2">VẬT TƯ <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="materialSearch" placeholder="Tìm và chọn vật tư..." readonly onclick="this.removeAttribute('readonly'); this.select();" oninput="searchMaterialInModal()">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="materialSearch" placeholder="Nhấn để chọn vật tư..." readonly onclick="clearMaterialSelection()" oninput="searchMaterialInModal()">
+                                <button class="btn btn-outline-secondary" type="button" onclick="clearMaterialSelection()" title="Chọn lại vật tư">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
                             <input type="hidden" id="selectedMaterialId">
                             <div class="search-results-dropdown" id="modalSearchResults" style="position:relative;"></div>
                         </div>
@@ -419,19 +425,7 @@
                             </div>
                         </div>
                         <div class="row g-3 mb-3">
-                            <div class="col-md-4">
-                                <label class="small fw-bold text-muted mb-2">VỊ TRÍ TRONG KHO</label>
-                                <input type="text" class="form-control" id="viTriInput" placeholder="VD: Kệ A - Tầng 1">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="small fw-bold text-muted mb-2">TÌNH TRẠNG</label>
-                                <select class="form-select" id="tinhTrangInput">
-                                    <option value="Tốt">Tốt</option>
-                                    <option value="Hỏng">Hỏng</option>
-                                    <option value="Cần bảo trì">Cần bảo trì</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label class="small fw-bold text-muted mb-2">NHÀ CUNG CẤP</label>
                                 <input type="text" class="form-control" id="nhaCungCapInput" placeholder="Tên nhà cung cấp">
                             </div>
@@ -558,39 +552,91 @@
     </div>
 
     <div class="modal fade" id="addMaterialModal" tabindex="-1" style="z-index: 1070;">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header bg-primary text-white border-0">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>Thêm Vật Tư Mới</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <div class="modal-header border-0 bg-light px-4 pt-4 pb-3">
+                    <div>
+                        <h5 class="fw-bold mb-1"><i class="bi bi-plus-circle-fill text-primary me-2"></i>Thêm Vật Tư Mới</h5>
+                        <small class="text-muted">Điền đầy đủ thông tin vật tư cần thêm vào hệ thống</small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="small fw-bold text-muted text-uppercase mb-1">Mã Vật Tư</label>
-                        <input type="text" class="form-control fw-bold" id="newMatCode" placeholder="Nhập mã (VD: VT001)...">
-                    </div>
-                    <div class="mb-3">
-                        <label class="small fw-bold text-muted text-uppercase mb-1">Tên Vật Tư</label>
-                        <input type="text" class="form-control" id="newMatName" placeholder="Nhập tên vật tư...">
-                    </div>
-                    <div class="row">
-                        <div class="col-6 mb-3">
-                            <label class="small fw-bold text-muted mb-1">Nhóm Vật Liệu</label>
-                            <select class="form-select" id="newMatGroup">
-                                <option value="">-- Chọn nhóm --</option>
-                            </select>
+                <div class="modal-body px-4 py-3">
+                    <!-- Alert inside modal -->
+                    <div id="addMatAlert"></div>
+
+                    <form id="formThemVatTu" novalidate>
+                        <!-- Row 1: Mã + Tên -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted text-uppercase">Mã Vật Tư <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="addMat_MaVatTu" placeholder="VD: VT-001" maxlength="50" required>
+                                <div class="invalid-feedback">Mã vật tư là bắt buộc</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted text-uppercase">Tên Vật Tư <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="addMat_TenVatTu" placeholder="VD: Sơn chống gỉ" maxlength="200" required>
+                                <div class="invalid-feedback">Tên vật tư là bắt buộc</div>
+                            </div>
                         </div>
-                        <div class="col-6 mb-3">
-                            <label class="small fw-bold text-muted mb-1">Đơn Vị Tính</label>
-                            <select class="form-select" id="newMatUnit">
-                                <option value="">-- Chọn ĐVT --</option>
-                            </select>
+
+                        <!-- Row 2: Nhóm + ĐVT -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted text-uppercase">Nhóm Vật Tư <span class="text-danger">*</span></label>
+                                <select class="form-select" id="addMat_NhomVatLieu" required>
+                                    <option value="">-- Chọn nhóm --</option>
+                                </select>
+                                <div class="invalid-feedback">Nhóm vật tư là bắt buộc</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted text-uppercase">Đơn Vị Tính <span class="text-danger">*</span></label>
+                                <select class="form-select" id="addMat_DonViTinh" required>
+                                    <option value="">-- Chọn ĐVT --</option>
+                                </select>
+                                <div class="invalid-feedback">Đơn vị tính là bắt buộc</div>
+                            </div>
                         </div>
-                    </div>
+
+                        <!-- Row 3: Đơn giá + Kho -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted text-uppercase">Đơn Giá (VNĐ) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="addMat_DonGia" min="0" step="0.01" value="0" required>
+                                <div class="invalid-feedback">Đơn giá phải >= 0</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted text-uppercase">Kho <span class="text-danger">*</span></label>
+                                <select class="form-select" id="addMat_KhoId" required>
+                                    <option value="">-- Chọn kho --</option>
+                                </select>
+                                <div class="invalid-feedback">Kho là bắt buộc</div>
+                            </div>
+                        </div>
+
+                        <!-- Row 4: Mức tối thiểu -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-muted text-uppercase">Mức Tối Thiểu</label>
+                                <input type="number" class="form-control" id="addMat_MucToiThieu" min="0" step="0.01" placeholder="Mặc định: 5">
+                                <div class="form-text text-muted small">Nếu để trống, hệ thống tự đặt = 5</div>
+                            </div>
+                        </div>
+
+                        <!-- Row 5: Mô tả (full width) -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Mô Tả</label>
+                            <textarea class="form-control" id="addMat_MoTa" rows="3" placeholder="Mô tả chi tiết vật tư..."></textarea>
+                        </div>
+                    </form>
                 </div>
-                <div class="modal-footer border-0 p-4 pt-0">
-                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary fw-bold" onclick="saveNewMaterial()">Lưu</button>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-3 fw-bold" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>Hủy
+                    </button>
+                    <button type="button" class="btn btn-primary rounded-3 fw-bold px-4" id="btnSaveNewMaterial" onclick="saveNewMaterial()">
+                        <i class="bi bi-check-lg me-1"></i>Lưu
+                    </button>
                 </div>
             </div>
         </div>
@@ -602,21 +648,27 @@
         let currentWarehouseId = null;
         let currentAction = null;
         let draftTransactions = [];
-        let allMaterials = [];
         let allWarehouses = [];
         let allNhomVatLieu = [];
         let allDonViTinh = [];
         let stockData = [];
         let currentPage = 1;
         const itemsPerPage = 20;
-        const userId = @ViewBag.UserId;
 
         // INITIALIZE
         document.addEventListener('DOMContentLoaded', async function () {
             await loadWarehouses();
             await loadNhomVatLieu();
             await loadDonViTinh();
-            await loadMaterials();
+
+            // Setup add material modal events
+            const addModal = document.getElementById('addMaterialModal');
+            addModal.addEventListener('show.bs.modal', populateAddMaterialDropdowns);
+            addModal.addEventListener('hidden.bs.modal', resetAddMaterialForm);
+            addModal.querySelectorAll('.form-control, .form-select').forEach(el => {
+                el.addEventListener('input', () => el.classList.remove('is-invalid'));
+                el.addEventListener('change', () => el.classList.remove('is-invalid'));
+            });
         });
 
         // LOAD WAREHOUSES
@@ -643,11 +695,6 @@
             try {
                 const response = await fetch('/api/kho/nhomvatlieu');
                 allNhomVatLieu = await response.json();
-                const selector = document.getElementById('newMatGroup');
-                selector.innerHTML = '';
-                allNhomVatLieu.forEach(nhom => {
-                    selector.innerHTML += `<option value="${nhom.id}">${nhom.tenNhom}</option>`;
-                });
             } catch (error) {
                 console.error('Error loading nhom vat lieu:', error);
             }
@@ -658,28 +705,8 @@
             try {
                 const response = await fetch('/api/kho/donvitinh');
                 allDonViTinh = await response.json();
-                const selector = document.getElementById('newMatUnit');
-                selector.innerHTML = '';
-                allDonViTinh.forEach(dvt => {
-                    selector.innerHTML += `<option value="${dvt.id}">${dvt.tenDonVi}</option>`;
-                });
             } catch (error) {
                 console.error('Error loading don vi tinh:', error);
-            }
-        }
-
-        // LOAD MATERIALS
-        async function loadMaterials() {
-            try {
-                const response = await fetch('/api/kho/vatlieu');
-                allMaterials = await response.json();
-                if (currentWarehouseId) {
-                    await loadStockData();
-                } else {
-                    renderEmptyTable();
-                }
-            } catch (error) {
-                console.error('Error loading materials:', error);
             }
         }
 
@@ -734,7 +761,7 @@
         // RENDER EMPTY TABLE
         function renderEmptyTable() {
             const tbody = document.getElementById('materialTableBody');
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-5">
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-5">
                 <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
                 Vui lòng chọn kho để xem tồn kho
             </td></tr>`;
@@ -757,13 +784,14 @@
             let totalValue = 0;
 
             if (stockData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-5">
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-5">
                     <i class="bi bi-box-seam fs-1 d-block mb-2 opacity-50"></i>
                     Không có dữ liệu tồn kho cho kho này
                 </td></tr>`;
             } else {
                 paginatedData.forEach((item, index) => {
                     const stock = item.soLuongTon || 0;
+                    const khaDung = item.soLuongKhaDung ?? stock;
                     const donGia = item.donGia || 0;
                     const thanhTien = stock * donGia;
                     totalStock += stock;
@@ -777,6 +805,7 @@
                         <td><span class="text-muted">${item.donViTinh}</span></td>
                         <td class="text-end currency-num">${donGia.toLocaleString('vi-VN', {minimumFractionDigits: 2})}</td>
                         <td class="text-center"><span class="badge ${stock < 10 ? 'bg-danger' : 'bg-success'} rounded-pill px-3">${stock.toLocaleString('vi-VN')}</span></td>
+                        <td class="text-center"><span class="badge ${khaDung < 10 ? 'bg-warning text-dark' : 'bg-info text-dark'} rounded-pill px-3">${khaDung.toLocaleString('vi-VN')}</span></td>
                         <td class="text-end pe-4 fw-bold currency-num">${thanhTien.toLocaleString('vi-VN')}</td>
                     </tr>`;
                     tbody.innerHTML += row;
@@ -860,8 +889,49 @@
                 if (mat) {
                     document.getElementById('materialSearch').value = `${mat.maVatLieu} - ${mat.tenVatLieu}`;
                     document.getElementById('materialSearch').dataset.materialId = materialId;
+                    document.getElementById('selectedMaterialId').value = materialId;
+                    // Lock material name — readonly after selection
+                    document.getElementById('materialSearch').setAttribute('readonly', true);
+                    // Auto-fill đơn giá from VatLieu.DonGia (via stockData)
+                    document.getElementById('donGiaInput').value = (mat.donGia > 0) ? mat.donGia : 0;
+                    // Enforce readonly based on current action type
+                    applyDonGiaReadonly();
                 }
             }
+        }
+
+        // ── HELPER: Lock/unlock đơn giá based on action type ──
+        function applyDonGiaReadonly() {
+            const donGiaInput = document.getElementById('donGiaInput');
+            if (currentAction === 'NHAP') {
+                // NHAP: cho phép sửa đơn giá
+                donGiaInput.removeAttribute('readonly');
+                donGiaInput.classList.remove('bg-light');
+            } else {
+                // XUAT / DIEUCHUYEN: khóa đơn giá = VatLieu.DonGia hiện tại
+                const materialId = parseInt(document.getElementById('selectedMaterialId').value);
+                if (materialId) {
+                    const stockItem = stockData.find(s => s.vatLieuId === materialId);
+                    if (stockItem && stockItem.donGia > 0) {
+                        donGiaInput.value = stockItem.donGia;
+                    }
+                }
+                donGiaInput.setAttribute('readonly', true);
+                donGiaInput.classList.add('bg-light');
+            }
+        }
+
+        // ── HELPER: Clear material selection to allow re-search ──
+        function clearMaterialSelection() {
+            const input = document.getElementById('materialSearch');
+            // Clear previous selection
+            input.dataset.materialId = '';
+            document.getElementById('selectedMaterialId').value = '';
+            input.value = '';
+            document.getElementById('donGiaInput').value = '0';
+            // Unlock for search
+            input.removeAttribute('readonly');
+            input.focus();
         }
 
         // SELECT ACTION
@@ -886,12 +956,15 @@
                 transferSection.classList.add('d-none');
                 nhapExtraFields.classList.add('d-none');
             }
+            
+            // Enforce đơn giá readonly/editable based on action type
+            applyDonGiaReadonly();
         }
 
-        // SEARCH MATERIAL IN MODAL
+        // SEARCH MATERIAL IN MODAL — uses stockData (TonKho-filtered by warehouse)
         function searchMaterialInModal() {
             const query = document.getElementById('materialSearch').value.toLowerCase();
-            const results = allMaterials.filter(m => 
+            const results = stockData.filter(m => 
                 m.maVatLieu.toLowerCase().includes(query) || 
                 m.tenVatLieu.toLowerCase().includes(query)
             );
@@ -899,9 +972,9 @@
             dropdown.innerHTML = '';
             if (query.length > 0 && results.length > 0) {
                 results.slice(0, 5).forEach(mat => {
-                    dropdown.innerHTML += `<div class="result-item" onclick="selectMaterialInModal(${mat.id}, '${mat.maVatLieu}', '${mat.tenVatLieu.replace(/'/g, "\\'")}')">
+                    dropdown.innerHTML += `<div class="result-item" onclick="selectMaterialInModal(${mat.vatLieuId}, '${mat.maVatLieu}', '${mat.tenVatLieu.replace(/'/g, "\\'")}')">
                         <span><strong>${mat.maVatLieu}</strong> - ${mat.tenVatLieu}</span>
-                        <span class="badge bg-light text-dark">${mat.donViTinh}</span>
+                        <span class="badge bg-${mat.soLuongTon < 10 ? 'danger' : 'success'}">${mat.soLuongTon} ${mat.donViTinh}</span>
                     </div>`;
                 });
                 dropdown.style.display = 'block';
@@ -916,11 +989,19 @@
             document.getElementById('selectedMaterialId').value = id;
             document.getElementById('modalSearchResults').style.display = 'none';
             
-            // Lấy đơn giá hiện tại từ stockData nếu có
+            // Lock material name — KHÔNG cho sửa tên vật tư
+            document.getElementById('materialSearch').setAttribute('readonly', true);
+            
+            // Auto-fill đơn giá from VatLieu.DonGia (via stockData)
             const stockItem = stockData.find(s => s.vatLieuId === id);
             if (stockItem && stockItem.donGia > 0) {
                 document.getElementById('donGiaInput').value = stockItem.donGia;
+            } else {
+                document.getElementById('donGiaInput').value = '0';
             }
+            
+            // Enforce readonly based on action type (XUAT/DIEUCHUYEN = locked)
+            applyDonGiaReadonly();
         }
 
         // COMMIT ACTION
@@ -955,13 +1036,11 @@
                     soLo: document.getElementById('soLoInput').value || null,
                     ngaySanXuat: document.getElementById('ngaySanXuatInput').value || null,
                     ngayHetHan: document.getElementById('ngayHetHanInput').value || null,
-                    viTri: document.getElementById('viTriInput').value || null,
-                    tinhTrangVatLieu: document.getElementById('tinhTrangInput').value || 'Tốt',
                     nhaCungCap: document.getElementById('nhaCungCapInput').value || null
                 };
             }
 
-            const mat = allMaterials.find(m => m.id === materialId);
+            const mat = stockData.find(m => m.vatLieuId === materialId);
             draftTransactions.push({
                 vatLieuId: materialId,
                 maVatLieu: mat ? mat.maVatLieu : '',
@@ -980,18 +1059,22 @@
         }
         
         function resetInputFields() {
-            document.getElementById('materialSearch').value = '';
-            document.getElementById('materialSearch').dataset.materialId = '';
+            const materialInput = document.getElementById('materialSearch');
+            materialInput.value = '';
+            materialInput.dataset.materialId = '';
+            materialInput.setAttribute('readonly', true); // Reset to clickable-only state
             document.getElementById('selectedMaterialId').value = '';
             document.getElementById('quantityInput').value = '1';
             document.getElementById('donGiaInput').value = '0';
+            document.getElementById('donGiaInput').removeAttribute('readonly');
+            document.getElementById('donGiaInput').classList.remove('bg-light');
             document.getElementById('noteInput').value = '';
             document.getElementById('soLoInput').value = '';
             document.getElementById('ngaySanXuatInput').value = '';
             document.getElementById('ngayHetHanInput').value = '';
-            document.getElementById('viTriInput').value = '';
-            document.getElementById('tinhTrangInput').value = 'Tốt';
             document.getElementById('nhaCungCapInput').value = '';
+            // Re-apply readonly based on current action
+            applyDonGiaReadonly();
         }
 
         // RENDER DRAFT LIST
@@ -1049,7 +1132,7 @@
             }
 
             try {
-                // Chuyển đổi format cho API
+                // Build items array for API
                 const items = draftTransactions.map(t => ({
                     vatLieuId: t.vatLieuId,
                     loaiPhieu: t.loaiPhieu,
@@ -1059,8 +1142,6 @@
                     soLo: t.soLo || null,
                     ngaySanXuat: t.ngaySanXuat || null,
                     ngayHetHan: t.ngayHetHan || null,
-                    viTri: t.viTri || null,
-                    tinhTrangVatLieu: t.tinhTrangVatLieu || 'Tốt',
                     nhaCungCap: t.nhaCungCap || null,
                     ghiChu: t.ghiChu || null
                 }));
@@ -1077,15 +1158,20 @@
                     body: JSON.stringify(payload)
                 });
 
-                if (response.ok) {
-                    alert('Lưu giao dịch thành công!');
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    alert(' ' + result.message);
                     draftTransactions = [];
                     renderDraftList();
                     await loadStockData();
                     bootstrap.Modal.getInstance(document.getElementById('actionModal')).hide();
                 } else {
-                    const error = await response.text();
-                    alert('Lỗi: ' + error);
+                    let errorMsg = result.message || 'Có lỗi xảy ra';
+                    if (result.errors && result.errors.length > 0) {
+                        errorMsg += '\n' + result.errors.join('\n');
+                    }
+                    alert('Lỗi: ' + errorMsg);
                 }
             } catch (error) {
                 console.error('Error saving transaction:', error);
@@ -1151,51 +1237,124 @@
             window.location.href = `/api/kho/export?khoId=${currentWarehouseId}`;
         }
 
-        // ADD NEW MATERIAL
+        // ─── ADD NEW MATERIAL ──────────────────────────────
+        function populateAddMaterialDropdowns() {
+            // NhomVatLieu dropdown — uses .ten (from DropdownItemDto)
+            const nhomSelect = document.getElementById('addMat_NhomVatLieu');
+            nhomSelect.innerHTML = '<option value="">-- Chọn nhóm --</option>';
+            allNhomVatLieu.forEach(n => {
+                nhomSelect.innerHTML += `<option value="${n.id}">${n.ten}</option>`;
+            });
+
+            // DonViTinh dropdown — uses .ten (from DropdownItemDto)
+            const dvtSelect = document.getElementById('addMat_DonViTinh');
+            dvtSelect.innerHTML = '<option value="">-- Chọn ĐVT --</option>';
+            allDonViTinh.forEach(d => {
+                dvtSelect.innerHTML += `<option value="${d.id}">${d.ten}</option>`;
+            });
+
+            // Kho dropdown — pre-select current warehouse
+            const khoSelect = document.getElementById('addMat_KhoId');
+            khoSelect.innerHTML = '<option value="">-- Chọn kho --</option>';
+            allWarehouses.forEach(wh => {
+                const selected = (currentWarehouseId && wh.id === currentWarehouseId) ? 'selected' : '';
+                khoSelect.innerHTML += `<option value="${wh.id}" ${selected}>${wh.tenKho}</option>`;
+            });
+        }
+
+        function resetAddMaterialForm() {
+            const form = document.getElementById('formThemVatTu');
+            if (form) form.reset();
+            const donGiaEl = document.getElementById('addMat_DonGia');
+            if (donGiaEl) donGiaEl.value = '0';
+            const alertEl = document.getElementById('addMatAlert');
+            if (alertEl) alertEl.innerHTML = '';
+            document.querySelectorAll('#addMaterialModal .is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        }
+
         async function saveNewMaterial() {
-            const code = document.getElementById('newMatCode').value.trim();
-            const name = document.getElementById('newMatName').value.trim();
-            const groupId = parseInt(document.getElementById('newMatGroup').value);
-            const unitId = parseInt(document.getElementById('newMatUnit').value);
+            const btn = document.getElementById('btnSaveNewMaterial');
+            const alertContainer = document.getElementById('addMatAlert');
 
-            if (!code || !name) {
-                alert('Vui lòng nhập đầy đủ thông tin!');
-                return;
-            }
+            // ── Client-side validation ─────────────────────────
+            let isValid = true;
+            const validations = [
+                { id: 'addMat_MaVatTu',      check: v => v.trim() !== '' },
+                { id: 'addMat_TenVatTu',      check: v => v.trim() !== '' },
+                { id: 'addMat_NhomVatLieu',   check: v => v !== '' },
+                { id: 'addMat_DonViTinh',     check: v => v !== '' },
+                { id: 'addMat_DonGia',        check: v => v !== '' && parseFloat(v) >= 0 },
+                { id: 'addMat_KhoId',         check: v => v !== '' },
+            ];
+            validations.forEach(f => {
+                const el = document.getElementById(f.id);
+                if (!f.check(el.value)) { el.classList.add('is-invalid'); isValid = false; }
+                else { el.classList.remove('is-invalid'); }
+            });
+            if (!isValid) return;
 
-            if (!groupId || !unitId) {
-                alert('Vui lòng chọn nhóm vật liệu và đơn vị tính!');
-                return;
-            }
+            // ── Disable button ─────────────────────────────────
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang xử lý...';
+
+            const mucVal = document.getElementById('addMat_MucToiThieu').value;
+
+            const payload = {
+                maVatLieu:     document.getElementById('addMat_MaVatTu').value.trim(),
+                tenVatLieu:    document.getElementById('addMat_TenVatTu').value.trim(),
+                nhomVatLieuId: parseInt(document.getElementById('addMat_NhomVatLieu').value),
+                donViTinhId:   parseInt(document.getElementById('addMat_DonViTinh').value),
+                donGia:        parseFloat(document.getElementById('addMat_DonGia').value) || 0,
+                khoId:         parseInt(document.getElementById('addMat_KhoId').value),
+                moTa:          document.getElementById('addMat_MoTa').value.trim() || null,
+                mucToiThieu:   mucVal ? parseFloat(mucVal) : null
+            };
 
             try {
-                const response = await fetch('/api/kho/themvatlieu', {
+                const response = await fetch('/api/kho/themvattu', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        maVatLieu: code, 
-                        tenVatLieu: name, 
-                        nhomVatLieuId: groupId, 
-                        donViTinhId: unitId 
-                    })
+                    body: JSON.stringify(payload)
                 });
 
-                if (response.ok) {
-                    alert('Thêm vật tư thành công!');
-                    await loadMaterials();
-                    if (currentWarehouseId) {
-                        await loadStockData();
-                    }
-                    bootstrap.Modal.getInstance(document.getElementById('addMaterialModal')).hide();
-                    document.getElementById('newMatCode').value = '';
-                    document.getElementById('newMatName').value = '';
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    alertContainer.innerHTML = `<div class="alert alert-success alert-dismissible rounded-3 mb-3" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i><strong>${result.message}</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>`;
+                    document.getElementById('formThemVatTu').reset();
+                    document.getElementById('addMat_DonGia').value = '0';
+
+                    // Reload stock data
+                    if (currentWarehouseId) await loadStockData();
+
+                    // Close modal after delay
+                    setTimeout(() => {
+                        bootstrap.Modal.getInstance(document.getElementById('addMaterialModal'))?.hide();
+                    }, 1500);
                 } else {
-                    const error = await response.json();
-                    alert('Lỗi: ' + (error.message || 'Không thể thêm vật tư'));
+                    let errorHtml = '';
+                    if (result.errors && result.errors.length > 0) {
+                        errorHtml = '<ul class="mb-0 mt-1 ps-3 small">';
+                        result.errors.forEach(e => errorHtml += `<li>${e}</li>`);
+                        errorHtml += '</ul>';
+                    }
+                    alertContainer.innerHTML = `<div class="alert alert-danger alert-dismissible rounded-3 mb-3" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i><strong>${result.message || 'Có lỗi xảy ra.'}</strong>
+                        ${errorHtml}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>`;
                 }
-            } catch (error) {
-                console.error('Error adding material:', error);
-                alert('Có lỗi xảy ra khi thêm vật tư');
+            } catch (err) {
+                alertContainer.innerHTML = `<div class="alert alert-danger rounded-3 mb-3">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Không thể kết nối đến máy chủ.
+                </div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
             }
         }
 

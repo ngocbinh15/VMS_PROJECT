@@ -3,16 +3,17 @@ using LANHossting.Filters;
 
 namespace LANHossting.Controllers
 {
+    /// <summary>
+    /// MVC controller — renders views only.
+    /// No DbContext. No ViewBag for data. No business logic.
+    /// All data loading happens via API calls from JavaScript.
+    /// </summary>
     [AuthorizeRole("ADMIN", "NHAN_VIEN_KHO")]
     public class KhoController : Controller
     {
-        // GET: /Kho/Dashboard - Trang chính quản lý kho
+        // GET: /Kho/Dashboard
         public IActionResult Dashboard()
         {
-            ViewBag.FullName = HttpContext.Session.GetString("HoTen");
-            ViewBag.Username = HttpContext.Session.GetString("Username");
-            ViewBag.Role = HttpContext.Session.GetString("RoleName");
-            ViewBag.UserId = HttpContext.Session.GetString("UserId");
             return View();
         }
     }

@@ -18,6 +18,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Clean Architecture DI
 builder.Services.AddScoped<ITonKhoRepository, TonKhoRepository>();
 builder.Services.AddScoped<ITonKhoService, TonKhoService>();
+builder.Services.AddScoped<IVatLieuRepository, VatLieuRepository>();
+builder.Services.AddScoped<IVatLieuService, VatLieuService>();
+builder.Services.AddScoped<IGiaoDichRepository, GiaoDichRepository>();
+builder.Services.AddScoped<IGiaoDichService, GiaoDichService>();
 
 // ✅ THÊM 2: Cấu hình Session cho Authentication
 builder.Services.AddSession(options =>

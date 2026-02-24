@@ -160,7 +160,6 @@ F:\Soure_Code\AAVMS_Project\LANHossting\obj\Debug\net8.0\staticwebassets.build.j
 F:\Soure_Code\AAVMS_Project\LANHossting\obj\Debug\net8.0\staticwebassets.build.json.cache
 F:\Soure_Code\AAVMS_Project\LANHossting\obj\Debug\net8.0\staticwebassets.development.json
 F:\Soure_Code\AAVMS_Project\LANHossting\obj\Debug\net8.0\staticwebassets.build.endpoints.json
-F:\Soure_Code\AAVMS_Project\LANHossting\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 F:\Soure_Code\AAVMS_Project\LANHossting\obj\Debug\net8.0\LANHosst.E08DA502.Up2Date
 F:\Soure_Code\AAVMS_Project\LANHossting\obj\Debug\net8.0\LANHossting.dll
 F:\Soure_Code\AAVMS_Project\LANHossting\obj\Debug\net8.0\refint\LANHossting.dll
@@ -177,3 +176,4 @@ F:\Soure_Code\AAVMS_Project\LANHossting\bin\Debug\net8.0\Microsoft.IO.Recyclable
 F:\Soure_Code\AAVMS_Project\LANHossting\bin\Debug\net8.0\System.Security.Cryptography.Pkcs.dll
 F:\Soure_Code\AAVMS_Project\LANHossting\bin\Debug\net8.0\runtimes\win\lib\net8.0\Microsoft.Win32.SystemEvents.dll
 F:\Soure_Code\AAVMS_Project\LANHossting\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Security.Cryptography.Pkcs.dll
+F:\Soure_Code\AAVMS_Project\LANHossting\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

@@ -82,6 +82,7 @@ namespace LANHossting.Infrastructure.Repositories
                     DonViTinhId = x.vl.DonViTinhId,
                     DonViTinh = x.dv.TenDonVi,
                     SoLuongTon = x.tk.SoLuongTon,
+                    SoLuongKhaDung = x.tk.SoLuongTon - (x.tk.SoLuongDatCho ?? 0),
                     DonGia = x.vl.DonGia,
                     GiaTri = x.tk.SoLuongTon * x.vl.DonGia
                 })

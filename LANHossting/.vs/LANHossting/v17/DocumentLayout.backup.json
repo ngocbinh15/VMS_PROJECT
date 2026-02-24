@@ -3,6 +3,26 @@
   "WorkspaceRootPath": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|f:\\soure_code\\aavms_project\\lanhossting\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|solutionrelative:properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|f:\\soure_code\\aavms_project\\lanhossting\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|f:\\soure_code\\aavms_project\\lanhossting\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|f:\\soure_code\\aavms_project\\lanhossting\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|solutionrelative:appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|f:\\soure_code\\aavms_project\\lanhossting\\views\\testdb\\danhsachkho.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|solutionrelative:views\\testdb\\danhsachkho.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|f:\\soure_code\\aavms_project\\lanhossting\\controllers\\khoapicontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|solutionrelative:controllers\\khoapicontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -19,20 +39,8 @@
       "RelativeMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|solutionrelative:views\\testdb\\danhsachtuyenluong.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|f:\\soure_code\\aavms_project\\lanhossting\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|solutionrelative:appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|f:\\soure_code\\aavms_project\\lanhossting\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|f:\\soure_code\\aavms_project\\lanhossting\\views\\testdb\\danhsachphao.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|solutionrelative:views\\testdb\\danhsachphao.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|f:\\soure_code\\aavms_project\\lanhossting\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Program Files\\dotnet\\sdk\\9.0.306\\Sdks\\Microsoft.NET.Sdk\\targets\\Microsoft.NET.Sdk.DefaultItems.Shared.targets||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
@@ -50,43 +58,45 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "KhoAPIController.cs",
-              "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Controllers\\KhoAPIController.cs",
-              "RelativeDocumentMoniker": "Controllers\\KhoAPIController.cs",
-              "ToolTip": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Controllers\\KhoAPIController.cs",
-              "RelativeToolTip": "Controllers\\KhoAPIController.cs",
-              "ViewState": "AgIAAC4AAAAAAAAAAAAUwC8AAAAeAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-28T16:34:07.787Z",
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "Properties\\launchSettings.json",
+              "ToolTip": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Properties\\launchSettings.json",
+              "RelativeToolTip": "Properties\\launchSettings.json",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAAAwAAAAfAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-02-24T17:59:00.263Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Index.cshtml",
-              "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\Login\\Index.cshtml",
-              "RelativeDocumentMoniker": "Views\\Login\\Index.cshtml",
-              "ToolTip": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\Login\\Index.cshtml",
-              "RelativeToolTip": "Views\\Login\\Index.cshtml",
-              "ViewState": "AgIAAMYAAAAAAAAAAAAAAMQAAAAAAAAAAAAAAA==",
+              "DocumentIndex": 4,
+              "Title": "DanhSachKho.cshtml",
+              "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\TestDb\\DanhSachKho.cshtml",
+              "RelativeDocumentMoniker": "Views\\TestDb\\DanhSachKho.cshtml",
+              "ToolTip": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\TestDb\\DanhSachKho.cshtml",
+              "RelativeToolTip": "Views\\TestDb\\DanhSachKho.cshtml",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAAABEAAAAnAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-01-19T16:08:32.914Z"
+              "WhenOpened": "2026-02-22T19:06:35.971Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 3,
               "Title": "appsettings.Development.json",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\appsettings.Development.json",
               "RelativeDocumentMoniker": "appsettings.Development.json",
               "ToolTip": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\appsettings.Development.json",
               "RelativeToolTip": "appsettings.Development.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-01-16T15:44:32.639Z"
+              "WhenOpened": "2026-01-16T15:44:32.639Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 9,
               "Title": "DanhSachPhao.cshtml",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\TestDb\\DanhSachPhao.cshtml",
               "RelativeDocumentMoniker": "Views\\TestDb\\DanhSachPhao.cshtml",
@@ -98,7 +108,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 10,
               "Title": "Microsoft.NET.Sdk.DefaultItems.Shared.targets",
               "DocumentMoniker": "C:\\Program Files\\dotnet\\sdk\\9.0.306\\Sdks\\Microsoft.NET.Sdk\\targets\\Microsoft.NET.Sdk.DefaultItems.Shared.targets",
               "ToolTip": "C:\\Program Files\\dotnet\\sdk\\9.0.306\\Sdks\\Microsoft.NET.Sdk\\targets\\Microsoft.NET.Sdk.DefaultItems.Shared.targets",
@@ -108,7 +118,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 8,
               "Title": "DanhSachTuyenLuong.cshtml",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\TestDb\\DanhSachTuyenLuong.cshtml",
               "RelativeDocumentMoniker": "Views\\TestDb\\DanhSachTuyenLuong.cshtml",
@@ -121,6 +131,56 @@
             {
               "$type": "Document",
               "DocumentIndex": 2,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\appsettings.json",
+              "RelativeDocumentMoniker": "appsettings.json",
+              "ToolTip": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\appsettings.json",
+              "RelativeToolTip": "appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-01-16T15:18:57.752Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Program.cs",
+              "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAADUAAAAAAAAAAAAAAEQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-16T15:10:56.779Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\Login\\Index.cshtml",
+              "RelativeDocumentMoniker": "Views\\Login\\Index.cshtml",
+              "ToolTip": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\Login\\Index.cshtml",
+              "RelativeToolTip": "Views\\Login\\Index.cshtml",
+              "ViewState": "AgIAAMYAAAAAAAAAAAAAAMQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-01-19T16:08:32.914Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "KhoAPIController.cs",
+              "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Controllers\\KhoAPIController.cs",
+              "RelativeDocumentMoniker": "Controllers\\KhoAPIController.cs",
+              "ToolTip": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Controllers\\KhoAPIController.cs",
+              "RelativeToolTip": "Controllers\\KhoAPIController.cs",
+              "ViewState": "AgIAAC4AAAAAAAAAAAAUwDMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-28T16:34:07.787Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "Index.cshtml",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Views\\TestDb\\Index.cshtml",
               "RelativeDocumentMoniker": "Views\\TestDb\\Index.cshtml",
@@ -129,30 +189,6 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2026-01-16T15:35:20.162Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\appsettings.json",
-              "RelativeDocumentMoniker": "appsettings.json",
-              "ToolTip": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\appsettings.json",
-              "RelativeToolTip": "appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-01-16T15:18:57.752Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "Program.cs",
-              "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Program.cs",
-              "RelativeDocumentMoniker": "Program.cs",
-              "ToolTip": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Program.cs",
-              "RelativeToolTip": "Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-16T15:10:56.779Z"
             }
           ]
         }

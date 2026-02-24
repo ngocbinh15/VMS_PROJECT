@@ -4,6 +4,7 @@ namespace LANHossting.Application.DTOs
     /// DTO for inventory item display.
     /// DonGia sourced exclusively from VatLieu.DonGia.
     /// GiaTri = SoLuongTon * VatLieu.DonGia.
+    /// SoLuongKhaDung = TonKho.SoLuongKhaDung (computed: SoLuongTon - SoLuongDatCho).
     /// </summary>
     public class TonKhoItemDto
     {
@@ -16,6 +17,7 @@ namespace LANHossting.Application.DTOs
         public int DonViTinhId { get; set; }
         public string DonViTinh { get; set; } = string.Empty;
         public decimal SoLuongTon { get; set; }
+        public decimal SoLuongKhaDung { get; set; }
         public decimal DonGia { get; set; }
         public decimal GiaTri { get; set; }
     }

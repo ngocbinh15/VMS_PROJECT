@@ -27,6 +27,58 @@
   },
   {
     "ContainingType": "LANHossting.Controllers.KhoAPIController",
+    "Method": "GetDonViTinh",
+    "RelativePath": "api/kho/donvitinh",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.KhoAPIController",
+    "Method": "GiaoDich",
+    "RelativePath": "api/kho/giaodich",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "LANHossting.Application.DTOs.GiaoDichBatchDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.KhoAPIController",
+    "Method": "GetNhomVatLieu",
+    "RelativePath": "api/kho/nhomvatlieu",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.KhoAPIController",
+    "Method": "ThemVatTu",
+    "RelativePath": "api/kho/themvattu",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "LANHossting.Application.DTOs.CreateVatLieuDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.KhoAPIController",
     "Method": "GetTonKho",
     "RelativePath": "api/kho/tonkho",
     "HttpMethod": "GET",
