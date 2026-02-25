@@ -3,8 +3,9 @@ wwwroot\css\kho\dashboard.css
 wwwroot\css\site.css
 wwwroot\favicon.ico
 wwwroot\image_2.png
+wwwroot\js\admin\dashboard.api.js
 wwwroot\js\admin\dashboard.events.js
-wwwroot\js\admin\dashboard.ui.js
+wwwroot\js\kho\dashboard.api.js
 wwwroot\js\kho\dashboard.events.js
 wwwroot\js\kho\dashboard.ui.js
 wwwroot\js\site.js
@@ -65,5 +66,4 @@ wwwroot\lib\jquery\dist\jquery.js
 wwwroot\lib\jquery\dist\jquery.min.js
 wwwroot\lib\jquery\dist\jquery.min.map
 wwwroot\lib\jquery\LICENSE.txt
-wwwroot\js\admin\dashboard.api.js
-wwwroot\js\kho\dashboard.api.js
+wwwroot\js\admin\dashboard.ui.js

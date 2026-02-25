@@ -295,26 +295,49 @@ async function confirmDeleteVatLieu(id, tenVatLieu) {
 }
 
 /* ══════════════════════════════════════════
-   NHẬT KÝ HỆ THỐNG
+   NHẬT KÝ NHẬP – XUẤT – ĐIỀU CHUYỂN
    ══════════════════════════════════════════ */
+let _logKhoLoaded = false;
+
+async function _ensureLogKhoDropdown() {
+    if (_logKhoLoaded) return;
+    try {
+        const list = await AdminAPI.getDanhSachKho() || [];
+        const sel = document.getElementById('logKho');
+        list.forEach(k => {
+            const opt = document.createElement('option');
+            opt.value = k.id;
+            opt.textContent = k.tenKho;
+            sel.appendChild(opt);
+        });
+        _logKhoLoaded = true;
+    } catch (_) { /* ignore */ }
+}
+
 async function loadSystemLog(page) {
     page = page || 1;
     _logCurrentPage = page;
 
-    const params = { page: page, pageSize: 20 };
+    await _ensureLogKhoDropdown();
+
+    const params = new URLSearchParams();
+    params.set('page', page);
+    params.set('pageSize', 20);
 
     const tuNgay = document.getElementById('logTuNgay')?.value;
     const denNgay = document.getElementById('logDenNgay')?.value;
-    const hanhDong = document.getElementById('logHanhDong')?.value;
-    const doiTuong = document.getElementById('logDoiTuong')?.value;
+    const khoId = document.getElementById('logKho')?.value;
+    const loai = document.getElementById('logLoaiPhieu')?.value;
+    const search = document.getElementById('logSearchVatLieu')?.value?.trim();
 
-    if (tuNgay) params.tuNgay = tuNgay;
-    if (denNgay) params.denNgay = denNgay;
-    if (hanhDong) params.hanhDong = hanhDong;
-    if (doiTuong) params.doiTuong = doiTuong;
+    if (tuNgay) params.set('tuNgay', tuNgay);
+    if (denNgay) params.set('denNgay', denNgay);
+    if (khoId) params.set('khoId', khoId);
+    if (loai) params.set('loaiThayDoi', loai);
+    if (search) params.set('searchVatLieu', search);
 
     try {
-        const data = await AdminAPI.getSystemLog(params);
+        const data = await AdminAPI.getLichSuKho(params.toString());
         renderSystemLogTable(data || { items: [], totalCount: 0, page: 1, pageSize: 20 });
     } catch (e) {
         showToast('Lỗi tải nhật ký: ' + e.message, 'error');
@@ -324,9 +347,21 @@ async function loadSystemLog(page) {
 function resetLogFilters() {
     document.getElementById('logTuNgay').value = '';
     document.getElementById('logDenNgay').value = '';
-    document.getElementById('logHanhDong').value = '';
-    document.getElementById('logDoiTuong').value = '';
+    document.getElementById('logKho').value = '';
+    document.getElementById('logLoaiPhieu').value = '';
+    document.getElementById('logSearchVatLieu').value = '';
     loadSystemLog(1);
+}
+
+async function showTransactionDetail(phieuId) {
+    try {
+        const data = await AdminAPI.getChiTietPhieu(phieuId);
+        if (!data) { showToast('Không tìm thấy phiếu', 'error'); return; }
+        renderTransactionDetailView(data);
+        new bootstrap.Modal(document.getElementById('transactionDetailModal')).show();
+    } catch (e) {
+        showToast('Lỗi tải chi tiết phiếu: ' + e.message, 'error');
+    }
 }
 
 /* ══════════════════════════════════════════

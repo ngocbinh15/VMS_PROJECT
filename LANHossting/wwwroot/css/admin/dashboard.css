@@ -32,8 +32,7 @@ body {
 
 /* ── NAVBAR ──────────────────────────────── */
 .admin-nav {
-  background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-primary-dark) 100%);
-  box-shadow: 0 2px 12px rgba(67, 97, 238, .25);
+  background: whitesmoke;
   height: 64px;
 }
 

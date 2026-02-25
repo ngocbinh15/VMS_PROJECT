@@ -48,7 +48,9 @@ const AdminAPI = (() => {
         updateVatLieu:    (dto)     => _json(`${BASE}/vatlieu`, { method: 'PUT',  body: JSON.stringify(dto) }),
         deleteVatLieu:    (id)      => _json(`${BASE}/vatlieu/${id}`, { method: 'DELETE' }),
 
-        // ── NHẬT KÝ HỆ THỐNG ──
-        getSystemLog:     (params)  => _json(`${BASE}/systemlog?${new URLSearchParams(params)}`),
+        // ── NHẬT KÝ NHẬP – XUẤT – ĐIỀU CHUYỂN ──
+        getLichSuKho:     (qs)      => _json(`/api/kho/lichsu?${qs}`),
+        getChiTietPhieu:  (id)      => _json(`/api/kho/lichsu/${id}`),
+        getDanhSachKho:   ()        => _json(`/api/kho/danhsachkho`),
     };
 })();
