@@ -147,6 +147,7 @@ namespace LANHossting.Controllers
         // ═══ NHẬT KÝ (AUDIT LOG) ENDPOINTS ═══
 
         // GET: api/kho/lichsu - Danh sách phiếu (paginated + filtered)
+        [AuthorizeRole("ADMIN")]
         [HttpGet("lichsu")]
         public async Task<IActionResult> GetLichSu(
             [FromQuery] DateTime? tuNgay,
@@ -177,6 +178,7 @@ namespace LANHossting.Controllers
         }
 
         // GET: api/kho/lichsu/{phieuId} - Chi tiết 1 phiếu
+        [AuthorizeRole("ADMIN")]
         [HttpGet("lichsu/{phieuId:int}")]
         public async Task<IActionResult> GetChiTietPhieu(int phieuId)
         {

@@ -31,6 +31,11 @@ namespace LANHossting.Data
         public DbSet<ChiTietPhieuNhapXuat> ChiTietPhieuNhapXuat { get; set; }
         public DbSet<LichSuVatLieu> LichSuVatLieu { get; set; }
 
+        // ============================================
+        // ADMIN MODULE - Nhật ký hệ thống
+        // ============================================
+        public DbSet<NhatKyHeThong> NhatKyHeThong { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -161,6 +166,15 @@ namespace LANHossting.Data
                 .HasOne(l => l.PhieuNhapXuat)
                 .WithMany()
                 .HasForeignKey(l => l.PhieuNhapXuatId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // ── ADMIN MODULE ──────────────────────────────────
+
+            // NhatKyHeThong -> TaiKhoan
+            modelBuilder.Entity<NhatKyHeThong>()
+                .HasOne(n => n.TaiKhoan)
+                .WithMany()
+                .HasForeignKey(n => n.TaiKhoanId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

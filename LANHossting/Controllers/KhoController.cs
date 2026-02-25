@@ -25,6 +25,9 @@ namespace LANHossting.Controllers
                 HttpContext.Session.GetString("Username"),
                 !string.IsNullOrEmpty(HttpContext.Session.GetString("UserId")),
                 HttpContext.Session.GetString("Role"));
+
+            // Pass role to view for conditional Nhật Ký visibility
+            ViewBag.Role = HttpContext.Session.GetString("Role");
             return View();
         }
     }

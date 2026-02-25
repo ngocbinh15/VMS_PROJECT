@@ -25,6 +25,12 @@ builder.Services.AddScoped<IGiaoDichService, GiaoDichService>();
 builder.Services.AddScoped<INhatKyRepository, NhatKyRepository>();
 builder.Services.AddScoped<INhatKyService, NhatKyService>();
 
+// Admin module DI
+builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<ISystemLogRepository, SystemLogRepository>();
+builder.Services.AddScoped<ISystemLogService, SystemLogService>();
+
 // ✅ THÊM 2: Cấu hình Session cho Authentication
 builder.Services.AddSession(options =>
 {

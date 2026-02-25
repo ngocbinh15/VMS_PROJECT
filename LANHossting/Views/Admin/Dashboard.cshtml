@@ -1,5 +1,6 @@
 @{
-    ViewData["Title"] = "Dashboard - Quản Trị Viên";
+    ViewData["Title"] = "Quản Trị Hệ Thống";
+    Layout = null;
 }
 
 <!DOCTYPE html>
@@ -8,138 +9,397 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"]</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <style>
-        body {
-            background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
-            min-height: 100vh;
-            font-family: 'Inter', sans-serif;
-        }
-        .navbar-custom {
-            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .card-dashboard {
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            transition: transform 0.3s ease;
-        }
-        .card-dashboard:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
-        }
-        .icon-box {
-            width: 64px;
-            height: 64px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            margin-bottom: 16px;
-        }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/admin/dashboard.css" asp-append-version="true">
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
-        <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="#">
-                <i class="bi bi-shield-check me-2"></i>VMS - ADMIN
-            </a>
-            <div class="d-flex align-items-center text-white">
-                <i class="bi bi-person-circle me-2"></i>
-                <span class="me-3">@ViewBag.FullName (@ViewBag.Role)</span>
-                <a href="@Url.Action("Logout", "Login")" class="btn btn-outline-light btn-sm">
-                    <i class="bi bi-box-arrow-right me-1"></i>Đăng xuất
-                </a>
+
+<!-- Toast container -->
+<div id="toastContainer" class="toast-container-custom"></div>
+
+<!-- ═══ NAVBAR ═══ -->
+<nav class="navbar navbar-dark admin-nav fixed-top">
+    <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+            <i class="bi bi-shield-check"></i>VMS — QUẢN TRỊ HỆ THỐNG
+        </a>
+        <div class="d-flex align-items-center text-white gap-3">
+            <span class="opacity-75 small">
+                <i class="bi bi-person-circle me-1"></i>@ViewBag.FullName
+            </span>
+            <button class="btn btn-sm btn-outline-light rounded-pill px-3 fw-semibold" onclick="logout()">
+                <i class="bi bi-box-arrow-right me-1"></i>Đăng Xuất
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="admin-sidebar">
+    <nav class="nav flex-column">
+        <a class="nav-link active" data-section="sectionOverview" href="#">
+            <i class="bi bi-speedometer2"></i>Tổng Quan
+        </a>
+        <div class="sidebar-divider"></div>
+        <a class="nav-link" data-section="sectionTaiKhoan" href="#">
+            <i class="bi bi-people"></i>Quản Lý Tài Khoản
+        </a>
+        <a class="nav-link" data-section="sectionVatLieu" href="#">
+            <i class="bi bi-box-seam"></i>Quản Lý Vật Liệu
+        </a>
+        <div class="sidebar-divider"></div>
+        <a class="nav-link" data-section="sectionSystemLog" href="#">
+            <i class="bi bi-journal-text"></i>Nhật Ký Hệ Thống
+        </a>
+        <div class="sidebar-divider"></div>
+        <a class="nav-link" href="@Url.Action("Dashboard", "Kho")">
+            <i class="bi bi-box-seam-fill"></i>Đi tới Kho
+        </a>
+        <a class="nav-link" href="@Url.Action("Dashboard", "Phao")">
+            <i class="bi bi-droplet-fill"></i>Đi tới Phao
+        </a>
+    </nav>
+</aside>
+
+<!-- ═══ MAIN CONTENT ═══ -->
+<main class="admin-main">
+
+    <!-- ── SECTION: Tổng Quan ── -->
+    <section id="sectionOverview" class="admin-section active">
+        <div class="admin-page-header">
+            <h4><i class="bi bi-speedometer2 me-2 text-primary"></i>Tổng Quan</h4>
+        </div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="stat-card" style="cursor:pointer" onclick="goToSection('sectionTaiKhoan')">
+                    <div class="stat-icon blue"><i class="bi bi-people-fill"></i></div>
+                    <div>
+                        <div class="stat-value" id="statTotalAccounts">-</div>
+                        <div class="stat-label">Tổng tài khoản</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="bi bi-person-check-fill"></i></div>
+                    <div>
+                        <div class="stat-value" id="statActiveAccounts">-</div>
+                        <div class="stat-label">Đang hoạt động</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card" style="cursor:pointer" onclick="goToSection('sectionVatLieu')">
+                    <div class="stat-icon amber"><i class="bi bi-box-seam-fill"></i></div>
+                    <div>
+                        <div class="stat-value" id="statTotalMaterials">-</div>
+                        <div class="stat-label">Tổng vật liệu</div>
+                    </div>
+                </div>
             </div>
         </div>
-    </nav>
 
-    <div class="container mt-5">
-        <h2 class="mb-4 fw-bold">
-            <i class="bi bi-speedometer2 me-2 text-primary"></i>
-            Dashboard Quản Trị Viên
-        </h2>
-        
-        <div class="row g-4">
-            <!-- Card Quản lý Phao -->
+        <div class="row g-3">
             <div class="col-md-6">
-                <div class="card card-dashboard">
-                    <div class="card-body p-4">
-                        <div class="icon-box bg-primary bg-opacity-10 text-primary">
-                            <i class="bi bi-droplet-fill"></i>
-                        </div>
-                        <h4 class="fw-bold mb-2">Quản Lý Phao</h4>
-                        <p class="text-muted mb-3">
-                            Quản lý phao báo hiệu, tuyến luồng, và vị trí phao
-                        </p>
-                        <a href="@Url.Action("Dashboard", "Phao")" class="btn btn-primary">
-                            <i class="bi bi-arrow-right-circle me-2"></i>Truy cập
+                <div class="admin-card">
+                    <div class="card-body text-center py-4">
+                        <div class="stat-icon blue mx-auto mb-3"><i class="bi bi-box-seam-fill"></i></div>
+                        <h5 class="fw-bold">Quản Lý Kho</h5>
+                        <p class="text-muted small mb-3">Quản lý vật liệu, tồn kho, nhập xuất kho</p>
+                        <a href="@Url.Action("Dashboard", "Kho")" class="btn btn-primary btn-sm rounded-pill px-4">
+                            <i class="bi bi-arrow-right-circle me-1"></i>Truy cập
                         </a>
                     </div>
                 </div>
             </div>
-
-            <!-- Card Quản lý Kho -->
             <div class="col-md-6">
-                <div class="card card-dashboard">
-                    <div class="card-body p-4">
-                        <div class="icon-box bg-success bg-opacity-10 text-success">
-                            <i class="bi bi-box-seam-fill"></i>
-                        </div>
-                        <h4 class="fw-bold mb-2">Quản Lý Kho</h4>
-                        <p class="text-muted mb-3">
-                            Quản lý vật liệu, tồn kho, nhập xuất kho
-                        </p>
-                        <a href="@Url.Action("Dashboard", "Kho")" class="btn btn-success">
-                            <i class="bi bi-arrow-right-circle me-2"></i>Truy cập
+                <div class="admin-card">
+                    <div class="card-body text-center py-4">
+                        <div class="stat-icon cyan mx-auto mb-3"><i class="bi bi-droplet-fill"></i></div>
+                        <h5 class="fw-bold">Quản Lý Phao</h5>
+                        <p class="text-muted small mb-3">Quản lý phao báo hiệu, tuyến luồng, vị trí phao</p>
+                        <a href="@Url.Action("Dashboard", "Phao")" class="btn btn-info btn-sm rounded-pill px-4 text-white">
+                            <i class="bi bi-arrow-right-circle me-1"></i>Truy cập
                         </a>
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <!-- Card Quản lý Tài khoản -->
-            <div class="col-md-6">
-                <div class="card card-dashboard">
-                    <div class="card-body p-4">
-                        <div class="icon-box bg-warning bg-opacity-10 text-warning">
-                            <i class="bi bi-people-fill"></i>
-                        </div>
-                        <h4 class="fw-bold mb-2">Quản Lý Tài Khoản</h4>
-                        <p class="text-muted mb-3">
-                            Quản lý người dùng, vai trò, phân quyền
-                        </p>
-                        <a href="#" class="btn btn-warning text-white">
-                            <i class="bi bi-arrow-right-circle me-2"></i>Truy cập
-                        </a>
-                    </div>
+    <!-- ── SECTION: Quản Lý Tài Khoản ── -->
+    <section id="sectionTaiKhoan" class="admin-section">
+        <div class="admin-page-header">
+            <h4><i class="bi bi-people me-2 text-primary"></i>Quản Lý Tài Khoản</h4>
+            <button class="btn btn-primary btn-sm rounded-pill px-3" onclick="openCreateTaiKhoan()">
+                <i class="bi bi-plus-lg me-1"></i>Tạo Tài Khoản
+            </button>
+        </div>
+
+        <div class="admin-card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="width:45px">#</th>
+                                <th>Tên Đăng Nhập</th>
+                                <th>Họ Tên</th>
+                                <th>Email</th>
+                                <th>SĐT</th>
+                                <th>Vai Trò</th>
+                                <th>Trạng Thái</th>
+                                <th style="width:170px">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="taiKhoanTableBody">
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">Đang tải...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <!-- Card Báo cáo -->
-            <div class="col-md-6">
-                <div class="card card-dashboard">
-                    <div class="card-body p-4">
-                        <div class="icon-box bg-info bg-opacity-10 text-info">
-                            <i class="bi bi-graph-up-arrow"></i>
-                        </div>
-                        <h4 class="fw-bold mb-2">Báo Cáo & Thống Kê</h4>
-                        <p class="text-muted mb-3">
-                            Xem báo cáo, thống kê và phân tích dữ liệu
-                        </p>
-                        <a href="#" class="btn btn-info text-white">
-                            <i class="bi bi-arrow-right-circle me-2"></i>Truy cập
-                        </a>
-                    </div>
+    <!-- ── SECTION: Quản Lý Vật Liệu ── -->
+    <section id="sectionVatLieu" class="admin-section">
+        <div class="admin-page-header">
+            <h4><i class="bi bi-box-seam me-2 text-primary"></i>Quản Lý Vật Liệu</h4>
+            <div class="d-flex gap-2 align-items-center">
+                <input type="text" class="form-control form-control-sm" id="vatLieuSearchInput"
+                       placeholder="Tìm kiếm vật liệu..." style="width:220px; border-radius:8px">
+            </div>
+        </div>
+
+        <div class="admin-card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="width:45px">#</th>
+                                <th>Mã VL</th>
+                                <th>Tên Vật Liệu</th>
+                                <th>Nhóm</th>
+                                <th>ĐVT</th>
+                                <th class="text-end">Đơn Giá</th>
+                                <th class="text-end">Mức Tối Thiểu</th>
+                                <th>Trạng Thái</th>
+                                <th style="width:100px">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vatLieuTableBody">
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-4">Đang tải...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── SECTION: Nhật Ký Hệ Thống ── -->
+    <section id="sectionSystemLog" class="admin-section">
+        <div class="admin-page-header">
+            <h4><i class="bi bi-journal-text me-2 text-primary"></i>Nhật Ký Hệ Thống</h4>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-bar">
+            <div>
+                <label class="form-label">Từ ngày</label>
+                <input type="date" class="form-control form-control-sm" id="logTuNgay" style="width:150px">
+            </div>
+            <div>
+                <label class="form-label">Đến ngày</label>
+                <input type="date" class="form-control form-control-sm" id="logDenNgay" style="width:150px">
+            </div>
+            <div>
+                <label class="form-label">Hành động</label>
+                <select class="form-select form-select-sm" id="logHanhDong" style="width:140px">
+                    <option value="">Tất cả</option>
+                    <option value="TAO">Tạo mới</option>
+                    <option value="SUA">Cập nhật</option>
+                    <option value="XOA">Xóa</option>
+                    <option value="KHOA">Khóa</option>
+                    <option value="MO_KHOA">Mở khóa</option>
+                    <option value="RESET_PASS">Reset MK</option>
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Đối tượng</label>
+                <select class="form-select form-select-sm" id="logDoiTuong" style="width:140px">
+                    <option value="">Tất cả</option>
+                    <option value="TAI_KHOAN">Tài khoản</option>
+                    <option value="VAT_LIEU">Vật liệu</option>
+                </select>
+            </div>
+            <div class="d-flex gap-1 align-items-end">
+                <button class="btn btn-primary btn-sm" onclick="loadSystemLog(1)">
+                    <i class="bi bi-search me-1"></i>Lọc
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="resetLogFilters()">
+                    <i class="bi bi-x-lg me-1"></i>Xóa lọc
+                </button>
+            </div>
+        </div>
+
+        <div class="admin-card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Thời Gian</th>
+                                <th>Người Thực Hiện</th>
+                                <th>Hành Động</th>
+                                <th>Đối Tượng</th>
+                                <th class="text-center">ID</th>
+                                <th>Mô Tả</th>
+                                <th>Địa Chỉ IP</th>
+                            </tr>
+                        </thead>
+                        <tbody id="systemLogTableBody">
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">Đang tải...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="admin-pagination px-3 pb-2" id="logPagination"></div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- ═══ MODAL: Tài Khoản (Create / Edit) ═══ -->
+<div class="modal fade" id="taiKhoanModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="formTaiKhoanTitle">Tạo Tài Khoản Mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="formTaiKhoanId">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Tên Đăng Nhập <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="formTenDangNhap" maxlength="50">
+                </div>
+                <div class="mb-3" id="formMatKhauGroup">
+                    <label class="form-label fw-semibold">Mật Khẩu <span class="text-danger">*</span></label>
+                    <input type="password" class="form-control" id="formMatKhau">
+                    <small class="text-muted">Tối thiểu 6 ký tự</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Họ Tên <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="formHoTen" maxlength="200">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Email</label>
+                    <input type="email" class="form-control" id="formEmail" maxlength="200">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Số Điện Thoại</label>
+                    <input type="text" class="form-control" id="formSoDienThoai" maxlength="20">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Vai Trò <span class="text-danger">*</span></label>
+                    <select class="form-select" id="formVaiTroId">
+                        <option value="">-- Chọn vai trò --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                <button class="btn btn-primary btn-sm" onclick="saveTaiKhoan()">
+                    <i class="bi bi-check-lg me-1"></i>Lưu
+                </button>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- ═══ MODAL: Reset Password ═══ -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reset Mật Khẩu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="resetPasswordTaiKhoanId">
+                <p class="small text-muted mb-2">Tài khoản: <strong id="resetPasswordUsername"></strong></p>
+                <div class="mb-2">
+                    <label class="form-label fw-semibold">Mật Khẩu Mới <span class="text-danger">*</span></label>
+                    <input type="password" class="form-control" id="resetPasswordInput">
+                    <small class="text-muted">Tối thiểu 6 ký tự</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                <button class="btn btn-warning btn-sm text-white" onclick="doResetPassword()">
+                    <i class="bi bi-key me-1"></i>Reset
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ MODAL: Edit Vật Liệu ═══ -->
+<div class="modal fade" id="vatLieuModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editVatLieuTitle">Sửa Vật Liệu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editVatLieuId">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Tên Vật Liệu <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="editTenVatLieu">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Đơn Giá <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" id="editDonGia" min="0" step="1">
+                </div>
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label fw-semibold">Mức Tối Thiểu</label>
+                        <input type="number" class="form-control" id="editMucToiThieu" min="0">
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label fw-semibold">Mức Tối Đa</label>
+                        <input type="number" class="form-control" id="editMucToiDa" min="0">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Ghi Chú</label>
+                    <textarea class="form-control" id="editMoTa" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy</button>
+                <button class="btn btn-primary btn-sm" onclick="saveVatLieu()">
+                    <i class="bi bi-check-lg me-1"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/admin/dashboard.api.js" asp-append-version="true"></script>
+<script src="~/js/admin/dashboard.ui.js" asp-append-version="true"></script>
+<script src="~/js/admin/dashboard.events.js" asp-append-version="true"></script>
+
 </body>
 </html>

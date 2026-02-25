@@ -1,5 +1,198 @@
 [
   {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "GetSystemLog",
+    "RelativePath": "api/admin/systemlog",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "TuNgay",
+        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "DenNgay",
+        "Type": "System.Nullable\u00601[[System.DateTime, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "TaiKhoanId",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "HanhDong",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "DoiTuong",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "Page",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "PageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "GetDanhSachTaiKhoan",
+    "RelativePath": "api/admin/taikhoan",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "CreateTaiKhoan",
+    "RelativePath": "api/admin/taikhoan",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "LANHossting.Application.DTOs.CreateTaiKhoanDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "UpdateTaiKhoan",
+    "RelativePath": "api/admin/taikhoan",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "LANHossting.Application.DTOs.UpdateTaiKhoanDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "DeleteTaiKhoan",
+    "RelativePath": "api/admin/taikhoan/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "ResetPassword",
+    "RelativePath": "api/admin/taikhoan/{id}/reset-password",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "LANHossting.Application.DTOs.ResetPasswordDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "ToggleTrangThai",
+    "RelativePath": "api/admin/taikhoan/{id}/toggle-status",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "GetDanhSachVaiTro",
+    "RelativePath": "api/admin/vaitro",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "GetDanhSachVatLieu",
+    "RelativePath": "api/admin/vatlieu",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "UpdateVatLieu",
+    "RelativePath": "api/admin/vatlieu",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "LANHossting.Application.DTOs.UpdateVatLieuDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "DeleteVatLieu",
+    "RelativePath": "api/admin/vatlieu/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "LANHossting.Controllers.KhoAPIController",
     "Method": "GetDanhSachKho",
     "RelativePath": "api/kho/danhsachkho",

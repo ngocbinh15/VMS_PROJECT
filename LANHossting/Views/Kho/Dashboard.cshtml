@@ -41,10 +41,13 @@
                 </select>
             </div>
 
+            @if (ViewBag.Role == "ADMIN")
+            {
             <button class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold"
                     onclick="showHistory()">
                 <i class="bi bi-clock-history me-1"></i>Nhật Ký
             </button>
+            }
 
             <button class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold"
                     onclick="logout()">
@@ -282,6 +285,8 @@
         </div>
     </div>
 
+    @if (ViewBag.Role == "ADMIN")
+    {
     <!-- ═══ NHẬT KÝ MODAL (full-featured) ═══ -->
     <div class="modal fade" id="historyModal" tabindex="-1">
         <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
@@ -407,6 +412,7 @@
             </div>
         </div>
     </div>
+    } @* END ADMIN-only Nhật Ký modals *@
 
     <div class="modal fade" id="addMaterialModal" tabindex="-1" style="z-index: 1070;">
         <div class="modal-dialog modal-lg modal-dialog-centered">
