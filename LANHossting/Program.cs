@@ -22,6 +22,8 @@ builder.Services.AddScoped<IVatLieuRepository, VatLieuRepository>();
 builder.Services.AddScoped<IVatLieuService, VatLieuService>();
 builder.Services.AddScoped<IGiaoDichRepository, GiaoDichRepository>();
 builder.Services.AddScoped<IGiaoDichService, GiaoDichService>();
+builder.Services.AddScoped<INhatKyRepository, NhatKyRepository>();
+builder.Services.AddScoped<INhatKyService, NhatKyService>();
 
 // ✅ THÊM 2: Cấu hình Session cho Authentication
 builder.Services.AddSession(options =>

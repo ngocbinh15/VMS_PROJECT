@@ -605,57 +605,126 @@
         </div>
     </div>
 
+    <!-- ═══ NHẬT KÝ MODAL (full-featured) ═══ -->
     <div class="modal fade" id="historyModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header border-0 bg-light">
-                    <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2"></i>Nhật Ký Giao Dịch</h5>
+                <div class="modal-header border-0 bg-light px-4 pt-4 pb-3">
+                    <div>
+                        <h5 class="fw-bold mb-1"><i class="bi bi-journal-text text-primary me-2"></i>Nhật Ký Giao Dịch</h5>
+                        <small class="text-muted">Lịch sử tất cả phiếu Nhập/Xuất/Chuyển kho đã hoàn thành</small>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0 align-middle">
+                <div class="modal-body px-4 py-3">
+                    <!-- ── FILTERS ── -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold text-muted">Từ ngày</label>
+                            <input type="date" class="form-control form-control-sm" id="nkFilterTuNgay">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold text-muted">Đến ngày</label>
+                            <input type="date" class="form-control form-control-sm" id="nkFilterDenNgay">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold text-muted">Kho</label>
+                            <select class="form-select form-select-sm" id="nkFilterKho">
+                                <option value="">-- Tất cả --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold text-muted">Loại</label>
+                            <select class="form-select form-select-sm" id="nkFilterLoai">
+                                <option value="">-- Tất cả --</option>
+                                <option value="NHAP">Nhập kho</option>
+                                <option value="XUAT">Xuất kho</option>
+                                <option value="CHUYEN_DI">Chuyển kho</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small fw-bold text-muted">Tìm vật tư</label>
+                            <input type="text" class="form-control form-control-sm" id="nkFilterSearch" placeholder="Mã hoặc tên...">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end gap-1">
+                            <button class="btn btn-sm btn-primary flex-fill" onclick="loadNhatKy(1)">
+                                <i class="bi bi-search me-1"></i>Lọc
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="resetNhatKyFilter()">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ── TABLE ── -->
+                    <div class="table-responsive" style="max-height: 450px;">
+                        <table class="table table-hover mb-0 align-middle small">
                             <thead class="table-light sticky-top">
                                 <tr>
-                                    <th class="ps-4">Tên Phiếu (Log)</th>
-                                    <th>Kho thực hiện</th>
-                                    <th class="text-end pe-4">Chi tiết</th>
+                                    <th class="ps-3">Mã phiếu</th>
+                                    <th>Loại</th>
+                                    <th>Kho</th>
+                                    <th>Người thực hiện</th>
+                                    <th>Ngày</th>
+                                    <th class="text-center">Số VT</th>
+                                    <th class="text-end pe-3">Chi tiết</th>
                                 </tr>
                             </thead>
                             <tbody id="historyTableBody"></tbody>
                         </table>
                     </div>
-                    <div id="emptyHistoryMsg" class="text-center text-muted py-5 d-none">Chưa có nhật ký nào</div>
+                    <div id="emptyHistoryMsg" class="text-center text-muted py-5 d-none">
+                        <i class="bi bi-inbox" style="font-size:2rem"></i>
+                        <div class="mt-2">Chưa có nhật ký nào</div>
+                    </div>
+
+                    <!-- ── PAGINATION ── -->
+                    <div class="d-flex justify-content-between align-items-center mt-3" id="nkPaginationArea" style="display:none!important">
+                        <small class="text-muted" id="nkPaginationInfo"></small>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0" id="nkPaginationList"></ul>
+                        </nav>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- ═══ CHI TIẾT PHIẾU MODAL ═══ -->
     <div class="modal fade" id="transactionDetailModal" tabindex="-1" style="z-index: 1060;">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow rounded-4">
-                <div class="modal-header bg-primary text-white border-0">
+                <div class="modal-header border-0 px-4 pt-3 pb-2" id="detailModalHeader">
                     <div>
-                        <h6 class="modal-title fw-bold mb-0" id="detailModalTitle">Chi Tiết Phiếu</h6>
-                        <small id="detailModalSubtitle" class="opacity-75">...</small>
+                        <h6 class="modal-title fw-bold mb-1" id="detailModalTitle">Chi Tiết Phiếu</h6>
+                        <small id="detailModalSubtitle" class="text-muted">...</small>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-0">
-                    <div class="table-responsive no-scrollbar" style="max-height: 400px;">
-                        <table class="table table-striped mb-0 align-middle">
+                <div class="modal-body px-4 py-0">
+                    <!-- ── PHIẾU INFO CARDS ── -->
+                    <div class="row g-2 mb-3" id="detailInfoCards"></div>
+
+                    <!-- ── DETAIL TABLE ── -->
+                    <div class="table-responsive" style="max-height: 400px;">
+                        <table class="table table-striped table-hover mb-0 align-middle small">
                             <thead class="table-light sticky-top">
                                 <tr>
-                                    <th class="ps-4">Vật Tư</th>
-                                    <th class="text-center">Hành động</th>
-                                    <th class="text-end pe-4">Số lượng</th>
+                                    <th class="ps-3">Vật tư</th>
+                                    <th>Kho</th>
+                                    <th class="text-center">Loại</th>
+                                    <th class="text-end">SL trước</th>
+                                    <th class="text-end">Thay đổi</th>
+                                    <th class="text-end">SL sau</th>
+                                    <th>Thời gian</th>
+                                    <th class="text-end pe-3">Người TH</th>
                                 </tr>
                             </thead>
                             <tbody id="detailTableBody"></tbody>
                         </table>
                     </div>
                 </div>
-                <div class="modal-footer border-0 py-2">
+                <div class="modal-footer border-0 py-2 px-4">
                     <button type="button" class="btn btn-sm btn-secondary fw-bold" data-bs-dismiss="modal">Đóng</button>
                 </div>
             </div>
@@ -1447,53 +1516,248 @@
             }
         }
 
-        // SHOW HISTORY
+        // ═══ NHẬT KÝ (AUDIT LOG) ═══════════════════════════
+        var nkCurrentPage = 1;
+
         async function showHistory() {
+            // Populate kho filter dropdown from allWarehouses
+            var khoSelect = document.getElementById('nkFilterKho');
+            if (khoSelect.options.length <= 1) {
+                allWarehouses.forEach(function(wh) {
+                    var opt = document.createElement('option');
+                    opt.value = wh.id;
+                    opt.textContent = wh.tenKho;
+                    khoSelect.appendChild(opt);
+                });
+            }
+            await loadNhatKy(1);
+            new bootstrap.Modal(document.getElementById('historyModal')).show();
+        }
+
+        function resetNhatKyFilter() {
+            document.getElementById('nkFilterTuNgay').value = '';
+            document.getElementById('nkFilterDenNgay').value = '';
+            document.getElementById('nkFilterKho').value = '';
+            document.getElementById('nkFilterLoai').value = '';
+            document.getElementById('nkFilterSearch').value = '';
+            loadNhatKy(1);
+        }
+
+        async function loadNhatKy(page) {
+            nkCurrentPage = page || 1;
+            var params = new URLSearchParams();
+            params.set('page', nkCurrentPage);
+            params.set('pageSize', 20);
+
+            var tuNgay = document.getElementById('nkFilterTuNgay').value;
+            var denNgay = document.getElementById('nkFilterDenNgay').value;
+            var khoId = document.getElementById('nkFilterKho').value;
+            var loai = document.getElementById('nkFilterLoai').value;
+            var search = document.getElementById('nkFilterSearch').value.trim();
+
+            if (tuNgay) params.set('tuNgay', tuNgay);
+            if (denNgay) params.set('denNgay', denNgay);
+            if (khoId) params.set('khoId', khoId);
+            if (loai) params.set('loaiThayDoi', loai);
+            if (search) params.set('searchVatLieu', search);
+
             try {
-                const response = await fetch('/api/kho/lichsu');
-                const history = await response.json();
-                const tbody = document.getElementById('historyTableBody');
+                var response = await fetch('/api/kho/lichsu?' + params.toString());
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                var data = await response.json();
+
+                var tbody = document.getElementById('historyTableBody');
                 tbody.innerHTML = '';
-                if (history.length === 0) {
-                    document.getElementById('emptyHistoryMsg').classList.remove('d-none');
-                } else {
-                    document.getElementById('emptyHistoryMsg').classList.add('d-none');
-                    history.forEach(log => {
-                        const row = `<tr>
-                            <td class="ps-4 fw-bold">${log.soPhieu}</td>
-                            <td>${log.tenKho}</td>
-                            <td class="text-end pe-4"><button class="btn btn-sm btn-outline-primary" onclick="showTransactionDetail(${log.phieuId})">Xem</button></td>
-                        </tr>`;
-                        tbody.innerHTML += row;
-                    });
+
+                var emptyMsg = document.getElementById('emptyHistoryMsg');
+                var pagArea = document.getElementById('nkPaginationArea');
+
+                if (!data.items || data.items.length === 0) {
+                    emptyMsg.classList.remove('d-none');
+                    pagArea.style.display = 'none';
+                    return;
                 }
-                new bootstrap.Modal(document.getElementById('historyModal')).show();
+
+                emptyMsg.classList.add('d-none');
+
+                data.items.forEach(function(p) {
+                    var loaiColor = 'secondary';
+                    var loaiLabel = p.loaiPhieu;
+                    if (p.loaiPhieu === 'NHAP_KHO') { loaiColor = 'success'; loaiLabel = 'Nhập kho'; }
+                    else if (p.loaiPhieu === 'XUAT_KHO') { loaiColor = 'danger'; loaiLabel = 'Xuất kho'; }
+                    else if (p.loaiPhieu === 'CHUYEN_KHO') { loaiColor = 'warning'; loaiLabel = 'Chuyển kho'; }
+
+                    var khoText = p.tenKhoNguon || '';
+                    if (p.loaiPhieu === 'CHUYEN_KHO' && p.tenKhoNhap) {
+                        khoText = p.tenKhoNguon + ' → ' + p.tenKhoNhap;
+                    }
+
+                    var ngay = p.ngayThucHien ? new Date(p.ngayThucHien) : null;
+                    var ngayStr = ngay ? (ngay.getDate().toString().padStart(2, '0') + '/' + (ngay.getMonth() + 1).toString().padStart(2, '0') + '/' + ngay.getFullYear() + ' ' + ngay.getHours().toString().padStart(2, '0') + ':' + ngay.getMinutes().toString().padStart(2, '0')) : '';
+
+                    var row = '<tr style="cursor:pointer" onclick="showTransactionDetail(' + p.phieuId + ')">';
+                    row += '<td class="ps-3 fw-semibold text-primary">' + escapeHtml(p.maPhieu) + '<\/td>';
+                    row += '<td><span class="badge bg-' + loaiColor + '">' + loaiLabel + '<\/span><\/td>';
+                    row += '<td>' + escapeHtml(khoText) + '<\/td>';
+                    row += '<td>' + escapeHtml(p.nguoiThucHien) + '<\/td>';
+                    row += '<td>' + ngayStr + '<\/td>';
+                    row += '<td class="text-center"><span class="badge bg-light text-dark">' + p.tongSoVatTu + '<\/span><\/td>';
+                    row += '<td class="text-end pe-3"><button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();showTransactionDetail(' + p.phieuId + ')"><i class="bi bi-eye me-1"><\/i>Xem<\/button><\/td>';
+                    row += '<\/tr>';
+                    tbody.innerHTML += row;
+                });
+
+                // Pagination
+                renderNhatKyPagination(data);
             } catch (error) {
                 console.error('Error loading history:', error);
+                showToast('error', 'Không thể tải nhật ký: ' + error.message);
             }
+        }
+
+        function renderNhatKyPagination(data) {
+            var pagArea = document.getElementById('nkPaginationArea');
+            var pagInfo = document.getElementById('nkPaginationInfo');
+            var pagList = document.getElementById('nkPaginationList');
+
+            if (data.totalPages <= 1) {
+                pagArea.style.display = 'none';
+                pagInfo.textContent = 'Tổng: ' + data.totalCount + ' phiếu';
+                if (data.totalCount > 0) {
+                    pagArea.style.display = '';
+                    pagArea.classList.remove('d-none');
+                }
+                pagList.innerHTML = '';
+                return;
+            }
+
+            pagArea.style.display = '';
+            pagArea.classList.remove('d-none');
+
+            var start = (data.page - 1) * data.pageSize + 1;
+            var end = Math.min(data.page * data.pageSize, data.totalCount);
+            pagInfo.textContent = 'Hiển thị ' + start + '-' + end + ' / ' + data.totalCount + ' phiếu';
+
+            pagList.innerHTML = '';
+
+            // Previous
+            var prevLi = document.createElement('li');
+            prevLi.className = 'page-item' + (data.page <= 1 ? ' disabled' : '');
+            prevLi.innerHTML = '<a class="page-link" href="#" onclick="event.preventDefault();loadNhatKy(' + (data.page - 1) + ')">‹<\/a>';
+            pagList.appendChild(prevLi);
+
+            // Page numbers (show max 5 around current)
+            var startPage = Math.max(1, data.page - 2);
+            var endPage = Math.min(data.totalPages, startPage + 4);
+            if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+            for (var i = startPage; i <= endPage; i++) {
+                var li = document.createElement('li');
+                li.className = 'page-item' + (i === data.page ? ' active' : '');
+                li.innerHTML = '<a class="page-link" href="#" onclick="event.preventDefault();loadNhatKy(' + i + ')">' + i + '<\/a>';
+                pagList.appendChild(li);
+            }
+
+            // Next
+            var nextLi = document.createElement('li');
+            nextLi.className = 'page-item' + (data.page >= data.totalPages ? ' disabled' : '');
+            nextLi.innerHTML = '<a class="page-link" href="#" onclick="event.preventDefault();loadNhatKy(' + (data.page + 1) + ')">›<\/a>';
+            pagList.appendChild(nextLi);
         }
 
         // SHOW TRANSACTION DETAIL
         async function showTransactionDetail(phieuId) {
             try {
-                const response = await fetch(`/api/kho/lichsu?phieuId=${phieuId}`);
-                const details = await response.json();
-                const tbody = document.getElementById('detailTableBody');
+                var response = await fetch('/api/kho/lichsu/' + phieuId);
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                var data = await response.json();
+
+                // Header
+                var loaiColor = 'secondary';
+                var loaiLabel = data.loaiPhieu;
+                if (data.loaiPhieu === 'NHAP_KHO') { loaiColor = 'success'; loaiLabel = 'NHẬP KHO'; }
+                else if (data.loaiPhieu === 'XUAT_KHO') { loaiColor = 'danger'; loaiLabel = 'XUẤT KHO'; }
+                else if (data.loaiPhieu === 'CHUYEN_KHO') { loaiColor = 'warning'; loaiLabel = 'CHUYỂN KHO'; }
+
+                var headerEl = document.getElementById('detailModalHeader');
+                headerEl.className = 'modal-header border-0 px-4 pt-3 pb-2';
+                if (loaiColor === 'success') headerEl.style.background = '#d1e7dd';
+                else if (loaiColor === 'danger') headerEl.style.background = '#f8d7da';
+                else if (loaiColor === 'warning') headerEl.style.background = '#fff3cd';
+                else headerEl.style.background = '#e2e3e5';
+
+                document.getElementById('detailModalTitle').textContent = data.maPhieu + ' — ' + loaiLabel;
+
+                var ngay = data.ngayThucHien ? new Date(data.ngayThucHien) : null;
+                var ngayStr = ngay ? (ngay.getDate().toString().padStart(2, '0') + '/' + (ngay.getMonth() + 1).toString().padStart(2, '0') + '/' + ngay.getFullYear() + ' ' + ngay.getHours().toString().padStart(2, '0') + ':' + ngay.getMinutes().toString().padStart(2, '0')) : '';
+                document.getElementById('detailModalSubtitle').textContent = ngayStr + ' | ' + data.nguoiThucHien;
+
+                // Info cards
+                var cardsHtml = '';
+                var khoText = data.tenKhoNguon || '';
+                if (data.loaiPhieu === 'CHUYEN_KHO' && data.tenKhoNhap) khoText += ' → ' + data.tenKhoNhap;
+                cardsHtml += '<div class="col-auto"><span class="badge bg-light text-dark border px-3 py-2"><i class="bi bi-building me-1"><\/i>' + escapeHtml(khoText) + '<\/span><\/div>';
+                cardsHtml += '<div class="col-auto"><span class="badge bg-light text-dark border px-3 py-2"><i class="bi bi-person me-1"><\/i>' + escapeHtml(data.nguoiThucHien) + '<\/span><\/div>';
+                cardsHtml += '<div class="col-auto"><span class="badge bg-' + loaiColor + ' px-3 py-2">' + loaiLabel + '<\/span><\/div>';
+                if (data.ghiChu) cardsHtml += '<div class="col-auto"><span class="badge bg-light text-dark border px-3 py-2"><i class="bi bi-chat-text me-1"><\/i>' + escapeHtml(data.ghiChu) + '<\/span><\/div>';
+                document.getElementById('detailInfoCards').innerHTML = cardsHtml;
+
+                // Detail table
+                var tbody = document.getElementById('detailTableBody');
                 tbody.innerHTML = '';
-                details.forEach(item => {
-                    const actionColor = item.loaiGiaoDich === 'NHAP' ? 'success' : item.loaiGiaoDich === 'XUAT' ? 'danger' : 'warning';
-                    const row = `<tr>
-                        <td class="ps-4">${item.tenVatLieu}</td>
-                        <td class="text-center"><span class="badge bg-${actionColor}">${item.loaiGiaoDich}</span></td>
-                        <td class="text-end pe-4 fw-bold">${item.soLuong}</td>
-                    </tr>`;
-                    tbody.innerHTML += row;
-                });
-                document.getElementById('detailModalTitle').textContent = 'Chi Tiết Phiếu';
+
+                if (!data.chiTiet || data.chiTiet.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Không có chi tiết<\/td><\/tr>';
+                } else {
+                    data.chiTiet.forEach(function(item) {
+                        var actionColor = 'secondary';
+                        var actionLabel = item.loaiThayDoi;
+                        if (item.loaiThayDoi === 'NHAP') { actionColor = 'success'; actionLabel = 'NHẬP'; }
+                        else if (item.loaiThayDoi === 'XUAT') { actionColor = 'danger'; actionLabel = 'XUẤT'; }
+                        else if (item.loaiThayDoi === 'CHUYEN_DI') { actionColor = 'warning'; actionLabel = 'CHUYỂN ĐI'; }
+                        else if (item.loaiThayDoi === 'CHUYEN_DEN') { actionColor = 'info'; actionLabel = 'CHUYỂN ĐẾN'; }
+
+                        var changeSign = item.soLuongThayDoi >= 0 ? '+' : '';
+                        var changeColor = item.soLuongThayDoi >= 0 ? 'text-success' : 'text-danger';
+
+                        var khoInfo = escapeHtml(item.tenKho);
+                        if (item.tenKhoLienQuan) {
+                            if (item.loaiThayDoi === 'CHUYEN_DI') khoInfo += ' → ' + escapeHtml(item.tenKhoLienQuan);
+                            else if (item.loaiThayDoi === 'CHUYEN_DEN') khoInfo = escapeHtml(item.tenKhoLienQuan) + ' → ' + escapeHtml(item.tenKho);
+                        }
+
+                        var tg = item.thoiGian ? new Date(item.thoiGian) : null;
+                        var tgStr = tg ? (tg.getHours().toString().padStart(2, '0') + ':' + tg.getMinutes().toString().padStart(2, '0') + ':' + tg.getSeconds().toString().padStart(2, '0')) : '';
+
+                        var row = '<tr>';
+                        row += '<td class="ps-3"><div class="fw-semibold">' + escapeHtml(item.tenVatLieu) + '<\/div><small class="text-muted">' + escapeHtml(item.maVatLieu) + ' | ' + escapeHtml(item.donViTinh) + '<\/small><\/td>';
+                        row += '<td>' + khoInfo + '<\/td>';
+                        row += '<td class="text-center"><span class="badge bg-' + actionColor + '">' + actionLabel + '<\/span><\/td>';
+                        row += '<td class="text-end">' + formatNumber(item.soLuongTruoc) + '<\/td>';
+                        row += '<td class="text-end fw-bold ' + changeColor + '">' + changeSign + formatNumber(item.soLuongThayDoi) + '<\/td>';
+                        row += '<td class="text-end fw-bold">' + formatNumber(item.soLuongSau) + '<\/td>';
+                        row += '<td>' + tgStr + '<\/td>';
+                        row += '<td class="text-end pe-3">' + escapeHtml(item.nguoiThucHien) + '<\/td>';
+                        row += '<\/tr>';
+                        tbody.innerHTML += row;
+                    });
+                }
+
                 new bootstrap.Modal(document.getElementById('transactionDetailModal')).show();
             } catch (error) {
                 console.error('Error loading detail:', error);
+                showToast('error', 'Không thể tải chi tiết phiếu: ' + error.message);
             }
+        }
+
+        function formatNumber(n) {
+            if (n == null || isNaN(n)) return '0';
+            return Number(n).toLocaleString('vi-VN', { maximumFractionDigits: 3 });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
         // ═══ EXPORT EXCEL — Multi-warehouse, exact HTML-blob format ═══
@@ -1553,8 +1817,8 @@
 
             h += 'tr.gray-row th:nth-child(-n+17), tr.gray-row td:nth-child(-n+17){background-color:#f0f0f0;font-weight:bold;}';
 
-            h += '</style>';
-            h += '</head>';
+            h += '<' + '/style>';
+            h += '<' + '/head>';
             h += '<body><table>';
 
             h += '<colgroup>';

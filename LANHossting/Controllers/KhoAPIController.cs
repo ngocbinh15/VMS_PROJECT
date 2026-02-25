@@ -7,7 +7,7 @@ namespace LANHossting.Controllers
 {
     /// <summary>
     /// Thin API controller for warehouse inventory queries.
-    /// Delegates all logic to ITonKhoService / IVatLieuService.
+    /// Delegates all logic to ITonKhoService / IVatLieuService / INhatKyService.
     /// Contains ZERO business logic, ZERO direct DbContext usage.
     /// 
     /// PRICING RULE: DonGia = VatLieu.DonGia (exclusively).
@@ -21,15 +21,18 @@ namespace LANHossting.Controllers
         private readonly ITonKhoService _tonKhoService;
         private readonly IVatLieuService _vatLieuService;
         private readonly IGiaoDichService _giaoDichService;
+        private readonly INhatKyService _nhatKyService;
 
         public KhoAPIController(
             ITonKhoService tonKhoService,
             IVatLieuService vatLieuService,
-            IGiaoDichService giaoDichService)
+            IGiaoDichService giaoDichService,
+            INhatKyService nhatKyService)
         {
             _tonKhoService = tonKhoService;
             _vatLieuService = vatLieuService;
             _giaoDichService = giaoDichService;
+            _nhatKyService = nhatKyService;
         }
 
         // GET: api/kho/tonkho?khoId=1&search=optional
@@ -138,6 +141,48 @@ namespace LANHossting.Controllers
         public async Task<IActionResult> GetDonViTinh()
         {
             var result = await _vatLieuService.GetDonViTinhAsync();
+            return Ok(result);
+        }
+
+        // ═══ NHẬT KÝ (AUDIT LOG) ENDPOINTS ═══
+
+        // GET: api/kho/lichsu - Danh sách phiếu (paginated + filtered)
+        [HttpGet("lichsu")]
+        public async Task<IActionResult> GetLichSu(
+            [FromQuery] DateTime? tuNgay,
+            [FromQuery] DateTime? denNgay,
+            [FromQuery] int? khoId,
+            [FromQuery] string? loaiThayDoi,
+            [FromQuery] int? vatLieuId,
+            [FromQuery] string? searchVatLieu,
+            [FromQuery] int? taiKhoanId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20)
+        {
+            var filter = new NhatKyFilterDto
+            {
+                TuNgay = tuNgay,
+                DenNgay = denNgay,
+                KhoId = khoId,
+                LoaiThayDoi = loaiThayDoi,
+                VatLieuId = vatLieuId,
+                SearchVatLieu = searchVatLieu,
+                TaiKhoanId = taiKhoanId,
+                Page = page,
+                PageSize = pageSize
+            };
+
+            var result = await _nhatKyService.GetDanhSachPhieuAsync(filter);
+            return Ok(result);
+        }
+
+        // GET: api/kho/lichsu/{phieuId} - Chi tiết 1 phiếu
+        [HttpGet("lichsu/{phieuId:int}")]
+        public async Task<IActionResult> GetChiTietPhieu(int phieuId)
+        {
+            var result = await _nhatKyService.GetChiTietPhieuAsync(phieuId);
+            if (result == null)
+                return NotFound(new { message = "Không tìm thấy phiếu." });
             return Ok(result);
         }
     }
