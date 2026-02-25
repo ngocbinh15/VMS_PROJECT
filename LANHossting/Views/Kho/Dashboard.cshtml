@@ -1550,23 +1550,51 @@
             h += '.text-left{text-align:left}.text-right{text-align:right}';
             h += '.header-title{font-size:20px;font-weight:bold;text-transform:uppercase;border:none!important}';
             h += '.no-border{border:none!important}.bold{font-weight:bold}';
-            h += '<' + '/style>';
-            h += '<' + '/head>';
+
+            h += 'tr.gray-row th:nth-child(-n+17), tr.gray-row td:nth-child(-n+17){background-color:#f0f0f0;font-weight:bold;}';
+
+            h += '</style>';
+            h += '</head>';
             h += '<body><table>';
-            h += '<tr><td colspan="17" class="header-title no-border" style="text-align:center;font-weight:bold;font-size:25px">BI\u00caN B\u1ea2N KI\u1ec2M K\u00ca V\u1eacT T\u01af TH\u00c0NH PH\u1ea8M<' + '/td><' + '/tr>';
-            h += '<tr><td colspan="17" class="no-border" style="text-align:center;font-weight:bold;">Th\u1eddi \u0111i\u1ec3m ki\u1ec3m k\u00ea: ' + dateStr + ' - Kho: ' + whName + '<' + '/td><' + '/tr>';
-            h += '<tr><td colspan="17" class="no-border"><' + '/td><' + '/tr>';
-            h += '<tr style="background-color:#f0f0f0;font-weight:bold;">';
-            h += '<th rowspan="2">STT<' + '/th><th rowspan="2">M\u00e3 VT<' + '/th><th rowspan="2" style="width:250px">T\u00ean nh\u00e3n hi\u1ec7u, quy c\u00e1ch<' + '/th><th rowspan="2">\u0110VT<' + '/th><th rowspan="2">\u0110\u01a1n gi\u00e1<' + '/th>';
-            h += '<th colspan="2">Theo s\u1ed5 k\u1ebf to\u00e1n<' + '/th><th colspan="2">Ki\u1ec3m k\u00ea<' + '/th><th colspan="2">Th\u1eeba<' + '/th><th colspan="2">Thi\u1ebfu<' + '/th>';
-            h += '<th rowspan="2">C\u00f2n t\u1ed1t 100%<' + '/th><th rowspan="2">K\u00e9m ph\u1ea9m ch\u1ea5t<' + '/th><th rowspan="2">M\u1ea5t ph\u1ea9m ch\u1ea5t<' + '/th><th rowspan="2">Ghi ch\u00fa<' + '/th>';
-            h += '<' + '/tr>';
-            h += '<tr style="background-color:#f0f0f0;font-weight:bold;">';
-            h += '<th>SL<' + '/th><th>Th\u00e0nh ti\u1ec1n<' + '/th><th>SL<' + '/th><th>Th\u00e0nh ti\u1ec1n<' + '/th><th>SL<' + '/th><th>Th\u00e0nh ti\u1ec1n<' + '/th><th>SL<' + '/th><th>Th\u00e0nh ti\u1ec1n<' + '/th>';
-            h += '<' + '/tr>';
+
+            h += '<colgroup>';
+            h += '<col style="width:35px"/>';
+            h += '<col style="width:80px"/>';
+            h += '<col style="width:250px"/>';
+            h += '<col style="width:50px"/>';
+            h += '<col style="width:100px"/>';
+            h += '<col style="width:60px"/>';
+            h += '<col style="width:120px"/>';
+            h += '<col style="width:60px"/>';
+            h += '<col style="width:120px"/>';
+            h += '<col style="width:60px"/>';
+            h += '<col style="width:120px"/>';
+            h += '<col style="width:60px"/>';
+            h += '<col style="width:120px"/>';
+            h += '<col style="width:80px"/>';
+            h += '<col style="width:90px"/>';
+            h += '<col style="width:90px"/>';
+            h += '<col style="width:80px"/>';
+            h += '</colgroup>';
+
+            h += '<tr><td colspan="17" class="header-title no-border" style="text-align:center;font-weight:bold;font-size:25px">BI\u00caN B\u1ea2N KI\u1ec2M K\u00ca V\u1eacT T\u01af TH\u00c0NH PH\u1ea8M</td></tr>';
+            h += '<tr><td colspan="17" class="no-border" style="text-align:center;font-weight:bold;">Th\u1eddi \u0111i\u1ec3m ki\u1ec3m k\u00ea: ' + dateStr + ' - Kho: ' + whName + '</td></tr>';
+            h += '<tr><td colspan="17" class="no-border"></td></tr>';
+
+            h += '<tr class="gray-row">';
+            h += '<th rowspan="2">STT</th><th rowspan="2">M\u00e3 VT</th><th rowspan="2" style="width:250px">T\u00ean nh\u00e3n hi\u1ec7u, quy c\u00e1ch</th><th rowspan="2">\u0110VT</th><th rowspan="2">\u0110\u01a1n gi\u00e1</th>';
+            h += '<th colspan="2">Theo s\u1ed5 k\u1ebf to\u00e1n</th><th colspan="2">Ki\u1ec3m k\u00ea</th><th colspan="2">Th\u1eeba</th><th colspan="2">Thi\u1ebfu</th>';
+            h += '<th rowspan="2">C\u00f2n t\u1ed1t 100%</th><th rowspan="2">K\u00e9m ph\u1ea9m ch\u1ea5t</th><th rowspan="2">M\u1ea5t ph\u1ea9m ch\u1ea5t</th><th rowspan="2">Ghi ch\u00fa</th>';
+            h += '</tr>';
+
+            h += '<tr class="gray-row">';
+            h += '<th>SL</th><th>Th\u00e0nh ti\u1ec1n</th><th>SL</th><th>Th\u00e0nh ti\u1ec1n</th><th>SL</th><th>Th\u00e0nh ti\u1ec1n</th><th>SL</th><th>Th\u00e0nh ti\u1ec1n</th>';
+            h += '</tr>';
+
+            /* HÀNG 6 */
             h += '<tr style="font-style:italic;text-align:center">';
-            h += '<td>A<' + '/td><td>B<' + '/td><td>C<' + '/td><td>D<' + '/td><td>1<' + '/td><td>2<' + '/td><td>3<' + '/td><td>4<' + '/td><td>5<' + '/td><td>6<' + '/td><td>7<' + '/td><td>8<' + '/td><td>9<' + '/td><td>10<' + '/td><td>11<' + '/td><td>12<' + '/td><td>13<' + '/td>';
-            h += '<' + '/tr>';
+            h += '<td>A</td><td>B</td><td>C</td><td>D</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td>';
+            h += '</tr>';
 
             // DATA ROWS
             khoData.forEach(function(item, index) {
@@ -1637,6 +1665,10 @@
             mainDoc += '<x:ExcelWorksheets>';
             mainDoc += sheetDefs;
             mainDoc += '<' + '/x:ExcelWorksheets>';
+            mainDoc += '<x:FullCalculationOnLoad/>';
+            mainDoc += '<x:ActiveSheet>0<' + '/x:ActiveSheet>';
+            mainDoc += '<x:ProtectStructure>False<' + '/x:ProtectStructure>';
+            mainDoc += '<x:ProtectWindows>False<' + '/x:ProtectWindows>';
             mainDoc += '<' + '/x:ExcelWorkbook>';
             mainDoc += '<' + '/xml>';
             mainDoc += '<' + '/head>';
