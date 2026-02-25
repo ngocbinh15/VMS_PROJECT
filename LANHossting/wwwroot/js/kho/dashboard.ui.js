@@ -410,6 +410,18 @@ function renderTransactionDetailView(data) {
 // ═══ EXCEL EXPORT — HTML Builder ═══════════════════════
 // Builds HTML-table with Excel xmlns directives, formulas, mso-number-format
 // 17 columns — EXACT format from spec
+/** Chuẩn hóa tên sheet — giữ nguyên Unicode tiếng Việt, chỉ loại ký tự Excel cấm */
+function normalizeSheetName(name) {
+    if (!name) return 'Sheet';
+    // Loại ký tự không hợp lệ của Excel: \ / ? * [ ]
+    name = name.replace(/[\\\/\?\*\[\]]/g, '');
+    // Giới hạn 31 ký tự (max của Excel)
+    if (name.length > 31) {
+        name = name.substring(0, 31);
+    }
+    return name;
+}
+
 function buildExcelHtmlForKho(whName, khoData) {
     var date = new Date();
     var dateStr = 'Ng\u00e0y ' + date.getDate() + ' th\u00e1ng ' + (date.getMonth() + 1) + ' n\u0103m ' + date.getFullYear();
@@ -419,7 +431,7 @@ function buildExcelHtmlForKho(whName, khoData) {
 
     var h = '';
     h += '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
-    h += '<head><meta charset="UTF-8">';
+    h += '<head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><meta charset="UTF-8">';
     h += '<style>';
     h += 'table{border-collapse:collapse;width:100%;font-family:"Times New Roman",Times,serif;font-size:11pt}';
     h += 'td,th{border:1px solid #000;padding:5px;text-align:center;vertical-align:middle}';
@@ -532,6 +544,7 @@ function buildMhtmlWorkbook(sheets) {
     mainDoc += ' xmlns:x="urn:schemas-microsoft-com:office:excel"';
     mainDoc += ' xmlns="http://www.w3.org/TR/REC-html40">';
     mainDoc += '<head>';
+    mainDoc += '<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />';
     mainDoc += '<xml>';
     mainDoc += '<x:ExcelWorkbook>';
     mainDoc += '<x:ExcelWorksheets>';

@@ -552,14 +552,14 @@ async function executeMultiKhoExport() {
                 if (khoData.length === 0) continue;
 
                 var sheetHtml = buildExcelHtmlForKho(whName, khoData);
-                var safeName = whName.replace(/[\[\]\*\?\/\\:]/g, '').substring(0, 31);
+                var safeName = normalizeSheetName(whName);
                 sheetsArray.push({ name: safeName, html: sheetHtml });
                 exportedCount++;
             }
 
             if (exportedCount > 0) {
                 var mhtmlContent = buildMhtmlWorkbook(sheetsArray);
-                var blob = new Blob([mhtmlContent], { type: 'application/vnd.ms-excel' });
+                var blob = new Blob(['\ufeff' + mhtmlContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
                 var link = document.createElement('a');
                 var url = URL.createObjectURL(blob);
                 link.setAttribute('href', url);
@@ -598,11 +598,11 @@ async function executeMultiKhoExport() {
 
                 var h = buildExcelHtmlForKho(whName, khoData);
 
-                var blob = new Blob([h], { type: 'application/vnd.ms-excel' });
+                var blob = new Blob(['\ufeff' + h], { type: 'application/vnd.ms-excel;charset=utf-8;' });
                 var link = document.createElement('a');
                 var url = URL.createObjectURL(blob);
                 link.setAttribute('href', url);
-                link.setAttribute('download', 'BienBanKiemKe_' + khoId + '_' + new Date().toISOString().slice(0, 10) + '.xls');
+                link.setAttribute('download', 'BienBanKiemKe_' + 'Kho_' + (khoId - 1) + '_' + new Date().toISOString().slice(0, 10) + '.xls');
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
