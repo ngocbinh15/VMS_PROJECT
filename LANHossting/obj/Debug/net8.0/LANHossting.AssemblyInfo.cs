@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LANHossting")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a72dc7429d12323346467848afbcc49dfd3ff9d9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+30b1dda2a9429e9c392571fbf8f2e05770c69d3a")]
 [assembly: System.Reflection.AssemblyProductAttribute("LANHossting")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LANHossting")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

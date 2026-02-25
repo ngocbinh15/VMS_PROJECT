@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|f:\\soure_code\\aavms_project\\lanhossting\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|solutionrelative:properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|f:\\soure_code\\aavms_project\\lanhossting\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|f:\\soure_code\\aavms_project\\lanhossting\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|solutionrelative:properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{F254AACF-5D5E-4A19-855A-EFD0BED0EC1C}|LANHossting.csproj|f:\\soure_code\\aavms_project\\lanhossting\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
@@ -53,17 +53,17 @@
       "DocumentGroups": [
         {
           "DockedHeight": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 7,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "launchSettings.json",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Properties\\launchSettings.json",
               "RelativeDocumentMoniker": "Properties\\launchSettings.json",
               "ToolTip": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Properties\\launchSettings.json",
               "RelativeToolTip": "Properties\\launchSettings.json",
-              "ViewState": "AgIAAAwAAAAAAAAAAAAAABMAAAAGAAAAAAAAAA==",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAABUAAAAiAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
               "WhenOpened": "2026-02-24T17:59:00.263Z",
               "EditorCaption": ""
@@ -78,8 +78,7 @@
               "RelativeToolTip": "Views\\TestDb\\DanhSachKho.cshtml",
               "ViewState": "AgIAAA8AAAAAAAAAAAAAABEAAAAnAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-02-22T19:06:35.971Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-22T19:06:35.971Z"
             },
             {
               "$type": "Document",
@@ -91,8 +90,7 @@
               "RelativeToolTip": "appsettings.Development.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-01-16T15:44:32.639Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-16T15:44:32.639Z"
             },
             {
               "$type": "Document",
@@ -138,18 +136,17 @@
               "RelativeToolTip": "appsettings.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-01-16T15:18:57.752Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-16T15:18:57.752Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "Program.cs",
               "DocumentMoniker": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
               "ToolTip": "F:\\Soure_Code\\AAVMS_Project\\LANHossting\\Program.cs",
               "RelativeToolTip": "Program.cs",
-              "ViewState": "AgIAADUAAAAAAAAAAAAAAEQAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAADMAAAAAAAAAAAAlwD4AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-16T15:10:56.779Z",
               "EditorCaption": ""

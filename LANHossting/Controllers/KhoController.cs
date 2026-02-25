@@ -11,9 +11,20 @@ namespace LANHossting.Controllers
     [AuthorizeRole("ADMIN", "NHAN_VIEN_KHO")]
     public class KhoController : Controller
     {
+        private readonly ILogger<KhoController> _logger;
+
+        public KhoController(ILogger<KhoController> logger)
+        {
+            _logger = logger;
+        }
+
         // GET: /Kho/Dashboard
         public IActionResult Dashboard()
         {
+            _logger.LogInformation("[KhoController] Dashboard hit — User: {User}, IsAuthenticated: {IsAuth}, Role: {Role}",
+                HttpContext.Session.GetString("Username"),
+                !string.IsNullOrEmpty(HttpContext.Session.GetString("UserId")),
+                HttpContext.Session.GetString("Role"));
             return View();
         }
     }
