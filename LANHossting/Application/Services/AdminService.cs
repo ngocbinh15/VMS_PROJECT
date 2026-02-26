@@ -105,14 +105,19 @@ namespace LANHossting.Application.Services
             if (tk == null)
                 return new ServiceResult { Success = false, Message = "Không tìm thấy tài khoản." };
 
+            // Kiểm tra ràng buộc khóa ngoại trước khi xóa vĩnh viễn
+            var hasRefs = await _adminRepo.TaiKhoanHasReferencesAsync(id);
+            if (hasRefs)
+                return new ServiceResult { Success = false, Message = "Không thể xóa vĩnh viễn. Tài khoản này đang được tham chiếu bởi phiếu nhập/xuất, lịch sử, hoặc kho." };
+
             var result = await _adminRepo.DeleteTaiKhoanAsync(id);
             if (!result)
                 return new ServiceResult { Success = false, Message = "Xóa tài khoản thất bại." };
 
             await _logRepo.WriteLogAsync(nguoiThucHienId, "XOA", "TAI_KHOAN", id,
-                $"Xóa tài khoản '{tk.TenDangNhap}' - {tk.HoTen}", ip);
+                $"Xóa vĩnh viễn tài khoản '{tk.TenDangNhap}' - {tk.HoTen}", ip);
 
-            return new ServiceResult { Success = true, Message = "Xóa tài khoản thành công!" };
+            return new ServiceResult { Success = true, Message = "Xóa vĩnh viễn tài khoản thành công!" };
         }
 
         public async Task<ServiceResult> ToggleTrangThaiAsync(int id, int nguoiThucHienId, string? ip)
@@ -185,6 +190,9 @@ namespace LANHossting.Application.Services
             if (dto.Id <= 0)
                 errors.Add("ID vật liệu không hợp lệ.");
 
+            if (string.IsNullOrWhiteSpace(dto.MaVatLieu))
+                errors.Add("Mã vật liệu là bắt buộc.");
+
             if (string.IsNullOrWhiteSpace(dto.TenVatLieu))
                 errors.Add("Tên vật liệu là bắt buộc.");
 
@@ -197,26 +205,36 @@ namespace LANHossting.Application.Services
             if (errors.Count > 0)
                 return new ServiceResult { Success = false, Message = "Dữ liệu không hợp lệ.", Errors = errors };
 
+            // Kiểm tra trùng mã vật liệu (UNIQUE constraint)
+            var maExists = await _adminRepo.MaVatLieuExistsAsync(dto.MaVatLieu.Trim(), dto.Id);
+            if (maExists)
+                return new ServiceResult { Success = false, Message = $"Mã vật liệu '{dto.MaVatLieu.Trim()}' đã tồn tại." };
+
             var result = await _adminRepo.UpdateVatLieuAsync(dto);
             if (!result)
                 return new ServiceResult { Success = false, Message = "Không tìm thấy vật liệu." };
 
             await _logRepo.WriteLogAsync(nguoiThucHienId, "SUA", "VAT_LIEU", dto.Id,
-                $"Cập nhật vật liệu ID={dto.Id} - {dto.TenVatLieu.Trim()}", ip);
+                $"Cập nhật vật liệu ID={dto.Id} - Mã: {dto.MaVatLieu.Trim()} - {dto.TenVatLieu.Trim()}", ip);
 
             return new ServiceResult { Success = true, Message = "Cập nhật vật liệu thành công!" };
         }
 
         public async Task<ServiceResult> DeleteVatLieuAsync(int id, int nguoiThucHienId, string? ip)
         {
+            // Kiểm tra ràng buộc khóa ngoại trước khi xóa vĩnh viễn
+            var hasRefs = await _adminRepo.VatLieuHasReferencesAsync(id);
+            if (hasRefs)
+                return new ServiceResult { Success = false, Message = "Không thể xóa vĩnh viễn. Vật liệu đang có tồn kho > 0, hoặc đã phát sinh phiếu nhập/xuất, lịch sử." };
+
             var result = await _adminRepo.DeleteVatLieuAsync(id);
             if (!result)
-                return new ServiceResult { Success = false, Message = "Không thể xóa vật liệu (có thể còn tồn kho > 0)." };
+                return new ServiceResult { Success = false, Message = "Không tìm thấy vật liệu." };
 
             await _logRepo.WriteLogAsync(nguoiThucHienId, "XOA", "VAT_LIEU", id,
-                $"Ngừng sử dụng vật liệu ID={id}", ip);
+                $"Xóa vĩnh viễn vật liệu ID={id}", ip);
 
-            return new ServiceResult { Success = true, Message = "Ngừng sử dụng vật liệu thành công!" };
+            return new ServiceResult { Success = true, Message = "Xóa vĩnh viễn vật liệu thành công!" };
         }
     }
 }

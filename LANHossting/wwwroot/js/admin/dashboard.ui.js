@@ -140,7 +140,7 @@ function renderVatLieuTable(materials) {
                 <button class="btn btn-action btn-outline-primary me-1" title="Sửa" onclick="openEditVatLieu(${vl.id})">
                     <i class="bi bi-pencil"></i>
                 </button>
-                <button class="btn btn-action btn-outline-danger" title="Ngừng sử dụng" onclick="confirmDeleteVatLieu(${vl.id}, '${escapeHtml(vl.tenVatLieu)}')">
+                <button class="btn btn-action btn-outline-danger" title="Xóa vĩnh viễn" onclick="confirmDeleteVatLieu(${vl.id}, '${escapeHtml(vl.tenVatLieu)}')">
                     <i class="bi bi-trash"></i>
                 </button>
             </td>

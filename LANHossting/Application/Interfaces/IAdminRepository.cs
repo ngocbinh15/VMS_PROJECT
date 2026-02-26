@@ -22,7 +22,12 @@ namespace LANHossting.Application.Interfaces
 
         // ── VẬT LIỆU ──
         Task<List<VatLieuListDto>> GetDanhSachVatLieuAsync();
+        Task<bool> MaVatLieuExistsAsync(string maVatLieu, int excludeId);
         Task<bool> UpdateVatLieuAsync(UpdateVatLieuDto dto);
         Task<bool> DeleteVatLieuAsync(int id);
+
+        // ── FK CONSTRAINT CHECKS ──
+        Task<bool> TaiKhoanHasReferencesAsync(int id);
+        Task<bool> VatLieuHasReferencesAsync(int id);
     }
 }

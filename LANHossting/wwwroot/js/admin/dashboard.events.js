@@ -207,7 +207,7 @@ async function doResetPassword() {
 }
 
 async function confirmDeleteTaiKhoan(id, tenDangNhap) {
-    if (!confirm(`Bạn chắc chắn muốn XÓA tài khoản "${tenDangNhap}"?\nHành động này không thể hoàn tác.`)) return;
+    if (!confirm(`Bạn chắc chắn muốn XÓA VĨNH VIỄN tài khoản "${tenDangNhap}"?\nHành động này không thể hoàn tác.`)) return;
 
     try {
         const result = await AdminAPI.deleteTaiKhoan(id);
@@ -240,6 +240,7 @@ function openEditVatLieu(id) {
 
     document.getElementById('editVatLieuTitle').textContent = `Sửa: ${vl.maVatLieu} — ${vl.tenVatLieu}`;
     document.getElementById('editVatLieuId').value = vl.id;
+    document.getElementById('editMaVatLieu').value = vl.maVatLieu;
     document.getElementById('editTenVatLieu').value = vl.tenVatLieu;
     document.getElementById('editDonGia').value = vl.donGia;
     document.getElementById('editMucToiThieu').value = vl.mucToiThieu ?? '';
@@ -257,6 +258,7 @@ async function saveVatLieu() {
     try {
         const result = await AdminAPI.updateVatLieu({
             id: id,
+            maVatLieu: document.getElementById('editMaVatLieu').value.trim(),
             tenVatLieu: document.getElementById('editTenVatLieu').value.trim(),
             nhomVatLieuId: vl.nhomVatLieuId,
             donViTinhId: vl.donViTinhId,
@@ -279,7 +281,7 @@ async function saveVatLieu() {
 }
 
 async function confirmDeleteVatLieu(id, tenVatLieu) {
-    if (!confirm(`Bạn chắc chắn muốn NGỪNG SỬ DỤNG vật liệu "${tenVatLieu}"?`)) return;
+    if (!confirm(`Bạn chắc chắn muốn XÓA VĨNH VIỄN vật liệu "${tenVatLieu}"?\nHành động này không thể hoàn tác.`)) return;
 
     try {
         const result = await AdminAPI.deleteVatLieu(id);

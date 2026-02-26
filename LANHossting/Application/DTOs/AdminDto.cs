@@ -82,6 +82,7 @@ namespace LANHossting.Application.DTOs
     public class UpdateVatLieuDto
     {
         public int Id { get; set; }
+        public string MaVatLieu { get; set; } = string.Empty;
         public string TenVatLieu { get; set; } = string.Empty;
         public int? NhomVatLieuId { get; set; }
         public int DonViTinhId { get; set; }

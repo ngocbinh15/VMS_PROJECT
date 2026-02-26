@@ -119,9 +119,8 @@ namespace LANHossting.Infrastructure.Repositories
             var entity = await _context.TaiKhoan.FindAsync(id);
             if (entity == null) return false;
 
-            // Soft delete: đổi trạng thái thay vì xóa vĩnh viễn
-            entity.TrangThai = "Đã xóa";
-            entity.NgayCapNhat = DateTime.Now;
+            // Hard delete: xóa vĩnh viễn khỏi database
+            _context.TaiKhoan.Remove(entity);
             await _context.SaveChangesAsync();
             return true;
         }
@@ -194,11 +193,18 @@ namespace LANHossting.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<bool> MaVatLieuExistsAsync(string maVatLieu, int excludeId)
+        {
+            return await _context.VatLieu
+                .AnyAsync(v => v.MaVatLieu == maVatLieu && v.Id != excludeId);
+        }
+
         public async Task<bool> UpdateVatLieuAsync(UpdateVatLieuDto dto)
         {
             var entity = await _context.VatLieu.FindAsync(dto.Id);
             if (entity == null) return false;
 
+            entity.MaVatLieu = dto.MaVatLieu.Trim();
             entity.TenVatLieu = dto.TenVatLieu.Trim();
             entity.NhomVatLieuId = dto.NhomVatLieuId;
             entity.DonViTinhId = dto.DonViTinhId;
@@ -216,17 +222,58 @@ namespace LANHossting.Infrastructure.Repositories
             var entity = await _context.VatLieu.FindAsync(id);
             if (entity == null) return false;
 
-            // Kiểm tra xem vật liệu có tồn kho > 0 không
-            var coTonKho = await _context.TonKho
-                .AnyAsync(tk => tk.VatLieuId == id && tk.SoLuongTon > 0);
+            // Xóa các bản ghi TonKho có SoLuongTon = 0 (dọn dẹp trước khi xóa)
+            var tonKhoZero = await _context.TonKho
+                .Where(tk => tk.VatLieuId == id && tk.SoLuongTon == 0)
+                .ToListAsync();
+            if (tonKhoZero.Any())
+                _context.TonKho.RemoveRange(tonKhoZero);
 
-            if (coTonKho)
-                return false; // Không cho xóa nếu còn tồn kho
-
-            // Soft delete: đổi trạng thái
-            entity.TrangThai = "Ngừng sử dụng";
+            // Hard delete: xóa vĩnh viễn khỏi database
+            _context.VatLieu.Remove(entity);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        // ══════════════════════════════════════════
+        // FK CONSTRAINT CHECKS
+        // ══════════════════════════════════════════
+
+        public async Task<bool> TaiKhoanHasReferencesAsync(int id)
+        {
+            // Kiểm tra tất cả bảng có FK đến TaiKhoan
+            var hasPhienLamViec = await _context.PhienLamViec.AnyAsync(p => p.TaiKhoanId == id);
+            if (hasPhienLamViec) return true;
+
+            var hasPhieuNhapXuat = await _context.PhieuNhapXuat
+                .AnyAsync(p => p.TaiKhoanId == id || p.NguoiDuyet == id);
+            if (hasPhieuNhapXuat) return true;
+
+            var hasLichSuVatLieu = await _context.LichSuVatLieu.AnyAsync(l => l.TaiKhoanId == id);
+            if (hasLichSuVatLieu) return true;
+
+            var hasNhatKyHeThong = await _context.NhatKyHeThong.AnyAsync(n => n.TaiKhoanId == id);
+            if (hasNhatKyHeThong) return true;
+
+            var hasKhoPhuTrach = await _context.Kho.AnyAsync(k => k.NguoiPhuTrach == id);
+            if (hasKhoPhuTrach) return true;
+
+            return false;
+        }
+
+        public async Task<bool> VatLieuHasReferencesAsync(int id)
+        {
+            // Kiểm tra tất cả bảng có FK đến VatLieu
+            var hasTonKho = await _context.TonKho.AnyAsync(tk => tk.VatLieuId == id && tk.SoLuongTon > 0);
+            if (hasTonKho) return true;
+
+            var hasChiTietPhieu = await _context.ChiTietPhieuNhapXuat.AnyAsync(ct => ct.VatLieuId == id);
+            if (hasChiTietPhieu) return true;
+
+            var hasLichSu = await _context.LichSuVatLieu.AnyAsync(l => l.VatLieuId == id);
+            if (hasLichSu) return true;
+
+            return false;
         }
 
         // ══════════════════════════════════════════
