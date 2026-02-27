@@ -176,3 +176,4 @@ F:\Soure_Code\AAVMS_Project\LANHossting\bin\Debug\net8.0\Microsoft.IO.Recyclable
 F:\Soure_Code\AAVMS_Project\LANHossting\bin\Debug\net8.0\System.Security.Cryptography.Pkcs.dll
 F:\Soure_Code\AAVMS_Project\LANHossting\bin\Debug\net8.0\runtimes\win\lib\net8.0\Microsoft.Win32.SystemEvents.dll
 F:\Soure_Code\AAVMS_Project\LANHossting\bin\Debug\net8.0\runtimes\win\lib\net8.0\System.Security.Cryptography.Pkcs.dll
+F:\Soure_Code\AAVMS_Project\LANHossting\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
