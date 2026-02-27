@@ -1,121 +1,618 @@
+@model LANHossting.ViewModels.Buoy.PhaoIndexViewModel
 @{
-    ViewData["Title"] = "Dashboard - Quản Lý Phao";
+    ViewData["Title"] = "VMS - Quản Lý Phao";
+    Layout = null;
 }
 
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"]</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+          rel="stylesheet">
+
     <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a0ca3;
+            --secondary: #4cc9f0;
+            --success: #10b981;
+            --danger: #ef476f;
+            --warning: #f59e0b;
+            --info: #3f37c9;
+            --border-radius: 16px;
+            --card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+        }
         body {
-            background: linear-gradient(135deg, #f8fafc 0%, #dbeafe 100%);
-            min-height: 100vh;
             font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            padding-top: 80px;
+            overflow-x: hidden;
+            font-size: 0.95rem;
         }
-        .navbar-custom {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            padding: 12px 0;
         }
-        .card-dashboard {
+        .brand-gradient {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--info) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 800;
+        }
+        .stat-card {
+            background: white;
+            border-radius: var(--border-radius);
             border: none;
-            border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            transition: transform 0.3s ease;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            transition: 0.3s ease;
         }
-        .card-dashboard:hover {
+        .stat-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
-        .icon-box {
-            width: 64px;
-            height: 64px;
+        .stat-icon {
+            width: 45px;
+            height: 45px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
-            margin-bottom: 16px;
+            font-size: 1.25rem;
+        }
+        .table-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            border: none;
+            overflow: hidden;
+        }
+        .table-custom thead th {
+            background: #f8fafc;
+            color: #64748b;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            padding: 16px;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+        .table-custom td {
+            padding: 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        .table-custom tr:hover td {
+            background-color: #f8fafc;
+        }
+        .btn-modern {
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 10px 20px;
+            transition: 0.2s;
+            border: none;
+        }
+        .btn-primary-modern {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+        }
+        .btn-primary-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.4);
+            color: white;
+        }
+        .search-input {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px 16px 10px 40px;
+            width: 100%;
+            transition: 0.2s;
+        }
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+            outline: none;
+        }
+        .badge-status {
+            padding: 6px 10px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .badge-active { background: #dcfce7; color: #166534; }
+        .badge-maint { background: #fef9c3; color: #854d0e; }
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: #64748b;
+            transition: 0.2s;
+            background: transparent;
+            border: 1px solid transparent;
+        }
+        .action-btn:hover {
+            background: #f1f5f9;
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
+
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
-        <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="#">
-                <i class="bi bi-droplet me-2"></i>VMS - Quản Lý Phao
-            </a>
-            <div class="d-flex align-items-center text-white">
-                <i class="bi bi-person-circle me-2"></i>
-                <span class="me-3">@ViewBag.FullName (@ViewBag.Role)</span>
-                <a href="@Url.Action("Logout", "Login")" class="btn btn-outline-light btn-sm">
-                    <i class="bi bi-box-arrow-right me-1"></i>Đăng xuất
+
+    <!-- ═══════════════════ NAVBAR ═══════════════════ -->
+    <nav class="navbar navbar-expand-lg fixed-top glass-nav">
+        <div class="container-fluid px-4">
+        <a class="navbar-brand m-0 p-0" href="#">
+            <img src="~/image_2.png"
+                 asp-append-version="true"
+                 alt="Tổng Công ty Bảo đảm An toàn Hàng hải Việt Nam"
+                 height="60">
+        </a>
+            <div class="d-flex align-items-center gap-3">
+                <div class="text-end d-none d-sm-block">
+                    <div class="fw-bold text-dark small">@Model.FullName</div>
+                    <div class="text-muted" style="font-size: 0.7rem;">@Model.Role</div>
+                </div>
+                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                     style="width: 40px; height: 40px;">
+                    @(Model.FullName?.Substring(0, Math.Min(2, Model.FullName?.Length ?? 0)).ToUpper() ?? "KT")
+                </div>
+                <a href="@Url.Action("Logout", "Login")" class="btn btn-sm btn-outline-danger" title="Đăng xuất">
+                    <i class="bi bi-box-arrow-right"></i>
                 </a>
             </div>
         </div>
     </nav>
 
-    <div class="container mt-5">
-        <h2 class="mb-4 fw-bold">
-            <i class="bi bi-speedometer2 me-2 text-primary"></i>
-            Dashboard Quản Lý Phao
-        </h2>
-        
-        <div class="row g-4">
-            <!-- Card Danh sách Phao -->
-            <div class="col-md-4">
-                <div class="card card-dashboard">
-                    <div class="card-body p-4">
-                        <div class="icon-box bg-primary bg-opacity-10 text-primary">
-                            <i class="bi bi-droplet-fill"></i>
-                        </div>
-                        <h5 class="fw-bold mb-2">Danh Sách Phao</h5>
-                        <p class="text-muted mb-3">Quản lý phao báo hiệu</p>
-                        <a href="#" class="btn btn-primary btn-sm">
-                            <i class="bi bi-arrow-right me-1"></i>Xem
-                        </a>
+    <!-- ═══════════════════ MAIN CONTENT ═══════════════════ -->
+    <div class="container-fluid px-4 pb-5">
+
+        <!-- ── Header ── -->
+        <div class="d-flex justify-content-between align-items-end mb-4 animate-fade-in">
+            <div>
+                <h4 class="fw-bold mb-1 text-dark">Quản Lý Hệ Thống Phao</h4>
+                <div class="text-muted small">Danh sách các phao báo hiệu hàng hải trong khu vực quản lý.</div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="@Url.Action("LichSu", "Phao")" class="btn btn-light border fw-bold text-secondary btn-modern">
+                    <i class="bi bi-clock-history me-1"></i> Vòng đời phao
+                </a>
+                <a href="@Url.Action("DieuPhoi", "Phao")" class="btn btn-light border fw-bold text-secondary btn-modern">
+                    <i class="bi bi-geo-alt me-1"></i> Điều Phối
+                </a>
+            </div>
+        </div>
+
+        <!-- ── Stats Cards (dữ liệu thực từ DB) ── -->
+        <div class="row g-4 mb-4 animate-fade-in" style="animation-delay: 0.1s;">
+            <div class="col-md-3">
+                <div class="stat-card d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-layers-fill"></i></div>
+                    <div>
+                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Tổng Số Phao</h6>
+                        <h4 class="fw-bold mb-0">@Model.ThongKe.TongSoPhao</h4>
                     </div>
                 </div>
             </div>
-
-            <!-- Card Tuyến luồng -->
-            <div class="col-md-4">
-                <div class="card card-dashboard">
-                    <div class="card-body p-4">
-                        <div class="icon-box bg-info bg-opacity-10 text-info">
-                            <i class="bi bi-map"></i>
-                        </div>
-                        <h5 class="fw-bold mb-2">Tuyến Luồng</h5>
-                        <p class="text-muted mb-3">Quản lý tuyến luồng</p>
-                        <a href="#" class="btn btn-info btn-sm text-white">
-                            <i class="bi bi-arrow-right me-1"></i>Xem
-                        </a>
+            <div class="col-md-3">
+                <div class="stat-card d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-check-circle-fill"></i></div>
+                    <div>
+                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Trên Luồng</h6>
+                        <h4 class="fw-bold mb-0">@Model.ThongKe.SoPhaoTrenLuong</h4>
                     </div>
                 </div>
             </div>
-
-            <!-- Card Vị trí -->
-            <div class="col-md-4">
-                <div class="card card-dashboard">
-                    <div class="card-body p-4">
-                        <div class="icon-box bg-success bg-opacity-10 text-success">
-                            <i class="bi bi-geo-alt-fill"></i>
-                        </div>
-                        <h5 class="fw-bold mb-2">Vị Trí Phao</h5>
-                        <p class="text-muted mb-3">Vị trí phao trên luồng</p>
-                        <a href="#" class="btn btn-success btn-sm">
-                            <i class="bi bi-arrow-right me-1"></i>Xem
-                        </a>
+            <div class="col-md-3">
+                <div class="stat-card d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-wrench-adjustable"></i></div>
+                    <div>
+                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Bảo Trì / Sự Cố</h6>
+                        <h4 class="fw-bold mb-0">@(Model.ThongKe.SoPhaoBaoTri + Model.ThongKe.SoPhaoSuCo)</h4>
                     </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-secondary bg-opacity-10 text-secondary"><i class="bi bi-box-seam"></i></div>
+                    <div>
+                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Dự Phòng</h6>
+                        <h4 class="fw-bold mb-0">@Model.ThongKe.SoPhaoDuPhong</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Table ── -->
+        <div class="table-card animate-fade-in" style="animation-delay: 0.2s;">
+            <!-- Search Bar -->
+            <div class="p-3 border-bottom border-light bg-white d-flex flex-wrap gap-3 align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3 flex-grow-1">
+                    <form method="get" asp-action="Dashboard" class="position-relative" style="min-width: 300px;">
+                        <i class="bi bi-search position-absolute text-muted" style="left: 12px; top: 11px;"></i>
+                        <input type="text" class="search-input" name="search" id="searchInput"
+                               value="@Model.SearchTerm"
+                               placeholder="Tìm kiếm theo ký hiệu, mã phao, loại phao...">
+                    </form>
+                    <select class="form-select border-light bg-light fw-semibold text-secondary"
+                            style="width: auto; border-radius: 12px;" id="routeFilter">
+                        <option value="">Tất cả tuyến</option>
+                        @foreach (var tuyen in Model.DanhSachTuyenLuong)
+                        {
+                            <option value="@tuyen.MaTuyen">@tuyen.TenTuyen (@tuyen.MaTuyen)</option>
+                        }
+                    </select>
+                </div>
+                <div class="text-muted small fw-bold">
+                    Tổng: <span class="text-primary">@Model.DanhSachPhao.Count</span> phao
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="table-responsive">
+                <table class="table table-custom w-100 align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4 text-center" width="5%">STT</th>
+                            <th width="15%">Ký hiệu</th>
+                            <th width="12%">Mã phao</th>
+                            <th width="10%" class="text-center">Đường kính (m)</th>
+                            <th width="15%">Vị trí hiện tại</th>
+                            <th width="12%">Tuyến luồng</th>
+                            <th width="12%">Sửa chữa gần nhất</th>
+                            <th width="10%" class="text-center">Trạng thái</th>
+                            <th width="9%" class="text-end pe-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="buoyTableBody">
+                        @if (Model.DanhSachPhao.Any())
+                        {
+                            var index = 0;
+                            @foreach (var phao in Model.DanhSachPhao)
+                            {
+                                index++;
+                                <tr class="animate-fade-in" style="animation-delay: @(index * 0.03)s">
+                                    <td class="text-center ps-4 fw-bold text-muted">@index</td>
+                                    <td>
+                                        <div class="fw-bold text-dark">@phao.KyHieuTaiSan</div>
+                                        <div class="small text-muted" style="font-size: 0.75rem;">@phao.MaLoaiPhao</div>
+                                    </td>
+                                    <td class="fw-semibold text-primary">@phao.MaPhaoDayDu</td>
+                                    <td class="text-center font-monospace text-muted">
+                                        @(phao.DuongKinhPhao?.ToString("F2") ?? "--")
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(phao.ViTriHienTai))
+                                        {
+                                            <div class="small fw-bold text-dark">
+                                                <i class="bi bi-geo-alt-fill text-danger me-1"></i>@phao.ViTriHienTai
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(phao.ToaDo))
+                                            {
+                                                <div class="small text-muted ms-3">@phao.ToaDo</div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">--</span>
+                                        }
+                                    </td>
+                                    <td class="small fw-semibold text-secondary">
+                                        @(phao.TuyenLuong ?? "--")
+                                    </td>
+                                    <td class="small fw-bold text-dark">
+                                        @(phao.NgaySuaChuaGanNhat?.ToString("dd/MM/yyyy") ?? "--")
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge-status @phao.TrangThaiHienThiClass">
+                                            @phao.TrangThaiHienTai
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <div class="d-flex justify-content-end gap-1">
+                                            <button class="action-btn" title="Xem chi tiết"
+                                                    onclick="viewPhaoDetail(@phao.Id)">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-5">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                                    @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                                    {
+                                        <span>Không tìm thấy phao nào phù hợp với "<strong>@Model.SearchTerm</strong>"</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Chưa có dữ liệu phao trong hệ thống.</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-4 py-3 border-top border-light d-flex justify-content-between align-items-center bg-white">
+                <div class="text-muted small fw-bold">
+                    Hiển thị <span class="text-primary">@Model.DanhSachPhao.Count</span> phao
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ═══════════════════ DETAIL MODAL ═══════════════════ -->
+    <div class="modal fade" id="phaoDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-primary">Thông Tin Phao Báo Hiệu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <div id="modalLoading" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="mt-2 text-muted">Đang tải...</div>
+                    </div>
+                    <div id="modalContent" class="d-none">
+                        <ul class="nav nav-tabs mb-4" role="tablist" style="border-bottom: 2px solid #f1f5f9;">
+                            <li class="nav-item">
+                                <button class="nav-link active fw-semibold" data-bs-toggle="tab" data-bs-target="#tabGeneral">Thông tin chung</button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#tabXich">Xích & Rùa</button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#tabDen">Đèn báo hiệu</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <!-- Tab: Thông tin chung -->
+                            <div class="tab-pane fade show active" id="tabGeneral">
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label text-muted small fw-bold text-uppercase">Ký hiệu tài sản</label>
+                                        <div class="fw-bold text-primary fs-6" id="dtKyHieu">--</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-muted small fw-bold text-uppercase">Mã phao đầy đủ</label>
+                                        <div class="fw-bold" id="dtMaPhao">--</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-muted small fw-bold text-uppercase">Loại phao</label>
+                                        <div id="dtLoaiPhao">--</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-muted small fw-bold text-uppercase">Trạng thái</label>
+                                        <div id="dtTrangThai">--</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-muted small fw-bold text-uppercase">Đường kính (m)</label>
+                                        <div id="dtDuongKinh">--</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-muted small fw-bold text-uppercase">Chiều cao toàn bộ (m)</label>
+                                        <div id="dtChieuCao">--</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-muted small fw-bold text-uppercase">Hình dạng</label>
+                                        <div id="dtHinhDang">--</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-muted small fw-bold text-uppercase">Vật liệu</label>
+                                        <div id="dtVatLieu">--</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-muted small fw-bold text-uppercase">Màu sắc</label>
+                                        <div id="dtMauSac">--</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-muted small fw-bold text-uppercase">Vị trí hiện tại</label>
+                                        <div id="dtViTri">--</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label text-muted small fw-bold text-uppercase">Tuyến luồng</label>
+                                        <div id="dtTuyen">--</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Tab: Xích & Rùa -->
+                            <div class="tab-pane fade" id="tabXich">
+                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">XÍCH PHAO</h6>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label text-muted small fw-bold">Đường kính (Ø mm)</label>
+                                        <div id="dtXichPhao_DK">--</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label text-muted small fw-bold">Chiều dài (m)</label>
+                                        <div id="dtXichPhao_CD">--</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label text-muted small fw-bold">Thời điểm sử dụng</label>
+                                        <div id="dtXichPhao_SD">--</div>
+                                    </div>
+                                </div>
+                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">XÍCH RÙA</h6>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label text-muted small fw-bold">Đường kính (Ø mm)</label>
+                                        <div id="dtXichRua_DK">--</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label text-muted small fw-bold">Chiều dài (m)</label>
+                                        <div id="dtXichRua_CD">--</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label text-muted small fw-bold">Thời điểm sử dụng</label>
+                                        <div id="dtXichRua_SD">--</div>
+                                    </div>
+                                </div>
+                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">RÙA</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label text-muted small fw-bold">Trọng lượng (kg)</label>
+                                        <div id="dtRua_TL">--</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label text-muted small fw-bold">Thời điểm sử dụng</label>
+                                        <div id="dtRua_SD">--</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Tab: Đèn báo hiệu -->
+                            <div class="tab-pane fade" id="tabDen">
+                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">ĐÈN BÁO HIỆU</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label text-muted small fw-bold">Chủng loại</label>
+                                        <div id="dtDen_CL">--</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label text-muted small fw-bold">Kết nối AIS</label>
+                                        <div id="dtDen_AIS">--</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label text-muted small fw-bold">Đặc tính ánh sáng</label>
+                                        <div id="dtDen_AS">--</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label text-muted small fw-bold">Chiếu xa tầm sáng (hải lý)</label>
+                                        <div id="dtDen_CX">--</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label text-muted small fw-bold">Nguồn năng lượng</label>
+                                        <div id="dtDen_NL">--</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label text-muted small fw-bold">Thời điểm sử dụng</label>
+                                        <div id="dtDen_SD">--</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label text-muted small fw-bold">Sửa chữa gần nhất</label>
+                                        <div id="dtDen_SC">--</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ SCRIPTS ═══════════════════ -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ── View Detail (AJAX call to /Phao/ChiTiet/{id}) ──
+        function viewPhaoDetail(id) {
+            const modal = new bootstrap.Modal(document.getElementById('phaoDetailModal'));
+            document.getElementById('modalLoading').classList.remove('d-none');
+            document.getElementById('modalContent').classList.add('d-none');
+            modal.show();
+
+            fetch('@Url.Action("ChiTiet", "Phao")/' + id)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('modalLoading').classList.add('d-none');
+                    document.getElementById('modalContent').classList.remove('d-none');
+
+                    // Tab 1: Thông tin chung
+                    setText('dtKyHieu', data.kyHieuTaiSan);
+                    setText('dtMaPhao', data.maPhaoDayDu);
+                    setText('dtLoaiPhao', data.maLoaiPhao);
+                    setText('dtTrangThai', data.trangThaiHienTai);
+                    setText('dtDuongKinh', fmt(data.duongKinhPhao));
+                    setText('dtChieuCao', fmt(data.chieuCaoToanBo));
+                    setText('dtHinhDang', data.hinhDang);
+                    setText('dtVatLieu', data.vatLieu);
+                    setText('dtMauSac', data.mauSac);
+                    setText('dtViTri', data.viTriHienTai);
+                    setText('dtTuyen', data.tuyenLuong);
+
+                    // Tab 2: Xích & Rùa
+                    setText('dtXichPhao_DK', fmt(data.xichPhao_DuongKinh));
+                    setText('dtXichPhao_CD', fmt(data.xichPhao_ChieuDai));
+                    setText('dtXichPhao_SD', fmtDate(data.xichPhao_ThoiDiemSuDung));
+                    setText('dtXichRua_DK', fmt(data.xichRua_DuongKinh));
+                    setText('dtXichRua_CD', fmt(data.xichRua_ChieuDai));
+                    setText('dtXichRua_SD', fmtDate(data.xichRua_ThoiDiemSuDung));
+                    setText('dtRua_TL', fmt(data.rua_TrongLuong));
+                    setText('dtRua_SD', fmtDate(data.rua_ThoiDiemSuDung));
+
+                    // Tab 3: Đèn
+                    setText('dtDen_CL', data.den_ChungLoai);
+                    setText('dtDen_AIS', data.den_KetNoiAIS === true ? 'Có' : data.den_KetNoiAIS === false ? 'Không' : '--');
+                    setText('dtDen_AS', data.den_DacTinhAnhSang);
+                    setText('dtDen_CX', fmt(data.den_ChieuXaTamSang));
+                    setText('dtDen_NL', data.den_NguonCapNangLuong);
+                    setText('dtDen_SD', fmtDate(data.den_ThoiDiemSuDung));
+                    setText('dtDen_SC', fmtDate(data.den_ThoiDiemSuaChua));
+                })
+                .catch(err => {
+                    document.getElementById('modalLoading').innerHTML =
+                        '<div class="text-danger"><i class="bi bi-exclamation-circle fs-1"></i><div class="mt-2">Không thể tải dữ liệu</div></div>';
+                    console.error(err);
+                });
+        }
+
+        function setText(id, val) {
+            document.getElementById(id).textContent = val || '--';
+        }
+        function fmt(v) {
+            return v != null ? parseFloat(v).toFixed(2) : '--';
+        }
+        function fmtDate(v) {
+            if (!v) return '--';
+            const d = new Date(v);
+            return d.toLocaleDateString('vi-VN');
+        }
+
+        // ── Client-side search (instant filter) ──
+        document.getElementById('searchInput').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.target.closest('form').submit();
+            }
+        });
+    </script>
+
 </body>
 </html>

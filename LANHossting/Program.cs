@@ -31,6 +31,11 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<ISystemLogRepository, SystemLogRepository>();
 builder.Services.AddScoped<ISystemLogService, SystemLogService>();
 
+// Buoy module DI (Clean Architecture)
+builder.Services.AddScoped<LANHossting.Application.Interfaces.Buoy.IPhaoRepository, LANHossting.Infrastructure.Repositories.Buoy.PhaoRepository>();
+builder.Services.AddScoped<LANHossting.Application.Interfaces.Buoy.ITuyenLuongRepository, LANHossting.Infrastructure.Repositories.Buoy.TuyenLuongRepository>();
+builder.Services.AddScoped<LANHossting.Application.Interfaces.Buoy.IPhaoService, LANHossting.Application.Services.Buoy.PhaoService>();
+
 // ✅ THÊM 2: Cấu hình Session cho Authentication
 builder.Services.AddSession(options =>
 {

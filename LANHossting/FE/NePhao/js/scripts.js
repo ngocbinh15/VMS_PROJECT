@@ -42,7 +42,6 @@
                                 <button class="action-btn view-btn" title="Xem chi tiết" data-bs-toggle="modal" data-bs-target="#buoyDetailModal"><i class="bi bi-eye"></i></button>
                                 <button class="action-btn edit-btn" title="Chỉnh sửa" data-bs-toggle="modal" data-bs-target="#buoyDetailModal"><i class="bi bi-pencil-square"></i></button>
                                 <button class="action-btn delete-btn delete" title="Xóa"><i class="bi bi-trash"></i></button>
-                                <button class="action-btn" title="Chuyển quản lý"><i class="bi bi-arrow-left-right"></i></button>
                             </div>
                         </td>
                     </tr>
@@ -168,3 +167,4 @@
 
       document.querySelector('#buoyDetailModal .modal-title').textContent = 'Thông Tin Phao Báo Hiệu';
     }
+    // Timeline V2 logic is handled by the inline script in index.html
