@@ -47,5 +47,20 @@ namespace LANHossting.Application.Interfaces.Buoy
         /// Lấy lịch sử hoạt động hiện tại (NgayKetThuc IS NULL)
         /// </summary>
         Task<LichSuHoatDongPhao?> GetHoatDongHienTaiAsync(int phaoId);
+
+        /// <summary>
+        /// Lấy phao theo Id kèm navigation (TRACKED — dùng cho update)
+        /// </summary>
+        Task<Phao?> GetByIdForEditAsync(int id);
+
+        /// <summary>
+        /// Xóa phao kèm cascade xóa bản ghi liên quan (LichSu*, BaoTri, ThietBi)
+        /// </summary>
+        Task<bool> DeleteAsync(int id);
+
+        /// <summary>
+        /// Lưu thay đổi EF context
+        /// </summary>
+        Task SaveChangesAsync();
     }
 }

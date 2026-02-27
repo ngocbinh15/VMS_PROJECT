@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using LANHossting.Filters;
 using LANHossting.Application.Interfaces.Buoy;
+using LANHossting.Application.DTOs.Buoy;
 using LANHossting.ViewModels.Buoy;
 
 namespace LANHossting.Controllers
@@ -19,10 +20,10 @@ namespace LANHossting.Controllers
         /// GET: /Phao/Dashboard
         /// Trang chủ quản lý phao — hiển thị thống kê + danh sách phao từ DB
         /// </summary>
-        public async Task<IActionResult> Dashboard(string? search)
+        public async Task<IActionResult> Dashboard(string? search, int? tuyenLuongId)
         {
             var thongKe = await _phaoService.GetThongKeAsync();
-            var danhSach = await _phaoService.GetDanhSachPhaoAsync(search);
+            var danhSach = await _phaoService.GetDanhSachPhaoAsync(search, tuyenLuongId);
             var tuyenLuong = await _phaoService.GetDanhSachTuyenLuongAsync();
 
             var viewModel = new PhaoIndexViewModel
@@ -31,6 +32,7 @@ namespace LANHossting.Controllers
                 DanhSachPhao = danhSach,
                 DanhSachTuyenLuong = tuyenLuong,
                 SearchTerm = search,
+                SelectedTuyenLuongId = tuyenLuongId,
                 FullName = HttpContext.Session.GetString("HoTen"),
                 Username = HttpContext.Session.GetString("Username"),
                 Role = HttpContext.Session.GetString("RoleName")
@@ -40,8 +42,18 @@ namespace LANHossting.Controllers
         }
 
         /// <summary>
-        /// GET: /Phao/ChiTiet/{id}
-        /// API trả về chi tiết phao (JSON) cho modal
+        /// GET: /Phao/DanhSach (AJAX) — trả JSON danh sách phao đã filter
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> DanhSach(string? search, int? tuyenLuongId)
+        {
+            var danhSach = await _phaoService.GetDanhSachPhaoAsync(search, tuyenLuongId);
+            var thongKe = await _phaoService.GetThongKeAsync();
+            return Json(new { items = danhSach, thongKe });
+        }
+
+        /// <summary>
+        /// GET: /Phao/ChiTiet/{id} — chi tiết phao (JSON) cho modal xem/edit
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> ChiTiet(int id)
@@ -54,8 +66,36 @@ namespace LANHossting.Controllers
         }
 
         /// <summary>
+        /// POST: /Phao/CapNhat — cập nhật thông tin phao
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> CapNhat([FromBody] PhaoEditDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return Json(new { success = false, error = string.Join("; ", errors) });
+            }
+
+            var (success, error) = await _phaoService.CapNhatPhaoAsync(dto);
+            return Json(new { success, error });
+        }
+
+        /// <summary>
+        /// POST: /Phao/Xoa/{id} — xóa phao (cascade xóa bản ghi liên quan)
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> Xoa(int id)
+        {
+            var (success, error) = await _phaoService.XoaPhaoAsync(id);
+            return Json(new { success, error });
+        }
+
+        /// <summary>
         /// GET: /Phao/DieuPhoi
-        /// Placeholder cho chức năng Điều phối / Phân luồng (tương lai)
         /// </summary>
         public IActionResult DieuPhoi()
         {
@@ -65,7 +105,6 @@ namespace LANHossting.Controllers
 
         /// <summary>
         /// GET: /Phao/LichSu
-        /// Placeholder cho chức năng Lịch sử hoạt động (tương lai)
         /// </summary>
         public IActionResult LichSu()
         {

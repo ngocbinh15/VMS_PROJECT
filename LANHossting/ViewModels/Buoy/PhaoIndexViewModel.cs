@@ -28,6 +28,11 @@ namespace LANHossting.ViewModels.Buoy
         public string? SearchTerm { get; set; }
 
         /// <summary>
+        /// Tuyến luồng đang được lọc
+        /// </summary>
+        public int? SelectedTuyenLuongId { get; set; }
+
+        /// <summary>
         /// Thông tin user hiện tại
         /// </summary>
         public string? FullName { get; set; }

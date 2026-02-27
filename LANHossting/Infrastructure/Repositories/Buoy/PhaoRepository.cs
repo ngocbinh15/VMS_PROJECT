@@ -92,5 +92,41 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<Phao?> GetByIdForEditAsync(int id)
+        {
+            return await _context.Set<Phao>()
+                .Include(p => p.ViTriPhaoBHHienTai)
+                    .ThenInclude(v => v!.TuyenLuong)
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var phao = await _context.Set<Phao>().FindAsync(id);
+            if (phao == null) return false;
+
+            // Cascade delete related records (DB has Restrict, handle in code)
+            var lichSuHD = await _context.Set<LichSuHoatDongPhao>()
+                .Where(x => x.PhaoId == id).ToListAsync();
+            _context.Set<LichSuHoatDongPhao>().RemoveRange(lichSuHD);
+
+            var lichSuBT = await _context.Set<LichSuBaoTri>()
+                .Where(x => x.PhaoId == id).ToListAsync();
+            _context.Set<LichSuBaoTri>().RemoveRange(lichSuBT);
+
+            var lichSuTB = await _context.Set<LichSuThayDoiThietBi>()
+                .Where(x => x.PhaoId == id).ToListAsync();
+            _context.Set<LichSuThayDoiThietBi>().RemoveRange(lichSuTB);
+
+            _context.Set<Phao>().Remove(phao);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
     }
 }

@@ -35,10 +35,19 @@ namespace LANHossting.Application.Services.Buoy
             };
         }
 
-        public async Task<List<PhaoListItemDto>> GetDanhSachPhaoAsync(string? searchTerm = null)
+        public async Task<List<PhaoListItemDto>> GetDanhSachPhaoAsync(string? searchTerm = null, int? tuyenLuongId = null)
         {
             var phaoList = await _phaoRepo.GetAllWithCurrentStatusAsync();
 
+            // Filter theo tuyến luồng
+            if (tuyenLuongId.HasValue)
+            {
+                phaoList = phaoList
+                    .Where(p => p.ViTriPhaoBHHienTai?.TuyenLuongId == tuyenLuongId.Value)
+                    .ToList();
+            }
+
+            // Filter theo search term
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 var term = searchTerm.Trim().ToLower();
@@ -133,6 +142,78 @@ namespace LANHossting.Application.Services.Buoy
                 TenTuyen = t.TenTuyen,
                 SoViTri = t.ViTriPhaoList.Count
             }).ToList();
+        }
+
+        public async Task<(bool Success, string? Error)> CapNhatPhaoAsync(PhaoEditDto dto)
+        {
+            try
+            {
+                var phao = await _phaoRepo.GetByIdForEditAsync(dto.Id);
+                if (phao == null)
+                    return (false, "Không tìm thấy phao với Id = " + dto.Id);
+
+                // Map DTO → Entity (MaLoaiPhao is computed, skip it)
+                phao.KyHieuTaiSan = dto.KyHieuTaiSan;
+                phao.MaPhaoDayDu = dto.MaPhaoDayDu;
+                phao.TenPhao = dto.TenPhao;
+                phao.SoPhaoHienTai = dto.SoPhaoHienTai;
+                phao.DuongKinhPhao = dto.DuongKinhPhao;
+                phao.ChieuCaoToanBo = dto.ChieuCaoToanBo;
+                phao.HinhDang = dto.HinhDang;
+                phao.VatLieu = dto.VatLieu;
+                phao.MauSac = dto.MauSac;
+                phao.TrangThaiHienTai = dto.TrangThaiHienTai;
+                phao.ViTriPhaoBHHienTaiId = dto.ViTriPhaoBHHienTaiId;
+
+                // Xích phao
+                phao.XichPhao_DuongKinh = dto.XichPhao_DuongKinh;
+                phao.XichPhao_ChieuDai = dto.XichPhao_ChieuDai;
+                phao.XichPhao_ThoiDiemSuDung = dto.XichPhao_ThoiDiemSuDung;
+
+                // Xích rùa
+                phao.XichRua_DuongKinh = dto.XichRua_DuongKinh;
+                phao.XichRua_ChieuDai = dto.XichRua_ChieuDai;
+                phao.XichRua_ThoiDiemSuDung = dto.XichRua_ThoiDiemSuDung;
+
+                // Rùa
+                phao.Rua_TrongLuong = dto.Rua_TrongLuong;
+                phao.Rua_ThoiDiemSuDung = dto.Rua_ThoiDiemSuDung;
+
+                // Đèn
+                phao.Den_ChungLoai = dto.Den_ChungLoai;
+                phao.Den_KetNoiAIS = dto.Den_KetNoiAIS;
+                phao.Den_DacTinhAnhSang = dto.Den_DacTinhAnhSang;
+                phao.Den_ChieuXaTamSang = dto.Den_ChieuXaTamSang;
+                phao.Den_NguonCapNangLuong = dto.Den_NguonCapNangLuong;
+                phao.Den_ThoiDiemSuDung = dto.Den_ThoiDiemSuDung;
+                phao.Den_ThoiDiemSuaChua = dto.Den_ThoiDiemSuaChua;
+
+                // Audit
+                phao.NgayCapNhat = DateTime.Now;
+
+                await _phaoRepo.SaveChangesAsync();
+                return (true, null);
+            }
+            catch (Exception ex)
+            {
+                return (false, "Lỗi cập nhật: " + ex.Message);
+            }
+        }
+
+        public async Task<(bool Success, string? Error)> XoaPhaoAsync(int id)
+        {
+            try
+            {
+                var result = await _phaoRepo.DeleteAsync(id);
+                if (!result)
+                    return (false, "Không tìm thấy phao với Id = " + id);
+
+                return (true, null);
+            }
+            catch (Exception ex)
+            {
+                return (false, "Lỗi xóa phao: " + ex.Message);
+            }
         }
 
         #region Private Helpers

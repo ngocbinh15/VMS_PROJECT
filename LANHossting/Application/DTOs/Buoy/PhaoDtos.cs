@@ -82,6 +82,65 @@ namespace LANHossting.Application.DTOs.Buoy
     }
 
     /// <summary>
+    /// DTO cho chỉnh sửa phao
+    /// </summary>
+    public class PhaoEditDto
+    {
+        public int Id { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Mã phao đầy đủ là bắt buộc")]
+        [System.ComponentModel.DataAnnotations.MaxLength(50)]
+        public string MaPhaoDayDu { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.MaxLength(50)]
+        public string? KyHieuTaiSan { get; set; }
+
+        [System.ComponentModel.DataAnnotations.MaxLength(255)]
+        public string? TenPhao { get; set; }
+
+        public int? SoPhaoHienTai { get; set; }
+        public decimal? DuongKinhPhao { get; set; }
+        public decimal? ChieuCaoToanBo { get; set; }
+
+        [System.ComponentModel.DataAnnotations.MaxLength(100)]
+        public string? HinhDang { get; set; }
+
+        [System.ComponentModel.DataAnnotations.MaxLength(100)]
+        public string? VatLieu { get; set; }
+
+        [System.ComponentModel.DataAnnotations.MaxLength(100)]
+        public string? MauSac { get; set; }
+
+        [System.ComponentModel.DataAnnotations.MaxLength(255)]
+        public string? TrangThaiHienTai { get; set; }
+
+        public int? ViTriPhaoBHHienTaiId { get; set; }
+
+        // Xích phao
+        public decimal? XichPhao_DuongKinh { get; set; }
+        public decimal? XichPhao_ChieuDai { get; set; }
+        public DateTime? XichPhao_ThoiDiemSuDung { get; set; }
+
+        // Xích rùa
+        public decimal? XichRua_DuongKinh { get; set; }
+        public decimal? XichRua_ChieuDai { get; set; }
+        public DateTime? XichRua_ThoiDiemSuDung { get; set; }
+
+        // Rùa
+        public decimal? Rua_TrongLuong { get; set; }
+        public DateTime? Rua_ThoiDiemSuDung { get; set; }
+
+        // Đèn
+        public string? Den_ChungLoai { get; set; }
+        public bool? Den_KetNoiAIS { get; set; }
+        public string? Den_DacTinhAnhSang { get; set; }
+        public decimal? Den_ChieuXaTamSang { get; set; }
+        public string? Den_NguonCapNangLuong { get; set; }
+        public DateTime? Den_ThoiDiemSuDung { get; set; }
+        public DateTime? Den_ThoiDiemSuaChua { get; set; }
+    }
+
+    /// <summary>
     /// Tuyến luồng cho dropdown/filter
     /// </summary>
     public class TuyenLuongDto

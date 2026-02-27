@@ -44,13 +44,6 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
             padding: 12px 0;
         }
-        .brand-gradient {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--info) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 800;
-        }
         .stat-card {
             background: white;
             border-radius: var(--border-radius);
@@ -106,16 +99,6 @@
             transition: 0.2s;
             border: none;
         }
-        .btn-primary-modern {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
-        }
-        .btn-primary-modern:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.4);
-            color: white;
-        }
         .search-input {
             background: #fff;
             border: 1px solid #e2e8f0;
@@ -150,11 +133,9 @@
             background: transparent;
             border: 1px solid transparent;
         }
-        .action-btn:hover {
-            background: #f1f5f9;
-            color: var(--primary);
-            transform: scale(1.1);
-        }
+        .action-btn:hover { background: #f1f5f9; color: var(--primary); transform: scale(1.1); }
+        .action-btn-edit:hover { color: var(--warning); }
+        .action-btn-delete:hover { color: var(--danger); background: #fef2f2; }
         .animate-fade-in {
             animation: fadeIn 0.4s ease-out forwards;
         }
@@ -162,6 +143,25 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* ── Fixed-size modals ── */
+        #phaoDetailModal .modal-content,
+        #phaoEditModal .modal-content {
+            min-height: 520px;
+            max-height: 80vh;
+        }
+        #phaoDetailModal .modal-body,
+        #phaoEditModal .modal-body {
+            overflow-y: auto;
+            min-height: 380px;
+        }
+        #phaoDetailModal .tab-content,
+        #phaoEditModal .tab-content {
+            min-height: 280px;
+        }
+
+        /* Toast notification */
+        .toast-container { position: fixed; top: 90px; right: 20px; z-index: 9999; }
     </style>
 </head>
 
@@ -170,12 +170,12 @@
     <!-- ═══════════════════ NAVBAR ═══════════════════ -->
     <nav class="navbar navbar-expand-lg fixed-top glass-nav">
         <div class="container-fluid px-4">
-        <a class="navbar-brand m-0 p-0" href="#">
-            <img src="~/image_2.png"
-                 asp-append-version="true"
-                 alt="Tổng Công ty Bảo đảm An toàn Hàng hải Việt Nam"
-                 height="60">
-        </a>
+            <a class="navbar-brand m-0 p-0" href="#">
+                <img src="~/image_2.png"
+                     asp-append-version="true"
+                     alt="Tổng Công ty Bảo đảm An toàn Hàng hải Việt Nam"
+                     height="50">
+            </a>
             <div class="d-flex align-items-center gap-3">
                 <div class="text-end d-none d-sm-block">
                     <div class="fw-bold text-dark small">@Model.FullName</div>
@@ -191,6 +191,9 @@
             </div>
         </div>
     </nav>
+
+    <!-- ═══════════════════ TOAST ═══════════════════ -->
+    <div class="toast-container" id="toastContainer"></div>
 
     <!-- ═══════════════════ MAIN CONTENT ═══════════════════ -->
     <div class="container-fluid px-4 pb-5">
@@ -211,41 +214,32 @@
             </div>
         </div>
 
-        <!-- ── Stats Cards (dữ liệu thực từ DB) ── -->
+        <!-- ── Stats Cards (3 cards, no Dự Phòng) ── -->
         <div class="row g-4 mb-4 animate-fade-in" style="animation-delay: 0.1s;">
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="stat-card d-flex align-items-center gap-3">
                     <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-layers-fill"></i></div>
                     <div>
                         <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Tổng Số Phao</h6>
-                        <h4 class="fw-bold mb-0">@Model.ThongKe.TongSoPhao</h4>
+                        <h4 class="fw-bold mb-0" id="statTongSo">@Model.ThongKe.TongSoPhao</h4>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="stat-card d-flex align-items-center gap-3">
                     <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-check-circle-fill"></i></div>
                     <div>
                         <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Trên Luồng</h6>
-                        <h4 class="fw-bold mb-0">@Model.ThongKe.SoPhaoTrenLuong</h4>
+                        <h4 class="fw-bold mb-0" id="statTrenLuong">@Model.ThongKe.SoPhaoTrenLuong</h4>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="stat-card d-flex align-items-center gap-3">
                     <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-wrench-adjustable"></i></div>
                     <div>
                         <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Bảo Trì / Sự Cố</h6>
-                        <h4 class="fw-bold mb-0">@(Model.ThongKe.SoPhaoBaoTri + Model.ThongKe.SoPhaoSuCo)</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card d-flex align-items-center gap-3">
-                    <div class="stat-icon bg-secondary bg-opacity-10 text-secondary"><i class="bi bi-box-seam"></i></div>
-                    <div>
-                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Dự Phòng</h6>
-                        <h4 class="fw-bold mb-0">@Model.ThongKe.SoPhaoDuPhong</h4>
+                        <h4 class="fw-bold mb-0" id="statBaoTri">@(Model.ThongKe.SoPhaoBaoTri + Model.ThongKe.SoPhaoSuCo)</h4>
                     </div>
                 </div>
             </div>
@@ -253,26 +247,34 @@
 
         <!-- ── Table ── -->
         <div class="table-card animate-fade-in" style="animation-delay: 0.2s;">
-            <!-- Search Bar -->
+            <!-- Search & Filter Bar -->
             <div class="p-3 border-bottom border-light bg-white d-flex flex-wrap gap-3 align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-3 flex-grow-1">
-                    <form method="get" asp-action="Dashboard" class="position-relative" style="min-width: 300px;">
+                    <div class="position-relative" style="min-width: 300px;">
                         <i class="bi bi-search position-absolute text-muted" style="left: 12px; top: 11px;"></i>
-                        <input type="text" class="search-input" name="search" id="searchInput"
+                        <input type="text" class="search-input" id="searchInput"
                                value="@Model.SearchTerm"
                                placeholder="Tìm kiếm theo ký hiệu, mã phao, loại phao...">
-                    </form>
+                    </div>
                     <select class="form-select border-light bg-light fw-semibold text-secondary"
                             style="width: auto; border-radius: 12px;" id="routeFilter">
                         <option value="">Tất cả tuyến</option>
                         @foreach (var tuyen in Model.DanhSachTuyenLuong)
                         {
-                            <option value="@tuyen.MaTuyen">@tuyen.TenTuyen (@tuyen.MaTuyen)</option>
+                            var isSelected = Model.SelectedTuyenLuongId == tuyen.Id;
+                            if (isSelected)
+                            {
+                                <option value="@tuyen.Id" selected>@tuyen.TenTuyen (@tuyen.MaTuyen)</option>
+                            }
+                            else
+                            {
+                                <option value="@tuyen.Id">@tuyen.TenTuyen (@tuyen.MaTuyen)</option>
+                            }
                         }
                     </select>
                 </div>
                 <div class="text-muted small fw-bold">
-                    Tổng: <span class="text-primary">@Model.DanhSachPhao.Count</span> phao
+                    Tổng: <span class="text-primary" id="totalCount">@Model.DanhSachPhao.Count</span> phao
                 </div>
             </div>
 
@@ -282,14 +284,14 @@
                     <thead>
                         <tr>
                             <th class="ps-4 text-center" width="5%">STT</th>
-                            <th width="15%">Ký hiệu</th>
-                            <th width="12%">Mã phao</th>
-                            <th width="10%" class="text-center">Đường kính (m)</th>
-                            <th width="15%">Vị trí hiện tại</th>
-                            <th width="12%">Tuyến luồng</th>
-                            <th width="12%">Sửa chữa gần nhất</th>
+                            <th width="14%">Ký hiệu</th>
+                            <th width="11%">Mã phao</th>
+                            <th width="9%" class="text-center">Đường kính (m)</th>
+                            <th width="14%">Vị trí hiện tại</th>
+                            <th width="11%">Tuyến luồng</th>
+                            <th width="11%">Sửa chữa gần nhất</th>
                             <th width="10%" class="text-center">Trạng thái</th>
-                            <th width="9%" class="text-end pe-4">Thao tác</th>
+                            <th width="15%" class="text-end pe-4">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody id="buoyTableBody">
@@ -299,7 +301,7 @@
                             @foreach (var phao in Model.DanhSachPhao)
                             {
                                 index++;
-                                <tr class="animate-fade-in" style="animation-delay: @(index * 0.03)s">
+                                <tr class="animate-fade-in" style="animation-delay: @(index * 0.03)s" data-id="@phao.Id">
                                     <td class="text-center ps-4 fw-bold text-muted">@index</td>
                                     <td>
                                         <div class="fw-bold text-dark">@phao.KyHieuTaiSan</div>
@@ -342,6 +344,14 @@
                                                     onclick="viewPhaoDetail(@phao.Id)">
                                                 <i class="bi bi-eye"></i>
                                             </button>
+                                            <button class="action-btn action-btn-edit" title="Chỉnh sửa"
+                                                    onclick="openEditModal(@phao.Id)">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </button>
+                                            <button class="action-btn action-btn-delete" title="Xóa"
+                                                    onclick="confirmDelete(@phao.Id, '@phao.KyHieuTaiSan')">
+                                                <i class="bi bi-trash3"></i>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -370,15 +380,15 @@
             <!-- Footer -->
             <div class="px-4 py-3 border-top border-light d-flex justify-content-between align-items-center bg-white">
                 <div class="text-muted small fw-bold">
-                    Hiển thị <span class="text-primary">@Model.DanhSachPhao.Count</span> phao
+                    Hiển thị <span class="text-primary" id="displayCount">@Model.DanhSachPhao.Count</span> phao
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ═══════════════════ DETAIL MODAL ═══════════════════ -->
+    <!-- ═══════════════════ DETAIL MODAL (fixed size) ═══════════════════ -->
     <div class="modal fade" id="phaoDetailModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4">
                 <div class="modal-header border-bottom-0 pb-0">
                     <h5 class="modal-title fw-bold text-primary">Thông Tin Phao Báo Hiệu</h5>
@@ -402,7 +412,6 @@
                             </li>
                         </ul>
                         <div class="tab-content">
-                            <!-- Tab: Thông tin chung -->
                             <div class="tab-pane fade show active" id="tabGeneral">
                                 <div class="row g-3">
                                     <div class="col-md-3">
@@ -451,7 +460,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Tab: Xích & Rùa -->
                             <div class="tab-pane fade" id="tabXich">
                                 <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">XÍCH PHAO</h6>
                                 <div class="row g-3 mb-4">
@@ -495,7 +503,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Tab: Đèn báo hiệu -->
                             <div class="tab-pane fade" id="tabDen">
                                 <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">ĐÈN BÁO HIỆU</h6>
                                 <div class="row g-3">
@@ -539,23 +546,341 @@
         </div>
     </div>
 
+    <!-- ═══════════════════ EDIT MODAL ═══════════════════ -->
+    <div class="modal fade" id="phaoEditModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header pb-0 border-bottom-0">
+                    <h5 class="modal-title fw-bold text-warning"><i class="bi bi-pencil-square me-2"></i>Chỉnh Sửa Phao</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <div id="editLoading" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="mt-2 text-muted">Đang tải...</div>
+                    </div>
+                    <div id="editContent" class="d-none">
+                        <input type="hidden" id="editId">
+                        <ul class="nav nav-tabs mb-4" role="tablist" style="border-bottom: 2px solid #f1f5f9;">
+                            <li class="nav-item">
+                                <button class="nav-link active fw-semibold" data-bs-toggle="tab" data-bs-target="#editTabGeneral">Thông tin chung</button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#editTabXich">Xích & Rùa</button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#editTabDen">Đèn báo hiệu</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <!-- Edit Tab: Thông tin chung -->
+                            <div class="tab-pane fade show active" id="editTabGeneral">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Ký hiệu tài sản</label>
+                                        <input type="text" class="form-control form-control-sm" id="edKyHieu" maxlength="50">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Mã phao đầy đủ <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control form-control-sm" id="edMaPhao" maxlength="50" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Tên phao</label>
+                                        <input type="text" class="form-control form-control-sm" id="edTenPhao" maxlength="255">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Số phao hiện tại</label>
+                                        <input type="number" class="form-control form-control-sm" id="edSoPhao">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Đường kính (m)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edDuongKinh">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Chiều cao toàn bộ (m)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edChieuCao">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Trạng thái</label>
+                                        <input type="text" class="form-control form-control-sm" id="edTrangThai" maxlength="255">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Hình dạng</label>
+                                        <input type="text" class="form-control form-control-sm" id="edHinhDang" maxlength="100">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Vật liệu</label>
+                                        <input type="text" class="form-control form-control-sm" id="edVatLieu" maxlength="100">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Màu sắc</label>
+                                        <input type="text" class="form-control form-control-sm" id="edMauSac" maxlength="100">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Edit Tab: Xích & Rùa -->
+                            <div class="tab-pane fade" id="editTabXich">
+                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">XÍCH PHAO</h6>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Đường kính (Ø mm)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edXichPhao_DK">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Chiều dài (m)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edXichPhao_CD">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Thời điểm sử dụng</label>
+                                        <input type="date" class="form-control form-control-sm" id="edXichPhao_SD">
+                                    </div>
+                                </div>
+                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">XÍCH RÙA</h6>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Đường kính (Ø mm)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edXichRua_DK">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Chiều dài (m)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edXichRua_CD">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Thời điểm sử dụng</label>
+                                        <input type="date" class="form-control form-control-sm" id="edXichRua_SD">
+                                    </div>
+                                </div>
+                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">RÙA</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Trọng lượng (kg)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edRua_TL">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Thời điểm sử dụng</label>
+                                        <input type="date" class="form-control form-control-sm" id="edRua_SD">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Edit Tab: Đèn báo hiệu -->
+                            <div class="tab-pane fade" id="editTabDen">
+                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">ĐÈN BÁO HIỆU</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Chủng loại</label>
+                                        <input type="text" class="form-control form-control-sm" id="edDen_CL" maxlength="100">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Kết nối AIS</label>
+                                        <select class="form-select form-select-sm" id="edDen_AIS">
+                                            <option value="">-- Chọn --</option>
+                                            <option value="true">Có</option>
+                                            <option value="false">Không</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Đặc tính ánh sáng</label>
+                                        <input type="text" class="form-control form-control-sm" id="edDen_AS" maxlength="255">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Chiếu xa tầm sáng (hải lý)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edDen_CX">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Nguồn năng lượng</label>
+                                        <input type="text" class="form-control form-control-sm" id="edDen_NL" maxlength="100">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Thời điểm sử dụng</label>
+                                        <input type="date" class="form-control form-control-sm" id="edDen_SD">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Sửa chữa gần nhất</label>
+                                        <input type="date" class="form-control form-control-sm" id="edDen_SC">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-warning fw-bold text-white" id="btnSaveEdit" onclick="saveEdit()">
+                        <i class="bi bi-check-lg me-1"></i>Lưu thay đổi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ DELETE CONFIRM MODAL ═══════════════════ -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-body text-center py-4">
+                    <div class="text-danger mb-3"><i class="bi bi-exclamation-triangle-fill fs-1"></i></div>
+                    <h6 class="fw-bold">Xác nhận xóa phao</h6>
+                    <p class="text-muted small mb-0">Bạn có chắc chắn muốn xóa phao <strong id="deletePhaoName"></strong>?</p>
+                    <p class="text-danger small">Thao tác này không thể hoàn tác.</p>
+                    <input type="hidden" id="deletePhaoId">
+                </div>
+                <div class="modal-footer border-top-0 justify-content-center pt-0">
+                    <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger fw-bold px-4" onclick="executeDelete()">
+                        <i class="bi bi-trash3 me-1"></i>Xóa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ═══════════════════ SCRIPTS ═══════════════════ -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // ── View Detail (AJAX call to /Phao/ChiTiet/{id}) ──
+        // ══════════════════════════════════════════════
+        // URLs
+        // ══════════════════════════════════════════════
+        const URLS = {
+            danhSach: '@Url.Action("DanhSach", "Phao")',
+            chiTiet:  '@Url.Action("ChiTiet", "Phao")',
+            capNhat:  '@Url.Action("CapNhat", "Phao")',
+            xoa:      '@Url.Action("Xoa", "Phao")'
+        };
+
+        // ══════════════════════════════════════════════
+        // UTILITY
+        // ══════════════════════════════════════════════
+        function setText(id, val) { document.getElementById(id).textContent = val || '--'; }
+        function fmt(v) { return v != null ? parseFloat(v).toFixed(2) : '--'; }
+        function fmtDate(v) {
+            if (!v) return '--';
+            return new Date(v).toLocaleDateString('vi-VN');
+        }
+        function fmtDateInput(v) {
+            if (!v) return '';
+            const d = new Date(v);
+            return d.toISOString().split('T')[0];
+        }
+        function getVal(id) { return document.getElementById(id).value; }
+        function getNumVal(id) { const v = document.getElementById(id).value; return v === '' ? null : parseFloat(v); }
+        function getIntVal(id) { const v = document.getElementById(id).value; return v === '' ? null : parseInt(v); }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const icon = type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill';
+            const bg = type === 'success' ? 'bg-success' : 'bg-danger';
+            const html = `<div class="toast align-items-center text-white ${bg} border-0 show" role="alert">
+                <div class="d-flex"><div class="toast-body"><i class="bi ${icon} me-2"></i>${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`;
+            container.insertAdjacentHTML('beforeend', html);
+            const toast = container.lastElementChild;
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // ══════════════════════════════════════════════
+        // AJAX FILTER (search + route)
+        // ══════════════════════════════════════════════
+        let filterTimeout = null;
+
+        function reloadTable() {
+            const search = document.getElementById('searchInput').value.trim();
+            const tuyenLuongId = document.getElementById('routeFilter').value;
+            const params = new URLSearchParams();
+            if (search) params.set('search', search);
+            if (tuyenLuongId) params.set('tuyenLuongId', tuyenLuongId);
+
+            fetch(URLS.danhSach + '?' + params.toString())
+                .then(r => r.json())
+                .then(data => {
+                    renderTable(data.items);
+                    updateStats(data.thongKe);
+                })
+                .catch(err => {
+                    console.error('Filter error:', err);
+                    showToast('Lỗi tải dữ liệu', 'error');
+                });
+        }
+
+        function renderTable(items) {
+            const tbody = document.getElementById('buoyTableBody');
+            document.getElementById('totalCount').textContent = items.length;
+            document.getElementById('displayCount').textContent = items.length;
+
+            if (!items.length) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-5">
+                    <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                    <span>Không tìm thấy phao nào phù hợp.</span></td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = items.map((p, i) => {
+                const viTri = p.viTriHienTai
+                    ? `<div class="small fw-bold text-dark"><i class="bi bi-geo-alt-fill text-danger me-1"></i>${p.viTriHienTai}</div>
+                       ${p.toaDo ? `<div class="small text-muted ms-3">${p.toaDo}</div>` : ''}`
+                    : '<span class="text-muted small">--</span>';
+
+                const dk = p.duongKinhPhao != null ? parseFloat(p.duongKinhPhao).toFixed(2) : '--';
+                const ngaySC = p.ngaySuaChuaGanNhat ? new Date(p.ngaySuaChuaGanNhat).toLocaleDateString('vi-VN') : '--';
+
+                // Escape single quotes for onclick
+                const kyHieuSafe = (p.kyHieuTaiSan || '--').replace(/'/g, "\\'");
+
+                return `<tr data-id="${p.id}">
+                    <td class="text-center ps-4 fw-bold text-muted">${i + 1}</td>
+                    <td><div class="fw-bold text-dark">${p.kyHieuTaiSan || '--'}</div>
+                        <div class="small text-muted" style="font-size:0.75rem">${p.maLoaiPhao || ''}</div></td>
+                    <td class="fw-semibold text-primary">${p.maPhaoDayDu}</td>
+                    <td class="text-center font-monospace text-muted">${dk}</td>
+                    <td>${viTri}</td>
+                    <td class="small fw-semibold text-secondary">${p.tuyenLuong || '--'}</td>
+                    <td class="small fw-bold text-dark">${ngaySC}</td>
+                    <td class="text-center"><span class="badge-status ${p.trangThaiHienThiClass}">${p.trangThaiHienTai || '--'}</span></td>
+                    <td class="text-end pe-4">
+                        <div class="d-flex justify-content-end gap-1">
+                            <button class="action-btn" title="Xem chi tiết" onclick="viewPhaoDetail(${p.id})"><i class="bi bi-eye"></i></button>
+                            <button class="action-btn action-btn-edit" title="Chỉnh sửa" onclick="openEditModal(${p.id})"><i class="bi bi-pencil-square"></i></button>
+                            <button class="action-btn action-btn-delete" title="Xóa" onclick="confirmDelete(${p.id}, '${kyHieuSafe}')"><i class="bi bi-trash3"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function updateStats(tk) {
+            document.getElementById('statTongSo').textContent = tk.tongSoPhao;
+            document.getElementById('statTrenLuong').textContent = tk.soPhaoTrenLuong;
+            document.getElementById('statBaoTri').textContent = (tk.soPhaoBaoTri || 0) + (tk.soPhaoSuCo || 0);
+        }
+
+        // Debounced search
+        document.getElementById('searchInput').addEventListener('input', function () {
+            clearTimeout(filterTimeout);
+            filterTimeout = setTimeout(reloadTable, 400);
+        });
+
+        // Route filter
+        document.getElementById('routeFilter').addEventListener('change', reloadTable);
+
+        // ══════════════════════════════════════════════
+        // VIEW DETAIL MODAL
+        // ══════════════════════════════════════════════
         function viewPhaoDetail(id) {
             const modal = new bootstrap.Modal(document.getElementById('phaoDetailModal'));
             document.getElementById('modalLoading').classList.remove('d-none');
             document.getElementById('modalContent').classList.add('d-none');
+
+            // Reset to first tab
+            const firstTab = document.querySelector('#phaoDetailModal .nav-link');
+            if (firstTab) bootstrap.Tab.getOrCreateInstance(firstTab).show();
+
             modal.show();
 
-            fetch('@Url.Action("ChiTiet", "Phao")/' + id)
+            fetch(URLS.chiTiet + '/' + id)
                 .then(r => r.json())
                 .then(data => {
                     document.getElementById('modalLoading').classList.add('d-none');
                     document.getElementById('modalContent').classList.remove('d-none');
 
-                    // Tab 1: Thông tin chung
                     setText('dtKyHieu', data.kyHieuTaiSan);
                     setText('dtMaPhao', data.maPhaoDayDu);
                     setText('dtLoaiPhao', data.maLoaiPhao);
@@ -568,7 +893,6 @@
                     setText('dtViTri', data.viTriHienTai);
                     setText('dtTuyen', data.tuyenLuong);
 
-                    // Tab 2: Xích & Rùa
                     setText('dtXichPhao_DK', fmt(data.xichPhao_DuongKinh));
                     setText('dtXichPhao_CD', fmt(data.xichPhao_ChieuDai));
                     setText('dtXichPhao_SD', fmtDate(data.xichPhao_ThoiDiemSuDung));
@@ -578,7 +902,6 @@
                     setText('dtRua_TL', fmt(data.rua_TrongLuong));
                     setText('dtRua_SD', fmtDate(data.rua_ThoiDiemSuDung));
 
-                    // Tab 3: Đèn
                     setText('dtDen_CL', data.den_ChungLoai);
                     setText('dtDen_AIS', data.den_KetNoiAIS === true ? 'Có' : data.den_KetNoiAIS === false ? 'Không' : '--');
                     setText('dtDen_AS', data.den_DacTinhAnhSang);
@@ -590,28 +913,158 @@
                 .catch(err => {
                     document.getElementById('modalLoading').innerHTML =
                         '<div class="text-danger"><i class="bi bi-exclamation-circle fs-1"></i><div class="mt-2">Không thể tải dữ liệu</div></div>';
-                    console.error(err);
                 });
         }
 
-        function setText(id, val) {
-            document.getElementById(id).textContent = val || '--';
-        }
-        function fmt(v) {
-            return v != null ? parseFloat(v).toFixed(2) : '--';
-        }
-        function fmtDate(v) {
-            if (!v) return '--';
-            const d = new Date(v);
-            return d.toLocaleDateString('vi-VN');
+        // ══════════════════════════════════════════════
+        // EDIT MODAL
+        // ══════════════════════════════════════════════
+        function openEditModal(id) {
+            const modal = new bootstrap.Modal(document.getElementById('phaoEditModal'));
+            document.getElementById('editLoading').classList.remove('d-none');
+            document.getElementById('editContent').classList.add('d-none');
+
+            // Reset to first tab
+            const firstTab = document.querySelector('#phaoEditModal .nav-link');
+            if (firstTab) bootstrap.Tab.getOrCreateInstance(firstTab).show();
+
+            modal.show();
+
+            fetch(URLS.chiTiet + '/' + id)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('editLoading').classList.add('d-none');
+                    document.getElementById('editContent').classList.remove('d-none');
+
+                    document.getElementById('editId').value = data.id;
+                    document.getElementById('edKyHieu').value = data.kyHieuTaiSan || '';
+                    document.getElementById('edMaPhao').value = data.maPhaoDayDu || '';
+                    document.getElementById('edTenPhao').value = data.tenPhao || '';
+                    document.getElementById('edSoPhao').value = data.soPhaoHienTai ?? '';
+                    document.getElementById('edDuongKinh').value = data.duongKinhPhao ?? '';
+                    document.getElementById('edChieuCao').value = data.chieuCaoToanBo ?? '';
+                    document.getElementById('edTrangThai').value = data.trangThaiHienTai || '';
+                    document.getElementById('edHinhDang').value = data.hinhDang || '';
+                    document.getElementById('edVatLieu').value = data.vatLieu || '';
+                    document.getElementById('edMauSac').value = data.mauSac || '';
+
+                    document.getElementById('edXichPhao_DK').value = data.xichPhao_DuongKinh ?? '';
+                    document.getElementById('edXichPhao_CD').value = data.xichPhao_ChieuDai ?? '';
+                    document.getElementById('edXichPhao_SD').value = fmtDateInput(data.xichPhao_ThoiDiemSuDung);
+                    document.getElementById('edXichRua_DK').value = data.xichRua_DuongKinh ?? '';
+                    document.getElementById('edXichRua_CD').value = data.xichRua_ChieuDai ?? '';
+                    document.getElementById('edXichRua_SD').value = fmtDateInput(data.xichRua_ThoiDiemSuDung);
+                    document.getElementById('edRua_TL').value = data.rua_TrongLuong ?? '';
+                    document.getElementById('edRua_SD').value = fmtDateInput(data.rua_ThoiDiemSuDung);
+
+                    document.getElementById('edDen_CL').value = data.den_ChungLoai || '';
+                    document.getElementById('edDen_AIS').value = data.den_KetNoiAIS === true ? 'true' : data.den_KetNoiAIS === false ? 'false' : '';
+                    document.getElementById('edDen_AS').value = data.den_DacTinhAnhSang || '';
+                    document.getElementById('edDen_CX').value = data.den_ChieuXaTamSang ?? '';
+                    document.getElementById('edDen_NL').value = data.den_NguonCapNangLuong || '';
+                    document.getElementById('edDen_SD').value = fmtDateInput(data.den_ThoiDiemSuDung);
+                    document.getElementById('edDen_SC').value = fmtDateInput(data.den_ThoiDiemSuaChua);
+                })
+                .catch(err => {
+                    document.getElementById('editLoading').innerHTML =
+                        '<div class="text-danger"><i class="bi bi-exclamation-circle fs-1"></i><div class="mt-2">Không thể tải dữ liệu</div></div>';
+                });
         }
 
-        // ── Client-side search (instant filter) ──
-        document.getElementById('searchInput').addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-                e.target.closest('form').submit();
+        function saveEdit() {
+            const maPhao = getVal('edMaPhao').trim();
+            if (!maPhao) {
+                showToast('Mã phao đầy đủ là bắt buộc', 'error');
+                return;
             }
-        });
+
+            const btn = document.getElementById('btnSaveEdit');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang lưu...';
+
+            const aisVal = getVal('edDen_AIS');
+            const dto = {
+                id: parseInt(getVal('editId')),
+                maPhaoDayDu: maPhao,
+                kyHieuTaiSan: getVal('edKyHieu') || null,
+                tenPhao: getVal('edTenPhao') || null,
+                soPhaoHienTai: getIntVal('edSoPhao'),
+                duongKinhPhao: getNumVal('edDuongKinh'),
+                chieuCaoToanBo: getNumVal('edChieuCao'),
+                trangThaiHienTai: getVal('edTrangThai') || null,
+                hinhDang: getVal('edHinhDang') || null,
+                vatLieu: getVal('edVatLieu') || null,
+                mauSac: getVal('edMauSac') || null,
+                xichPhao_DuongKinh: getNumVal('edXichPhao_DK'),
+                xichPhao_ChieuDai: getNumVal('edXichPhao_CD'),
+                xichPhao_ThoiDiemSuDung: getVal('edXichPhao_SD') || null,
+                xichRua_DuongKinh: getNumVal('edXichRua_DK'),
+                xichRua_ChieuDai: getNumVal('edXichRua_CD'),
+                xichRua_ThoiDiemSuDung: getVal('edXichRua_SD') || null,
+                rua_TrongLuong: getNumVal('edRua_TL'),
+                rua_ThoiDiemSuDung: getVal('edRua_SD') || null,
+                den_ChungLoai: getVal('edDen_CL') || null,
+                den_KetNoiAIS: aisVal === 'true' ? true : aisVal === 'false' ? false : null,
+                den_DacTinhAnhSang: getVal('edDen_AS') || null,
+                den_ChieuXaTamSang: getNumVal('edDen_CX'),
+                den_NguonCapNangLuong: getVal('edDen_NL') || null,
+                den_ThoiDiemSuDung: getVal('edDen_SD') || null,
+                den_ThoiDiemSuaChua: getVal('edDen_SC') || null
+            };
+
+            fetch(URLS.capNhat, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dto)
+            })
+            .then(r => r.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Lưu thay đổi';
+
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('phaoEditModal')).hide();
+                    showToast('Cập nhật phao thành công!');
+                    reloadTable();
+                } else {
+                    showToast(data.error || 'Lỗi cập nhật', 'error');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Lưu thay đổi';
+                showToast('Lỗi kết nối server', 'error');
+            });
+        }
+
+        // ══════════════════════════════════════════════
+        // DELETE
+        // ══════════════════════════════════════════════
+        function confirmDelete(id, name) {
+            document.getElementById('deletePhaoId').value = id;
+            document.getElementById('deletePhaoName').textContent = name;
+            new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
+        }
+
+        function executeDelete() {
+            const id = document.getElementById('deletePhaoId').value;
+
+            fetch(URLS.xoa + '/' + id, { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
+                    if (data.success) {
+                        showToast('Đã xóa phao thành công!');
+                        reloadTable();
+                    } else {
+                        showToast(data.error || 'Lỗi xóa phao', 'error');
+                    }
+                })
+                .catch(err => {
+                    bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
+                    showToast('Lỗi kết nối server', 'error');
+                });
+        }
     </script>
 
 </body>
