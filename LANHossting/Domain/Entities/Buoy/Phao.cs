@@ -50,6 +50,15 @@ namespace LANHossting.Domain.Entities.Buoy
         [MaxLength(100)]
         public string? MauSac { get; set; }
 
+        // ── Thời gian sử dụng (v1.1) ──
+        public int? ThoiGianSuDung { get; set; }
+
+        [Column(TypeName = "date")]
+        public DateTime? ThoiDiemThayTha { get; set; }
+
+        [Column(TypeName = "date")]
+        public DateTime? ThoiDiemSuaChuaGanNhat { get; set; }
+
         // ── Xích phao ──
         [Column(TypeName = "decimal(10, 2)")]
         public decimal? XichPhao_DuongKinh { get; set; }
@@ -89,6 +98,9 @@ namespace LANHossting.Domain.Entities.Buoy
         [Column(TypeName = "decimal(10, 2)")]
         public decimal? Den_ChieuXaTamSang { get; set; }
 
+        [Column(TypeName = "decimal(10, 2)")]
+        public decimal? Den_ChieuCaoTamSangHaiDo { get; set; }
+
         [MaxLength(100)]
         public string? Den_NguonCapNangLuong { get; set; }
 
@@ -97,6 +109,25 @@ namespace LANHossting.Domain.Entities.Buoy
 
         [Column(TypeName = "date")]
         public DateTime? Den_ThoiDiemSuaChua { get; set; }
+
+        [MaxLength(100)]
+        public string? Den_SoQuyetDinhTang { get; set; }
+
+        // ── Hành chính (v1.1) ──
+        public int? TramQuanLyId { get; set; }
+        public int? TinhThanhPhoId { get; set; }
+        public int? DonViQuanLyId { get; set; }
+        public int? DonViVanHanhId { get; set; }
+
+        // ── Quyết định tăng tài sản (v1.1) ──
+        [MaxLength(100)]
+        public string? SoQuyetDinhTang { get; set; }
+
+        [Column(TypeName = "date")]
+        public DateTime? NgayQuyetDinhTang { get; set; }
+
+        [Column(TypeName = "decimal(10, 2)")]
+        public decimal? DienTich { get; set; }
 
         // ── Trạng thái hiện tại (cache) ──
         [MaxLength(255)]
@@ -118,6 +149,18 @@ namespace LANHossting.Domain.Entities.Buoy
         // ── Navigation ──
         [ForeignKey("ViTriPhaoBHHienTaiId")]
         public virtual DmViTriPhaoBH? ViTriPhaoBHHienTai { get; set; }
+
+        [ForeignKey("TramQuanLyId")]
+        public virtual DmTramQuanLy? TramQuanLy { get; set; }
+
+        [ForeignKey("TinhThanhPhoId")]
+        public virtual DmTinhThanhPho? TinhThanhPho { get; set; }
+
+        [ForeignKey("DonViQuanLyId")]
+        public virtual DmDonVi? DonViQuanLy { get; set; }
+
+        [ForeignKey("DonViVanHanhId")]
+        public virtual DmDonVi? DonViVanHanh { get; set; }
 
         public virtual ICollection<LichSuHoatDongPhao> LichSuHoatDongList { get; set; } = new List<LichSuHoatDongPhao>();
         public virtual ICollection<LichSuBaoTri> LichSuBaoTriList { get; set; } = new List<LichSuBaoTri>();

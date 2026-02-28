@@ -110,24 +110,59 @@ namespace LANHossting.Application.Services.Buoy
                 HinhDang = p.HinhDang,
                 VatLieu = p.VatLieu,
                 MauSac = p.MauSac,
+
+                // Thời gian v1.1
+                ThoiGianSuDung = p.ThoiGianSuDung,
+                ThoiDiemThayTha = p.ThoiDiemThayTha,
+                ThoiDiemSuaChuaGanNhat = p.ThoiDiemSuaChuaGanNhat,
+
+                // Xích phao
                 XichPhao_DuongKinh = p.XichPhao_DuongKinh,
                 XichPhao_ChieuDai = p.XichPhao_ChieuDai,
                 XichPhao_ThoiDiemSuDung = p.XichPhao_ThoiDiemSuDung,
+
+                // Xích rùa
                 XichRua_DuongKinh = p.XichRua_DuongKinh,
                 XichRua_ChieuDai = p.XichRua_ChieuDai,
                 XichRua_ThoiDiemSuDung = p.XichRua_ThoiDiemSuDung,
+
+                // Rùa
                 Rua_TrongLuong = p.Rua_TrongLuong,
                 Rua_ThoiDiemSuDung = p.Rua_ThoiDiemSuDung,
+
+                // Hành chính v1.1
+                TramQuanLyId = p.TramQuanLyId,
+                TramQuanLyTen = p.TramQuanLy?.TenTram,
+                TinhThanhPhoId = p.TinhThanhPhoId,
+                TinhThanhPhoTen = p.TinhThanhPho?.TenTinh,
+                DonViQuanLyId = p.DonViQuanLyId,
+                DonViQuanLyTen = p.DonViQuanLy?.TenDonVi,
+                DonViVanHanhId = p.DonViVanHanhId,
+                DonViVanHanhTen = p.DonViVanHanh?.TenDonVi,
+
+                // Vị trí
+                ViTriPhaoBHHienTaiId = p.ViTriPhaoBHHienTaiId,
+                ViTriHienTai = viTri?.MaPhaoBH,
+                TuyenLuong = viTri?.TuyenLuong?.TenTuyen,
+                ToaDoThietKe = viTri?.ToaDoThietKe,
+
+                // Quyết định v1.1
+                SoQuyetDinhTang = p.SoQuyetDinhTang,
+                NgayQuyetDinhTang = p.NgayQuyetDinhTang,
+                DienTich = p.DienTich,
+
+                // Đèn
                 Den_ChungLoai = p.Den_ChungLoai,
                 Den_KetNoiAIS = p.Den_KetNoiAIS,
                 Den_DacTinhAnhSang = p.Den_DacTinhAnhSang,
                 Den_ChieuXaTamSang = p.Den_ChieuXaTamSang,
+                Den_ChieuCaoTamSangHaiDo = p.Den_ChieuCaoTamSangHaiDo,
                 Den_NguonCapNangLuong = p.Den_NguonCapNangLuong,
                 Den_ThoiDiemSuDung = p.Den_ThoiDiemSuDung,
                 Den_ThoiDiemSuaChua = p.Den_ThoiDiemSuaChua,
+                Den_SoQuyetDinhTang = p.Den_SoQuyetDinhTang,
+
                 TrangThaiHienTai = p.TrangThaiHienTai,
-                ViTriHienTai = viTri?.MaPhaoBH,
-                TuyenLuong = viTri?.TuyenLuong?.TenTuyen
             };
         }
 
@@ -165,6 +200,11 @@ namespace LANHossting.Application.Services.Buoy
                 phao.TrangThaiHienTai = dto.TrangThaiHienTai;
                 phao.ViTriPhaoBHHienTaiId = dto.ViTriPhaoBHHienTaiId;
 
+                // Thời gian v1.1
+                phao.ThoiGianSuDung = dto.ThoiGianSuDung;
+                phao.ThoiDiemThayTha = dto.ThoiDiemThayTha;
+                phao.ThoiDiemSuaChuaGanNhat = dto.ThoiDiemSuaChuaGanNhat;
+
                 // Xích phao
                 phao.XichPhao_DuongKinh = dto.XichPhao_DuongKinh;
                 phao.XichPhao_ChieuDai = dto.XichPhao_ChieuDai;
@@ -179,14 +219,27 @@ namespace LANHossting.Application.Services.Buoy
                 phao.Rua_TrongLuong = dto.Rua_TrongLuong;
                 phao.Rua_ThoiDiemSuDung = dto.Rua_ThoiDiemSuDung;
 
+                // Hành chính v1.1
+                phao.TramQuanLyId = dto.TramQuanLyId;
+                phao.TinhThanhPhoId = dto.TinhThanhPhoId;
+                phao.DonViQuanLyId = dto.DonViQuanLyId;
+                phao.DonViVanHanhId = dto.DonViVanHanhId;
+
+                // Quyết định v1.1
+                phao.SoQuyetDinhTang = dto.SoQuyetDinhTang;
+                phao.NgayQuyetDinhTang = dto.NgayQuyetDinhTang;
+                phao.DienTich = dto.DienTich;
+
                 // Đèn
                 phao.Den_ChungLoai = dto.Den_ChungLoai;
                 phao.Den_KetNoiAIS = dto.Den_KetNoiAIS;
                 phao.Den_DacTinhAnhSang = dto.Den_DacTinhAnhSang;
                 phao.Den_ChieuXaTamSang = dto.Den_ChieuXaTamSang;
+                phao.Den_ChieuCaoTamSangHaiDo = dto.Den_ChieuCaoTamSangHaiDo;
                 phao.Den_NguonCapNangLuong = dto.Den_NguonCapNangLuong;
                 phao.Den_ThoiDiemSuDung = dto.Den_ThoiDiemSuDung;
                 phao.Den_ThoiDiemSuaChua = dto.Den_ThoiDiemSuaChua;
+                phao.Den_SoQuyetDinhTang = dto.Den_SoQuyetDinhTang;
 
                 // Audit
                 phao.NgayCapNhat = DateTime.Now;

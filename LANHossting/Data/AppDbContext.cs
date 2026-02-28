@@ -15,6 +15,9 @@ namespace LANHossting.Data
         // ============================================
         public DbSet<BuoyEntities.DmTuyenLuong> DmTuyenLuong { get; set; }
         public DbSet<BuoyEntities.DmViTriPhaoBH> DmViTriPhaoBH { get; set; }
+        public DbSet<BuoyEntities.DmDonVi> DmDonVi { get; set; }
+        public DbSet<BuoyEntities.DmTramQuanLy> DmTramQuanLy { get; set; }
+        public DbSet<BuoyEntities.DmTinhThanhPho> DmTinhThanhPho { get; set; }
         public DbSet<BuoyEntities.Phao> Phao { get; set; }
         public DbSet<BuoyEntities.LichSuHoatDongPhao> LichSuHoatDongPhao { get; set; }
         public DbSet<BuoyEntities.LichSuBaoTri> LichSuBaoTri { get; set; }
@@ -65,6 +68,41 @@ namespace LANHossting.Data
                 .HasOne(p => p.ViTriPhaoBHHienTai)
                 .WithMany(v => v.PhaoHienTaiList)
                 .HasForeignKey(p => p.ViTriPhaoBHHienTaiId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Phao -> TramQuanLy
+            modelBuilder.Entity<BuoyEntities.Phao>()
+                .HasOne(p => p.TramQuanLy)
+                .WithMany()
+                .HasForeignKey(p => p.TramQuanLyId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Phao -> TinhThanhPho
+            modelBuilder.Entity<BuoyEntities.Phao>()
+                .HasOne(p => p.TinhThanhPho)
+                .WithMany()
+                .HasForeignKey(p => p.TinhThanhPhoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Phao -> DonViQuanLy
+            modelBuilder.Entity<BuoyEntities.Phao>()
+                .HasOne(p => p.DonViQuanLy)
+                .WithMany()
+                .HasForeignKey(p => p.DonViQuanLyId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Phao -> DonViVanHanh
+            modelBuilder.Entity<BuoyEntities.Phao>()
+                .HasOne(p => p.DonViVanHanh)
+                .WithMany()
+                .HasForeignKey(p => p.DonViVanHanhId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // DmTramQuanLy -> DmDonVi
+            modelBuilder.Entity<BuoyEntities.DmTramQuanLy>()
+                .HasOne(t => t.DonViChuQuan)
+                .WithMany()
+                .HasForeignKey(t => t.DonViChuQuanId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // LichSuHoatDongPhao -> Phao

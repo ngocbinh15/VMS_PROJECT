@@ -52,6 +52,11 @@ namespace LANHossting.Application.DTOs.Buoy
         public string? VatLieu { get; set; }
         public string? MauSac { get; set; }
 
+        // Thời gian (v1.1)
+        public int? ThoiGianSuDung { get; set; }
+        public DateTime? ThoiDiemThayTha { get; set; }
+        public DateTime? ThoiDiemSuaChuaGanNhat { get; set; }
+
         // Xích phao
         public decimal? XichPhao_DuongKinh { get; set; }
         public decimal? XichPhao_ChieuDai { get; set; }
@@ -66,19 +71,40 @@ namespace LANHossting.Application.DTOs.Buoy
         public decimal? Rua_TrongLuong { get; set; }
         public DateTime? Rua_ThoiDiemSuDung { get; set; }
 
+        // Hành chính (v1.1)
+        public int? TramQuanLyId { get; set; }
+        public string? TramQuanLyTen { get; set; }
+        public int? TinhThanhPhoId { get; set; }
+        public string? TinhThanhPhoTen { get; set; }
+        public int? DonViQuanLyId { get; set; }
+        public string? DonViQuanLyTen { get; set; }
+        public int? DonViVanHanhId { get; set; }
+        public string? DonViVanHanhTen { get; set; }
+
+        // Vị trí
+        public int? ViTriPhaoBHHienTaiId { get; set; }
+        public string? ViTriHienTai { get; set; }
+        public string? TuyenLuong { get; set; }
+        public string? ToaDoThietKe { get; set; }
+
+        // Quyết định (v1.1)
+        public string? SoQuyetDinhTang { get; set; }
+        public DateTime? NgayQuyetDinhTang { get; set; }
+        public decimal? DienTich { get; set; }
+
         // Đèn
         public string? Den_ChungLoai { get; set; }
         public bool? Den_KetNoiAIS { get; set; }
         public string? Den_DacTinhAnhSang { get; set; }
         public decimal? Den_ChieuXaTamSang { get; set; }
+        public decimal? Den_ChieuCaoTamSangHaiDo { get; set; }
         public string? Den_NguonCapNangLuong { get; set; }
         public DateTime? Den_ThoiDiemSuDung { get; set; }
         public DateTime? Den_ThoiDiemSuaChua { get; set; }
+        public string? Den_SoQuyetDinhTang { get; set; }
 
         // Trạng thái
         public string? TrangThaiHienTai { get; set; }
-        public string? ViTriHienTai { get; set; }
-        public string? TuyenLuong { get; set; }
     }
 
     /// <summary>
@@ -111,6 +137,11 @@ namespace LANHossting.Application.DTOs.Buoy
         [System.ComponentModel.DataAnnotations.MaxLength(100)]
         public string? MauSac { get; set; }
 
+        // Thời gian (v1.1)
+        public int? ThoiGianSuDung { get; set; }
+        public DateTime? ThoiDiemThayTha { get; set; }
+        public DateTime? ThoiDiemSuaChuaGanNhat { get; set; }
+
         [System.ComponentModel.DataAnnotations.MaxLength(255)]
         public string? TrangThaiHienTai { get; set; }
 
@@ -130,14 +161,28 @@ namespace LANHossting.Application.DTOs.Buoy
         public decimal? Rua_TrongLuong { get; set; }
         public DateTime? Rua_ThoiDiemSuDung { get; set; }
 
+        // Hành chính (v1.1)
+        public int? TramQuanLyId { get; set; }
+        public int? TinhThanhPhoId { get; set; }
+        public int? DonViQuanLyId { get; set; }
+        public int? DonViVanHanhId { get; set; }
+
+        // Quyết định (v1.1)
+        [System.ComponentModel.DataAnnotations.MaxLength(100)]
+        public string? SoQuyetDinhTang { get; set; }
+        public DateTime? NgayQuyetDinhTang { get; set; }
+        public decimal? DienTich { get; set; }
+
         // Đèn
         public string? Den_ChungLoai { get; set; }
         public bool? Den_KetNoiAIS { get; set; }
         public string? Den_DacTinhAnhSang { get; set; }
         public decimal? Den_ChieuXaTamSang { get; set; }
+        public decimal? Den_ChieuCaoTamSangHaiDo { get; set; }
         public string? Den_NguonCapNangLuong { get; set; }
         public DateTime? Den_ThoiDiemSuDung { get; set; }
         public DateTime? Den_ThoiDiemSuaChua { get; set; }
+        public string? Den_SoQuyetDinhTang { get; set; }
     }
 
     /// <summary>

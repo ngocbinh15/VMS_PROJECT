@@ -69,6 +69,10 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
             return await _context.Set<Phao>()
                 .Include(p => p.ViTriPhaoBHHienTai)
                     .ThenInclude(v => v!.TuyenLuong)
+                .Include(p => p.TramQuanLy)
+                .Include(p => p.TinhThanhPho)
+                .Include(p => p.DonViQuanLy)
+                .Include(p => p.DonViVanHanh)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
@@ -98,6 +102,10 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
             return await _context.Set<Phao>()
                 .Include(p => p.ViTriPhaoBHHienTai)
                     .ThenInclude(v => v!.TuyenLuong)
+                .Include(p => p.TramQuanLy)
+                .Include(p => p.TinhThanhPho)
+                .Include(p => p.DonViQuanLy)
+                .Include(p => p.DonViVanHanh)
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
