@@ -1,0 +1,26 @@
+@{
+    ViewData["Title"] = "Lịch Sử Hoạt Động Phao";
+    Layout = "_MainLayout";
+}
+
+@section Styles {
+    <style>
+        .coming-soon {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 70vh; text-align: center;
+        }
+        .coming-icon { font-size: 4rem; color: #4361ee; margin-bottom: 1rem; }
+    </style>
+}
+
+    <div class="container">
+        <div class="coming-soon">
+            <div class="coming-icon"><i class="bi bi-clock-history"></i></div>
+            <h2 class="fw-bold mb-2">Lịch Sử Hoạt Động Phao</h2>
+            <p class="text-muted mb-4">Chức năng theo dõi vòng đời và lịch sử di chuyển phao đang được phát triển.</p>
+            <a href="@Url.Action("Dashboard", "Phao")" class="btn btn-primary fw-semibold">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại Dashboard
+            </a>
+        </div>
+    </div>
+

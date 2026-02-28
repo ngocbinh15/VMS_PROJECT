@@ -1,12 +1,15 @@
 -- =============================================
 -- VMS BUOY LIFECYCLE MANAGEMENT MODULE
+-- COMPLETE DATABASE SCRIPT (v1.1)
 -- Vessel Management System - Maritime Buoy Operations
 -- =============================================
 -- Author: Nguyen Ngoc Binh
--- Date: 2026-01-16
--- Version: 1.0
--- Description: Complete buoy lifecycle management with snapshot pattern,
---              position validation, and historical tracking
+-- Date: 2026-02-27
+-- Version: 1.1
+-- Description: Schema hoàn chỉnh quản lý vòng đời phao báo hiệu hàng hải.
+--   Tích hợp snapshot pattern, lịch sử hoạt động, bảo trì, thay thế thiết bị,
+--   cùng đầy đủ thông tin hành chính (trạm, tỉnh, đơn vị), thông tin đèn,
+--   xích, rùa, quyết định tăng tài sản.
 -- =============================================
 
 -- USE VMS_DB;
@@ -50,6 +53,56 @@ CREATE TABLE DmViTriPhaoBH
   FOREIGN KEY (TuyenLuongId) REFERENCES DmTuyenLuong(Id)
 );
 
+-- Đơn vị quản lý / vận hành
+CREATE TABLE DmDonVi
+(
+  Id INT IDENTITY(1,1) PRIMARY KEY,
+  MaDonVi NVARCHAR(50) NOT NULL UNIQUE,
+  TenDonVi NVARCHAR(255) NOT NULL,
+  LoaiDonVi NVARCHAR(100),
+  -- 'Công ty', 'Chi nhánh', 'Trạm'...
+  DiaChi NVARCHAR(500),
+  SoDienThoai NVARCHAR(50),
+  ThuTuHienThi INT,
+  TrangThai NVARCHAR(50) DEFAULT N'Hoạt động',
+  NgayTao DATETIME2 DEFAULT GETDATE(),
+  NguoiTao NVARCHAR(100),
+  NgayCapNhat DATETIME2,
+  NguoiCapNhat NVARCHAR(100)
+);
+
+-- Trạm quản lý báo hiệu luồng hàng hải
+CREATE TABLE DmTramQuanLy
+(
+  Id INT IDENTITY(1,1) PRIMARY KEY,
+  MaTram NVARCHAR(50) NOT NULL UNIQUE,
+  TenTram NVARCHAR(255) NOT NULL,
+  DonViChuQuanId INT,
+  -- FK → DmDonVi
+  DiaDiem NVARCHAR(255),
+  SoDienThoai NVARCHAR(50),
+  ThuTuHienThi INT,
+  TrangThai NVARCHAR(50) DEFAULT N'Hoạt động',
+  NgayTao DATETIME2 DEFAULT GETDATE(),
+  NguoiTao NVARCHAR(100),
+  NgayCapNhat DATETIME2,
+  NguoiCapNhat NVARCHAR(100),
+  CONSTRAINT FK_TramQuanLy_DonVi FOREIGN KEY (DonViChuQuanId) REFERENCES DmDonVi(Id)
+);
+
+-- Tỉnh / Thành phố
+CREATE TABLE DmTinhThanhPho
+(
+  Id INT IDENTITY(1,1) PRIMARY KEY,
+  MaTinh NVARCHAR(10) NOT NULL UNIQUE,
+  -- 'GL', 'QNH', 'KH'...
+  TenTinh NVARCHAR(255) NOT NULL,
+  ThuTuHienThi INT,
+  TrangThai NVARCHAR(50) DEFAULT N'Hoạt động',
+  NgayTao DATETIME2 DEFAULT GETDATE(),
+  NguoiTao NVARCHAR(100)
+);
+
 -- =============================================
 -- SECTION 2: QUẢN LÝ PHAO (MASTER TABLE)
 -- =============================================
@@ -62,55 +115,97 @@ CREATE TABLE Phao
   KyHieuTaiSan NVARCHAR(50) UNIQUE,
   -- KCHT40861
   MaPhaoDayDu NVARCHAR(50) NOT NULL UNIQUE,
-  -- D24.020.16 (TÊN PHAO)
+  -- D24.020.16 hoặc T2,6-020-23
   MaLoaiPhao AS (LEFT(MaPhaoDayDu, CHARINDEX('.', MaPhaoDayDu) - 1)) PERSISTED,
   -- D24, DN24, T26...
   TenPhao NVARCHAR(255),
-  -- Mô tả bổ sung (tùy chọn)
+  -- Tên đầy đủ của phao, tiêu. VD: Phao T2,6-020-23
   SoPhaoHienTai INT,
-  -- STT: 1, 2, 3...
+  -- STT trên luồng: 1, 2, 3...
+
+  -- Thông tin chung – thời gian
+  ThoiGianSuDung INT,
+  -- Thời gian sử dụng tính theo năm. VD: 0
+  ThoiDiemThayTha DATE,
+  -- Thời điểm thay, thả xuống luồng. VD: 2025-08-23
+  ThoiDiemSuaChuaGanNhat DATE,
+  -- Thời điểm sửa chữa gần nhất. VD: 2025-12-24
 
   -- Kỹ thuật cơ bản
   DuongKinhPhao DECIMAL(10, 2),
   -- m
   ChieuCaoToanBo DECIMAL(10, 2),
-  -- m
+  -- m. VD: 7.47
   HinhDang NVARCHAR(100),
-  -- Trụ, Côn, Trụ tròn
+  -- Trụ, Côn, Hình thấp lưới...
   VatLieu NVARCHAR(100),
   -- Thép, Composite
   MauSac NVARCHAR(100),
-  -- Đỏ, Xanh, Vàng
+  -- Đỏ, Xanh lục, Vàng...
 
-  -- Xích và Rùa
+  -- Xích phao
   XichPhao_DuongKinh DECIMAL(10, 2),
-  -- mm
+  -- mm. VD: 36.00
   XichPhao_ChieuDai DECIMAL(10, 2),
-  -- m
+  -- m. VD: 15.00
   XichPhao_ThoiDiemSuDung DATE,
-  XichRua_DuongKinh DECIMAL(10, 2),
-  -- mm
-  XichRua_ChieuDai DECIMAL(10, 2),
-  -- m
-  XichRua_ThoiDiemSuDung DATE,
-  Rua_TrongLuong DECIMAL(10, 2),
-  -- kg
-  Rua_ThoiDiemSuDung DATE,
+  -- VD: 2025-10-12
 
-  -- Đèn báo hiệu
+  -- Xích rùa
+  XichRua_DuongKinh DECIMAL(10, 2),
+  -- mm. VD: 36.00
+  XichRua_ChieuDai DECIMAL(10, 2),
+  -- m. VD: 15.00
+  XichRua_ThoiDiemSuDung DATE,
+  -- VD: 2025-10-12
+
+  -- Rùa (neo chìm)
+  Rua_TrongLuong DECIMAL(10, 2),
+  -- tấn. VD: 6.00
+  Rua_ThoiDiemSuDung DATE,
+  -- VD: 2025-11-12
+
+  -- Đèn báo hiệu trên phao
   Den_ChungLoai NVARCHAR(100),
+  -- VD: led KJDHF.SJDHF3
   Den_KetNoiAIS BIT,
-  -- Có kết nối AIS không
+  -- 1 = Có, 0 = Không
   Den_DacTinhAnhSang NVARCHAR(255),
+  -- VD: Ánh sáng Xanh, Chớp đơn
   Den_ChieuXaTamSang DECIMAL(10, 2),
-  -- hải lý
+  -- Khoảng cách nhìn thấy (hải lý)
+  Den_ChieuCaoTamSangHaiDo DECIMAL(10, 2),
+  -- Chiều cao tâm sáng hải đồ (m). VD: 4.70
   Den_NguonCapNangLuong NVARCHAR(100),
+  -- VD: Ắc quy và điện mặt trời
   Den_ThoiDiemSuDung DATE,
+  -- VD: 2024-01-01
   Den_ThoiDiemSuaChua DATE,
+  -- Thời điểm sửa chữa đèn gần nhất. VD: 2024-09-12
+  Den_SoQuyetDinhTang NVARCHAR(100),
+  -- Số quyết định tăng của đèn. VD: 11SFD
+
+  -- Thông tin hành chính
+  TramQuanLyId INT,
+  -- FK → DmTramQuanLy
+  TinhThanhPhoId INT,
+  -- FK → DmTinhThanhPho
+  DonViQuanLyId INT,
+  -- FK → DmDonVi
+  DonViVanHanhId INT,
+  -- FK → DmDonVi
+
+  -- Quyết định tăng tài sản
+  SoQuyetDinhTang NVARCHAR(100),
+  -- VD: 2AFSAF
+  NgayQuyetDinhTang DATE,
+  -- VD: 2024-05-13
+  DienTich DECIMAL(10, 2),
+  -- Diện tích (m²). VD: 5.23
 
   -- Trạng thái hiện tại (cache để query nhanh)
   TrangThaiHienTai NVARCHAR(255),
-  -- Cache: "4A"-QN, "Trên bãi", "Thu hồi"
+  -- 'Trên luồng', 'Trên bãi', 'Thu hồi', 'Không sử dụng'...
   ViTriPhaoBHHienTaiId INT,
   -- FK → DmViTriPhaoBH
 
@@ -120,7 +215,11 @@ CREATE TABLE Phao
   NgayCapNhat DATETIME2,
   NguoiCapNhat NVARCHAR(100),
 
-  FOREIGN KEY (ViTriPhaoBHHienTaiId) REFERENCES DmViTriPhaoBH(Id)
+  CONSTRAINT FK_Phao_ViTriPhaoBH FOREIGN KEY (ViTriPhaoBHHienTaiId) REFERENCES DmViTriPhaoBH(Id),
+  CONSTRAINT FK_Phao_TramQuanLy FOREIGN KEY (TramQuanLyId) REFERENCES DmTramQuanLy(Id),
+  CONSTRAINT FK_Phao_TinhThanhPho FOREIGN KEY (TinhThanhPhoId) REFERENCES DmTinhThanhPho(Id),
+  CONSTRAINT FK_Phao_DonViQuanLy FOREIGN KEY (DonViQuanLyId) REFERENCES DmDonVi(Id),
+  CONSTRAINT FK_Phao_DonViVanHanh FOREIGN KEY (DonViVanHanhId) REFERENCES DmDonVi(Id)
 );
 
 -- =============================================
@@ -155,7 +254,9 @@ CREATE TABLE LichSuHoatDongPhao
 
   -- Tọa độ thực tế
   KinhDo DECIMAL(10, 6),
+  -- VD: 108.923333 (từ 108°55.40'E)
   ViDo DECIMAL(10, 6),
+  -- VD: 10.502500 (từ 10°30.15'N)
   DiaDiem NVARCHAR(255),
   -- "Bãi Phú Quý", "Kho Pquy"
 
@@ -214,6 +315,10 @@ CREATE TABLE LichSuThayDoiThietBi
 CREATE NONCLUSTERED INDEX IX_Phao_MaLoaiPhao ON Phao(MaLoaiPhao);
 CREATE NONCLUSTERED INDEX IX_Phao_TrangThaiHienTai ON Phao(TrangThaiHienTai);
 CREATE NONCLUSTERED INDEX IX_Phao_ViTriPhaoBHHienTaiId ON Phao(ViTriPhaoBHHienTaiId);
+CREATE NONCLUSTERED INDEX IX_Phao_TramQuanLyId ON Phao(TramQuanLyId);
+CREATE NONCLUSTERED INDEX IX_Phao_TinhThanhPhoId ON Phao(TinhThanhPhoId);
+CREATE NONCLUSTERED INDEX IX_Phao_DonViQuanLyId ON Phao(DonViQuanLyId);
+CREATE NONCLUSTERED INDEX IX_Phao_DonViVanHanhId ON Phao(DonViVanHanhId);
 
 -- LichSuHoatDongPhao indexes
 CREATE NONCLUSTERED INDEX IX_LichSuHoatDong_PhaoId_Nam ON LichSuHoatDongPhao(PhaoId, Nam);
@@ -225,6 +330,9 @@ CREATE NONCLUSTERED INDEX IX_LichSuHoatDong_MaTuyenLuong ON LichSuHoatDongPhao(M
 -- DmViTriPhaoBH indexes
 CREATE NONCLUSTERED INDEX IX_ViTriPhaoBH_TuyenLuongId ON DmViTriPhaoBH(TuyenLuongId);
 
+-- DmTramQuanLy indexes
+CREATE NONCLUSTERED INDEX IX_DmTramQuanLy_DonViChuQuanId ON DmTramQuanLy(DonViChuQuanId);
+
 -- LichSuBaoTri indexes
 CREATE NONCLUSTERED INDEX IX_BaoTri_PhaoId_NgayBaoTri ON LichSuBaoTri(PhaoId, NgayBaoTri);
 
@@ -235,7 +343,6 @@ CREATE NONCLUSTERED INDEX IX_ThayDoiThietBi_PhaoId_NgayThayDoi ON LichSuThayDoiT
 -- SECTION 6: STORED PROCEDURES - VỊ TRÍ & TUYẾN
 -- =============================================
 
--- Load vị trí Phao BH theo tuyến với trạng thái
 GO
 CREATE PROCEDURE sp_LayViTriPhaoBH_TheoTuyen
   @TuyenLuongId INT
@@ -250,25 +357,16 @@ BEGIN
     vt.ToaDoThietKe,
     vt.MoTa,
     vt.ThuTuHienThi,
-    -- Phao hiện tại (nếu có)
     p.Id AS PhaoHienTaiId,
     p.MaPhaoDayDu AS PhaoHienTai,
     p.MaLoaiPhao AS LoaiPhaoHienTai,
-    -- Trạng thái
-    CASE
-            WHEN p.Id IS NULL THEN 1  -- Trống, có thể chọn
-            ELSE 0                     -- Đã có phao, không thể chọn
-        END AS CoTheChon,
-    CASE
-            WHEN p.Id IS NULL THEN N'Trống'
-            ELSE N'Đã có phao: ' + p.MaPhaoDayDu
-        END AS MoTaTrangThai
+    CASE WHEN p.Id IS NULL THEN 1 ELSE 0 END AS CoTheChon,
+    CASE WHEN p.Id IS NULL THEN N'Trống' ELSE N'Đã có phao: ' + p.MaPhaoDayDu END AS MoTaTrangThai
   FROM DmViTriPhaoBH vt
     LEFT JOIN (
-        SELECT PhaoId, ViTriPhaoBHId
-    FROM LichSuHoatDongPhao
-    WHERE LoaiTrangThai = N'TREN_LUONG'
-      AND NgayKetThuc IS NULL  -- Đang hoạt động
+      SELECT PhaoId, ViTriPhaoBHId
+      FROM LichSuHoatDongPhao
+      WHERE LoaiTrangThai = N'TREN_LUONG' AND NgayKetThuc IS NULL
     ) ls ON vt.Id = ls.ViTriPhaoBHId
     LEFT JOIN Phao p ON ls.PhaoId = p.Id
   WHERE vt.TuyenLuongId = @TuyenLuongId
@@ -281,7 +379,6 @@ GO
 -- SECTION 7: STORED PROCEDURES - VALIDATION
 -- =============================================
 
--- Validate trước khi thêm hoạt động phao
 GO
 CREATE PROCEDURE sp_ValidateThemHoatDongPhao
   @PhaoId INT,
@@ -294,43 +391,35 @@ AS
 BEGIN
   SET NOCOUNT ON;
   SET @IsValid = 1;
-  -- Mặc định là hợp lệ
   SET @Message = N'Hợp lệ';
   SET @PhaoHienTai = NULL;
 
   -- Check 1: Vị trí đã có phao khác chưa?
   IF EXISTS (
-        SELECT 1
-  FROM LichSuHoatDongPhao
-  WHERE ViTriPhaoBHId = @ViTriPhaoBHId
-    AND LoaiTrangThai = N'TREN_LUONG'
-    AND NgayKetThuc IS NULL
-    AND PhaoId <> @PhaoId
-    )
-    BEGIN
+    SELECT 1 FROM LichSuHoatDongPhao
+    WHERE ViTriPhaoBHId = @ViTriPhaoBHId
+      AND LoaiTrangThai = N'TREN_LUONG'
+      AND NgayKetThuc IS NULL
+      AND PhaoId <> @PhaoId
+  )
+  BEGIN
     SET @IsValid = 0;
     SET @Message = N'Vị trí này đã có phao khác đang hoạt động!';
-
     SELECT @PhaoHienTai = p.MaPhaoDayDu
     FROM LichSuHoatDongPhao ls
       INNER JOIN Phao p ON ls.PhaoId = p.Id
-    WHERE ls.ViTriPhaoBHId = @ViTriPhaoBHId
-      AND ls.NgayKetThuc IS NULL;
-
+    WHERE ls.ViTriPhaoBHId = @ViTriPhaoBHId AND ls.NgayKetThuc IS NULL;
     RETURN;
   END
 
   -- Check 2: Phao có đang ở luồng khác không?
   DECLARE @ViTriHienTai NVARCHAR(50);
-
   SELECT @ViTriHienTai = MaPhaoBH
   FROM LichSuHoatDongPhao
-  WHERE PhaoId = @PhaoId
-    AND LoaiTrangThai = N'TREN_LUONG'
-    AND NgayKetThuc IS NULL;
+  WHERE PhaoId = @PhaoId AND LoaiTrangThai = N'TREN_LUONG' AND NgayKetThuc IS NULL;
 
   IF @ViTriHienTai IS NOT NULL
-    BEGIN
+  BEGIN
     SET @IsValid = 0;
     SET @Message = N'Phao đang ở vị trí: ' + @ViTriHienTai + N'. Vui lòng thu hồi trước!';
     RETURN;
@@ -338,14 +427,14 @@ BEGIN
 
   -- Check 3: Ngày lắp đặt hợp lệ
   IF @NgayLapDat > GETDATE()
-    BEGIN
+  BEGIN
     SET @IsValid = 0;
     SET @Message = N'Ngày lắp đặt không được trong tương lai!';
     RETURN;
   END
 
   IF @NgayLapDat < DATEADD(YEAR, -2, GETDATE())
-    BEGIN
+  BEGIN
     SET @IsValid = 0;
     SET @Message = N'Ngày lắp đặt quá xa trong quá khứ (> 2 năm)!';
     RETURN;
@@ -357,7 +446,6 @@ GO
 -- SECTION 8: STORED PROCEDURES - THÊM HOẠT ĐỘNG
 -- =============================================
 
--- Thêm hoạt động phao lên luồng (với validation)
 GO
 CREATE PROCEDURE sp_ThemHoatDongPhao
   @PhaoId INT,
@@ -371,80 +459,66 @@ BEGIN
   BEGIN TRANSACTION;
 
   BEGIN TRY
-        -- 1. VALIDATE
-        DECLARE @IsValid BIT;
-        DECLARE @Message NVARCHAR(500);
-        DECLARE @PhaoHienTai NVARCHAR(50);
+    DECLARE @IsValid BIT;
+    DECLARE @Message NVARCHAR(500);
+    DECLARE @PhaoHienTai NVARCHAR(50);
 
-        EXEC sp_ValidateThemHoatDongPhao
-            @PhaoId = @PhaoId,
-            @ViTriPhaoBHId = @ViTriPhaoBHId,
-            @NgayLapDat = @NgayLapDat,
-            @IsValid = @IsValid OUTPUT,
-            @Message = @Message OUTPUT,
-            @PhaoHienTai = @PhaoHienTai OUTPUT;
+    EXEC sp_ValidateThemHoatDongPhao
+      @PhaoId = @PhaoId,
+      @ViTriPhaoBHId = @ViTriPhaoBHId,
+      @NgayLapDat = @NgayLapDat,
+      @IsValid = @IsValid OUTPUT,
+      @Message = @Message OUTPUT,
+      @PhaoHienTai = @PhaoHienTai OUTPUT;
 
-        IF @IsValid = 0
-        BEGIN
+    IF @IsValid = 0
+    BEGIN
+      ROLLBACK TRANSACTION;
+      SELECT 0 AS Success, @Message AS Message, @PhaoHienTai AS PhaoHienTai;
+      RETURN;
+    END
+
+    UPDATE LichSuHoatDongPhao
+    SET NgayKetThuc = @NgayLapDat
+    WHERE PhaoId = @PhaoId AND NgayKetThuc IS NULL;
+
+    DECLARE @MaPhaoBH NVARCHAR(50);
+    DECLARE @MaTuyenLuong NVARCHAR(50);
+    DECLARE @Nam INT = YEAR(@NgayLapDat);
+
+    SELECT
+      @MaPhaoBH = vt.MaPhaoBH,
+      @MaTuyenLuong = tl.MaTuyen
+    FROM DmViTriPhaoBH vt
+      INNER JOIN DmTuyenLuong tl ON vt.TuyenLuongId = tl.Id
+    WHERE vt.Id = @ViTriPhaoBHId;
+
+    INSERT INTO LichSuHoatDongPhao
+      (PhaoId, Nam, NgayBatDau, NgayKetThuc, LoaiTrangThai, MoTaTrangThai,
+       ViTriPhaoBHId, MaPhaoBH, MaTuyenLuong, GhiChu, NguoiTao, NgayTao)
+    VALUES
+      (@PhaoId, @Nam, @NgayLapDat, NULL, N'TREN_LUONG', @MaPhaoBH,
+       @ViTriPhaoBHId, @MaPhaoBH, @MaTuyenLuong, @GhiChu, @NguoiTao, GETDATE());
+
+    DECLARE @LichSuId INT = SCOPE_IDENTITY();
+
+    UPDATE Phao
+    SET TrangThaiHienTai = @MaPhaoBH,
+        ViTriPhaoBHHienTaiId = @ViTriPhaoBHId,
+        NgayCapNhat = GETDATE()
+    WHERE Id = @PhaoId;
+
+    COMMIT TRANSACTION;
+
+    SELECT 1 AS Success,
+      N'Lắp đặt phao lên vị trí ' + @MaPhaoBH + N' thành công!' AS Message,
+      @LichSuId AS LichSuId,
+      @MaPhaoBH AS ViTriMoi;
+  END TRY
+  BEGIN CATCH
     ROLLBACK TRANSACTION;
-    SELECT 0 AS Success, @Message AS Message, @PhaoHienTai AS PhaoHienTai;
-    RETURN;
-  END
-
-        -- 2. ĐÓNG lịch sử cũ
-        UPDATE LichSuHoatDongPhao
-        SET NgayKetThuc = @NgayLapDat
-        WHERE PhaoId = @PhaoId
-    AND NgayKetThuc IS NULL;
-
-        -- 3. LẤY thông tin vị trí
-        DECLARE @MaPhaoBH NVARCHAR(50);
-        DECLARE @MaTuyenLuong NVARCHAR(50);
-        DECLARE @Nam INT = YEAR(@NgayLapDat);
-
-        SELECT
-    @MaPhaoBH = vt.MaPhaoBH,
-    @MaTuyenLuong = tl.MaTuyen
-  FROM DmViTriPhaoBH vt
-    INNER JOIN DmTuyenLuong tl ON vt.TuyenLuongId = tl.Id
-  WHERE vt.Id = @ViTriPhaoBHId;
-
-        -- 4. THÊM lịch sử mới
-        INSERT INTO LichSuHoatDongPhao
-    (
-    PhaoId, Nam, NgayBatDau, NgayKetThuc,
-    LoaiTrangThai, MoTaTrangThai,
-    ViTriPhaoBHId, MaPhaoBH, MaTuyenLuong,
-    GhiChu, NguoiTao, NgayTao
-    )
-  VALUES
-    (
-      @PhaoId, @Nam, @NgayLapDat, NULL,
-      N'TREN_LUONG', @MaPhaoBH,
-      @ViTriPhaoBHId, @MaPhaoBH, @MaTuyenLuong,
-      @GhiChu, @NguoiTao, GETDATE()
-        );
-
-        DECLARE @LichSuId INT = SCOPE_IDENTITY();
-
-        -- 5. CẬP NHẬT trạng thái phao
-        UPDATE Phao
-        SET TrangThaiHienTai = @MaPhaoBH,
-            ViTriPhaoBHHienTaiId = @ViTriPhaoBHId,
-            NgayCapNhat = GETDATE()
-        WHERE Id = @PhaoId;
-
-        COMMIT TRANSACTION;
-
-        SELECT 1 AS Success,
-    N'Lắp đặt phao lên vị trí ' + @MaPhaoBH + N' thành công!' AS Message,
-    @LichSuId AS LichSuId,
-    @MaPhaoBH AS ViTriMoi;
-    END TRY
-    BEGIN CATCH
-        ROLLBACK TRANSACTION;
-        SELECT 0 AS Success, ERROR_MESSAGE() AS Message;
-    END CATCH
+    SELECT 0 AS Success, ERROR_MESSAGE() AS Message;
+  END CATCH
 END;
 GO
 
@@ -452,7 +526,6 @@ GO
 -- SECTION 9: STORED PROCEDURES - THU HỒI & DI CHUYỂN
 -- =============================================
 
--- Thu hồi phao về bãi
 GO
 CREATE PROCEDURE sp_ThuHoiPhao
   @PhaoId INT,
@@ -466,47 +539,36 @@ BEGIN
   BEGIN TRANSACTION;
 
   BEGIN TRY
-        -- 1. ĐÓNG lịch sử cũ (nếu đang trên luồng)
-        UPDATE LichSuHoatDongPhao
-        SET NgayKetThuc = @NgayThuHoi
-        WHERE PhaoId = @PhaoId
-    AND NgayKetThuc IS NULL;
+    UPDATE LichSuHoatDongPhao
+    SET NgayKetThuc = @NgayThuHoi
+    WHERE PhaoId = @PhaoId AND NgayKetThuc IS NULL;
 
-        -- 2. THÊM lịch sử thu hồi
-        DECLARE @Nam INT = YEAR(@NgayThuHoi);
-        
-        INSERT INTO LichSuHoatDongPhao
-    (
-    PhaoId, Nam, NgayBatDau, NgayKetThuc,
-    LoaiTrangThai, MoTaTrangThai,
-    DiaDiem, GhiChu, NguoiTao, NgayTao
-    )
-  VALUES
-    (
-      @PhaoId, @Nam, @NgayThuHoi, NULL,
-      N'THU_HOI', N'Thu hồi về ' + @DiaDiem,
-      @DiaDiem, @GhiChu, @NguoiTao, GETDATE()
-        );
+    DECLARE @Nam INT = YEAR(@NgayThuHoi);
 
-        -- 3. CẬP NHẬT trạng thái phao
-        UPDATE Phao
-        SET TrangThaiHienTai = N'Thu hồi',
-            ViTriPhaoBHHienTaiId = NULL,
-            NgayCapNhat = GETDATE()
-        WHERE Id = @PhaoId;
+    INSERT INTO LichSuHoatDongPhao
+      (PhaoId, Nam, NgayBatDau, NgayKetThuc, LoaiTrangThai, MoTaTrangThai,
+       DiaDiem, GhiChu, NguoiTao, NgayTao)
+    VALUES
+      (@PhaoId, @Nam, @NgayThuHoi, NULL,
+       N'THU_HOI', N'Thu hồi về ' + @DiaDiem,
+       @DiaDiem, @GhiChu, @NguoiTao, GETDATE());
 
-        COMMIT TRANSACTION;
+    UPDATE Phao
+    SET TrangThaiHienTai = N'Thu hồi',
+        ViTriPhaoBHHienTaiId = NULL,
+        NgayCapNhat = GETDATE()
+    WHERE Id = @PhaoId;
 
-        SELECT 1 AS Success, N'Thu hồi phao thành công!' AS Message;
-    END TRY
-    BEGIN CATCH
-        ROLLBACK TRANSACTION;
-        SELECT 0 AS Success, ERROR_MESSAGE() AS Message;
-    END CATCH
+    COMMIT TRANSACTION;
+    SELECT 1 AS Success, N'Thu hồi phao thành công!' AS Message;
+  END TRY
+  BEGIN CATCH
+    ROLLBACK TRANSACTION;
+    SELECT 0 AS Success, ERROR_MESSAGE() AS Message;
+  END CATCH
 END;
 GO
 
--- Chuyển phao sang vị trí mới
 GO
 CREATE PROCEDURE sp_ChuyenPhaoSangViTriMoi
   @PhaoId INT,
@@ -517,14 +579,12 @@ CREATE PROCEDURE sp_ChuyenPhaoSangViTriMoi
 AS
 BEGIN
   SET NOCOUNT ON;
-
-  -- Sử dụng sp_ThemHoatDongPhao với validation
   EXEC sp_ThemHoatDongPhao
-        @PhaoId = @PhaoId,
-        @ViTriPhaoBHId = @ViTriPhaoBHMoi,
-        @NgayLapDat = @NgayChuyen,
-        @GhiChu = @GhiChu,
-        @NguoiTao = @NguoiTao;
+    @PhaoId = @PhaoId,
+    @ViTriPhaoBHId = @ViTriPhaoBHMoi,
+    @NgayLapDat = @NgayChuyen,
+    @GhiChu = @GhiChu,
+    @NguoiTao = @NguoiTao;
 END;
 GO
 
@@ -532,7 +592,6 @@ GO
 -- SECTION 10: STORED PROCEDURES - BẢO TRÌ
 -- =============================================
 
--- Thêm lịch sử bảo trì
 GO
 CREATE PROCEDURE sp_ThemLichSuBaoTri
   @PhaoId INT,
@@ -550,27 +609,16 @@ BEGIN
   SET NOCOUNT ON;
 
   INSERT INTO LichSuBaoTri
-    (
-    PhaoId, LoaiBaoTri, NgayBaoTri,
-    NoiDungCongViec, KetQuaBaoTri, ChiPhi,
-    DonViThucHien, NguoiPhuTrach, GhiChu,
-    NguoiTao, NgayTao
-    )
+    (PhaoId, LoaiBaoTri, NgayBaoTri, NoiDungCongViec, KetQuaBaoTri, ChiPhi,
+     DonViThucHien, NguoiPhuTrach, GhiChu, NguoiTao, NgayTao)
   VALUES
-    (
-      @PhaoId, @LoaiBaoTri, @NgayBaoTri,
-      @NoiDungCongViec, @KetQuaBaoTri, @ChiPhi,
-      @DonViThucHien, @NguoiPhuTrach, @GhiChu,
-      @NguoiTao, GETDATE()
-    );
+    (@PhaoId, @LoaiBaoTri, @NgayBaoTri, @NoiDungCongViec, @KetQuaBaoTri, @ChiPhi,
+     @DonViThucHien, @NguoiPhuTrach, @GhiChu, @NguoiTao, GETDATE());
 
-  SELECT 1 AS Success,
-    N'Thêm lịch sử bảo trì thành công!' AS Message,
-    SCOPE_IDENTITY() AS BaoTriId;
+  SELECT 1 AS Success, N'Thêm lịch sử bảo trì thành công!' AS Message, SCOPE_IDENTITY() AS BaoTriId;
 END;
 GO
 
--- Thêm lịch sử thay đổi thiết bị
 GO
 CREATE PROCEDURE sp_ThemLichSuThayDoiThietBi
   @PhaoId INT,
@@ -586,21 +634,13 @@ BEGIN
   SET NOCOUNT ON;
 
   INSERT INTO LichSuThayDoiThietBi
-    (
-    PhaoId, LoaiThietBi, NgayThayDoi,
-    ThongTinCu, ThongTinMoi, LyDoThayDoi,
-    GhiChu, NguoiTao, NgayTao
-    )
+    (PhaoId, LoaiThietBi, NgayThayDoi, ThongTinCu, ThongTinMoi, LyDoThayDoi,
+     GhiChu, NguoiTao, NgayTao)
   VALUES
-    (
-      @PhaoId, @LoaiThietBi, @NgayThayDoi,
-      @ThongTinCu, @ThongTinMoi, @LyDoThayDoi,
-      @GhiChu, @NguoiTao, GETDATE()
-    );
+    (@PhaoId, @LoaiThietBi, @NgayThayDoi, @ThongTinCu, @ThongTinMoi, @LyDoThayDoi,
+     @GhiChu, @NguoiTao, GETDATE());
 
-  SELECT 1 AS Success,
-    N'Thêm lịch sử thay đổi thiết bị thành công!' AS Message,
-    SCOPE_IDENTITY() AS ThayDoiId;
+  SELECT 1 AS Success, N'Thêm lịch sử thay đổi thiết bị thành công!' AS Message, SCOPE_IDENTITY() AS ThayDoiId;
 END;
 GO
 
@@ -608,56 +648,46 @@ GO
 -- SECTION 11: FUNCTIONS
 -- =============================================
 
--- Lấy phao đang ở vị trí theo ngày
 GO
 CREATE FUNCTION fn_LayPhaoDangOViTriTheoNgay(
-    @ViTriPhaoBHId INT,
-    @NgayKiemTra DATE
+  @ViTriPhaoBHId INT,
+  @NgayKiemTra DATE
 )
 RETURNS TABLE
 AS
 RETURN
 (
-    SELECT TOP 1
-  p.Id AS PhaoId,
-  p.MaPhaoDayDu,
-  p.MaLoaiPhao,
-  ls.MaPhaoBH AS ViTri,
-  ls.NgayBatDau,
-  ls.NgayKetThuc
-FROM LichSuHoatDongPhao ls
-  INNER JOIN Phao p ON ls.PhaoId = p.Id
-WHERE ls.ViTriPhaoBHId = @ViTriPhaoBHId
-  AND ls.LoaiTrangThai = N'TREN_LUONG'
-  AND @NgayKiemTra >= ls.NgayBatDau
-  AND (@NgayKiemTra <= ls.NgayKetThuc OR ls.NgayKetThuc IS NULL)
+  SELECT TOP 1
+    p.Id AS PhaoId,
+    p.MaPhaoDayDu,
+    p.MaLoaiPhao,
+    ls.MaPhaoBH AS ViTri,
+    ls.NgayBatDau,
+    ls.NgayKetThuc
+  FROM LichSuHoatDongPhao ls
+    INNER JOIN Phao p ON ls.PhaoId = p.Id
+  WHERE ls.ViTriPhaoBHId = @ViTriPhaoBHId
+    AND ls.LoaiTrangThai = N'TREN_LUONG'
+    AND @NgayKiemTra >= ls.NgayBatDau
+    AND (@NgayKiemTra <= ls.NgayKetThuc OR ls.NgayKetThuc IS NULL)
 );
 GO
 
--- Lấy trạng thái phao theo năm
 GO
 CREATE FUNCTION fn_LayTrangThaiPhaoTheoNam(
-    @PhaoId INT,
-    @Nam INT
+  @PhaoId INT,
+  @Nam INT
 )
 RETURNS TABLE
 AS
 RETURN
 (
-    SELECT
-  Id,
-  PhaoId,
-  Nam,
-  NgayBatDau,
-  NgayKetThuc,
-  LoaiTrangThai,
-  MoTaTrangThai,
-  MaPhaoBH,
-  MaTuyenLuong,
-  DATEDIFF(DAY, NgayBatDau, ISNULL(NgayKetThuc, GETDATE())) AS SoNgayHoatDong
-FROM LichSuHoatDongPhao
-WHERE PhaoId = @PhaoId
-  AND Nam = @Nam
+  SELECT
+    Id, PhaoId, Nam, NgayBatDau, NgayKetThuc,
+    LoaiTrangThai, MoTaTrangThai, MaPhaoBH, MaTuyenLuong,
+    DATEDIFF(DAY, NgayBatDau, ISNULL(NgayKetThuc, GETDATE())) AS SoNgayHoatDong
+  FROM LichSuHoatDongPhao
+  WHERE PhaoId = @PhaoId AND Nam = @Nam
 );
 GO
 
@@ -665,20 +695,63 @@ GO
 -- SECTION 12: VIEWS
 -- =============================================
 
--- View: Trạng thái hiện tại của tất cả phao
+-- View: Trạng thái đầy đủ hiện tại của tất cả phao
 GO
 CREATE VIEW vw_TrangThaiPhaoHienTai
 AS
   SELECT
     p.Id AS PhaoId,
+    p.KyHieuTaiSan,
     p.MaPhaoDayDu,
+    p.TenPhao,
     p.MaLoaiPhao,
     p.SoPhaoHienTai,
+    -- Kỹ thuật
+    p.HinhDang,
+    p.VatLieu,
+    p.MauSac,
+    p.ChieuCaoToanBo,
+    p.DuongKinhPhao,
+    -- Thời gian
+    p.ThoiGianSuDung,
+    p.ThoiDiemThayTha,
+    p.ThoiDiemSuaChuaGanNhat,
+    -- Xích phao
+    p.XichPhao_DuongKinh,
+    p.XichPhao_ChieuDai,
+    p.XichPhao_ThoiDiemSuDung,
+    -- Xích rùa
+    p.XichRua_DuongKinh,
+    p.XichRua_ChieuDai,
+    p.XichRua_ThoiDiemSuDung,
+    -- Rùa
+    p.Rua_TrongLuong,
+    p.Rua_ThoiDiemSuDung,
+    -- Đèn
+    p.Den_ChungLoai,
+    p.Den_KetNoiAIS,
+    p.Den_DacTinhAnhSang,
+    p.Den_ChieuXaTamSang,
+    p.Den_ChieuCaoTamSangHaiDo,
+    p.Den_NguonCapNangLuong,
+    p.Den_ThoiDiemSuDung,
+    p.Den_ThoiDiemSuaChua,
+    p.Den_SoQuyetDinhTang,
+    -- Trạng thái & vị trí
     p.TrangThaiHienTai,
-    -- Vị trí hiện tại
     vt.MaPhaoBH AS ViTriHienTai,
     tl.TenTuyen AS TuyenHienTai,
-    -- Lịch sử gần nhất
+    -- Hành chính
+    tram.TenTram AS TramQuanLy,
+    tinh.TenTinh AS TinhThanhPho,
+    dvql.TenDonVi AS DonViQuanLy,
+    dvvh.TenDonVi AS DonViVanHanh,
+    p.SoQuyetDinhTang,
+    p.NgayQuyetDinhTang,
+    p.DienTich,
+    -- Tọa độ từ lịch sử hoạt động hiện tại
+    ls.KinhDo,
+    ls.ViDo,
     ls.NgayBatDau AS NgayBatDauTrangThaiHienTai,
     ls.LoaiTrangThai,
     ls.MoTaTrangThai,
@@ -686,6 +759,10 @@ AS
   FROM Phao p
     LEFT JOIN DmViTriPhaoBH vt ON p.ViTriPhaoBHHienTaiId = vt.Id
     LEFT JOIN DmTuyenLuong tl ON vt.TuyenLuongId = tl.Id
+    LEFT JOIN DmTramQuanLy tram ON p.TramQuanLyId = tram.Id
+    LEFT JOIN DmTinhThanhPho tinh ON p.TinhThanhPhoId = tinh.Id
+    LEFT JOIN DmDonVi dvql ON p.DonViQuanLyId = dvql.Id
+    LEFT JOIN DmDonVi dvvh ON p.DonViVanHanhId = dvvh.Id
     LEFT JOIN LichSuHoatDongPhao ls ON p.Id = ls.PhaoId AND ls.NgayKetThuc IS NULL;
 GO
 
@@ -709,7 +786,15 @@ GO
 -- SECTION 13: SAMPLE DATA
 -- =============================================
 
--- Thêm tuyến luồng
+-- Đơn vị
+INSERT INTO DmDonVi
+  (MaDonVi, TenDonVi, LoaiDonVi, ThuTuHienThi, NguoiTao)
+VALUES
+  (N'BĐANHNTB', N'Công ty bảo đảm an toàn hàng hải Nam Trung Bộ', N'Công ty', 1, N'System'),
+  (N'BĐANHPN', N'Công ty bảo đảm an toàn hàng hải Miền Nam', N'Công ty', 2, N'System'),
+  (N'BĐANHPB', N'Công ty bảo đảm an toàn hàng hải Miền Bắc', N'Công ty', 3, N'System');
+
+-- Tuyến luồng
 INSERT INTO DmTuyenLuong
   (MaTuyen, TenTuyen, ThuTuHienThi, NguoiTao)
 VALUES
@@ -719,11 +804,34 @@ VALUES
   (N'NT', N'Luồng Nha Trang', 4, N'System'),
   (N'CNV', N'Luồng Cam Ranh - Vạn Ninh', 5, N'System');
 
--- Thêm vị trí Phao BH cho luồng QN
-DECLARE @QNId INT = (SELECT Id
-FROM DmTuyenLuong
-WHERE MaTuyen = N'QN');
+-- Thêm trạm quản lý
+INSERT INTO DmTramQuanLy
+  (MaTram, TenTram, DonViChuQuanId, ThuTuHienThi, NguoiTao)
+VALUES
+  (N'TQBHLHH_QN', N'Trạm quản lý báo hiệu luồng hàng hải Quy Nhơn',
+    (SELECT Id FROM DmDonVi WHERE MaDonVi = N'BĐANHNTB'), 1, N'System'),
+  (N'TQBHLHH_NT', N'Trạm quản lý báo hiệu luồng hàng hải Nha Trang',
+    (SELECT Id FROM DmDonVi WHERE MaDonVi = N'BĐANHNTB'), 2, N'System'),
+  (N'TQBHLHH_PQ', N'Trạm quản lý báo hiệu luồng hàng hải Phú Quý',
+    (SELECT Id FROM DmDonVi WHERE MaDonVi = N'BĐANHNTB'), 3, N'System');
 
+-- Tỉnh / Thành phố
+INSERT INTO DmTinhThanhPho
+  (MaTinh, TenTinh, ThuTuHienThi, NguoiTao)
+VALUES
+  (N'QNH', N'Quảng Ngãi', 1, N'System'),
+  (N'BD', N'Bình Định', 2, N'System'),
+  (N'PY', N'Phú Yên', 3, N'System'),
+  (N'KH', N'Khánh Hòa', 4, N'System'),
+  (N'NT', N'Ninh Thuận', 5, N'System'),
+  (N'BTH', N'Bình Thuận', 6, N'System'),
+  (N'GL', N'Gia Lai', 7, N'System'),
+  (N'KT', N'Kon Tum', 8, N'System'),
+  (N'DLK', N'Đắk Lắk', 9, N'System'),
+  (N'DLG', N'Đà Lạt - Lâm Đồng', 10, N'System');
+
+-- Vị trí Phao BH – Luồng QN
+DECLARE @QNId INT = (SELECT Id FROM DmTuyenLuong WHERE MaTuyen = N'QN');
 INSERT INTO DmViTriPhaoBH
   (TuyenLuongId, SoViTri, MaPhaoBH, ThuTuHienThi, NguoiTao)
 VALUES
@@ -737,11 +845,8 @@ VALUES
   (@QNId, N'5', N'"5"-QN', 8, N'System'),
   (@QNId, N'PC', N'"PC"-QN', 9, N'System');
 
--- Thêm vị trí Phao BH cho luồng PQ
-DECLARE @PQId INT = (SELECT Id
-FROM DmTuyenLuong
-WHERE MaTuyen = N'PQ');
-
+-- Vị trí Phao BH – Luồng PQ
+DECLARE @PQId INT = (SELECT Id FROM DmTuyenLuong WHERE MaTuyen = N'PQ');
 INSERT INTO DmViTriPhaoBH
   (TuyenLuongId, SoViTri, MaPhaoBH, ThuTuHienThi, NguoiTao)
 VALUES
@@ -752,60 +857,88 @@ VALUES
   (@PQId, N'P4', N'P4-PQ', 5, N'System'),
   (@PQId, N'P5', N'P5-PQ', 6, N'System');
 
--- Thêm phao mẫu
+-- Phao mẫu
 INSERT INTO Phao
   (
-  KyHieuTaiSan, MaPhaoDayDu, SoPhaoHienTai,
-  DuongKinhPhao, ChieuCaoToanBo, HinhDang, VatLieu, MauSac,
-  TrangThaiHienTai, NguoiTao
+    KyHieuTaiSan, MaPhaoDayDu, TenPhao, SoPhaoHienTai,
+    ChieuCaoToanBo, HinhDang, VatLieu, MauSac,
+    XichPhao_DuongKinh, XichPhao_ChieuDai, XichPhao_ThoiDiemSuDung,
+    XichRua_DuongKinh, XichRua_ChieuDai, XichRua_ThoiDiemSuDung,
+    Rua_TrongLuong, Rua_ThoiDiemSuDung,
+    Den_ChungLoai, Den_KetNoiAIS, Den_DacTinhAnhSang,
+    Den_ChieuCaoTamSangHaiDo, Den_NguonCapNangLuong,
+    Den_ThoiDiemSuDung, Den_ThoiDiemSuaChua, Den_SoQuyetDinhTang,
+    ThoiGianSuDung, ThoiDiemThayTha, ThoiDiemSuaChuaGanNhat,
+    TramQuanLyId, TinhThanhPhoId, DonViQuanLyId, DonViVanHanhId,
+    SoQuyetDinhTang, NgayQuyetDinhTang, DienTich,
+    TrangThaiHienTai, NguoiTao
   )
 VALUES
-  (N'KCHT40861', N'D24.020.16', 1, 2.4, 4.5, N'Trụ tròn', N'Thép', N'Đỏ', N'Trên bãi', N'System'),
-  (N'KCHT40862', N'DN24.037.02', 2, 2.4, 5.0, N'Trụ côn', N'Composite', N'Đỏ', N'Trên bãi', N'System'),
-  (N'KCHT40863', N'T26.016.09', 3, 2.6, 5.5, N'Trụ', N'Thép', N'Xanh', N'Trên bãi', N'System'),
-  (N'KCHT40864', N'T20.012.05', 4, 2.0, 4.0, N'Trụ', N'Composite', N'Xanh', N'Trên bãi', N'System');
-
--- Thêm lịch sử hoạt động mẫu
-DECLARE @Phao1Id INT = (SELECT Id
-FROM Phao
-WHERE MaPhaoDayDu = N'D24.020.16');
-DECLARE @ViTri4AQN INT = (SELECT Id
-FROM DmViTriPhaoBH
-WHERE MaPhaoBH = N'"4A"-QN');
-
-INSERT INTO LichSuHoatDongPhao
   (
-  PhaoId, Nam, NgayBatDau, NgayKetThuc,
-  LoaiTrangThai, MoTaTrangThai,
-  ViTriPhaoBHId, MaPhaoBH, MaTuyenLuong,
-  NguoiTao
-  )
-VALUES
-  (@Phao1Id, 2024, '2024-01-01', NULL,
-    N'TREN_BAI', N'Trên bãi Phú Quý',
-    NULL, NULL, NULL, N'System');
+    N'KCHT40861', N'T26.020.23', N'Phao T2,6-020-23', 1,
+    7.47, N'Hình thấp lưới', N'Thép', N'Màu xanh lục',
+    36.00, 15.00, '2025-10-12',
+    36.00, 15.00, '2025-10-12',
+    6.00, '2025-11-12',
+    N'led KJDHF.SJDHF3', 1, N'Ánh sáng Xanh, Chớp đơn',
+    4.70, N'Ắc quy và điện mặt trời',
+    '2024-01-01', '2024-09-12', N'11SFD',
+    0, '2025-08-23', '2025-12-24',
+    (SELECT Id FROM DmTramQuanLy WHERE MaTram = N'TQBHLHH_QN'),
+    (SELECT Id FROM DmTinhThanhPho WHERE MaTinh = N'GL'),
+    (SELECT Id FROM DmDonVi WHERE MaDonVi = N'BĐANHNTB'),
+    (SELECT Id FROM DmDonVi WHERE MaDonVi = N'BĐANHNTB'),
+    N'2AFSAF', '2024-05-13', 5.23,
+    N'Trên bãi', N'System'
+  ),
+  (
+    N'KCHT40862', N'DN24.037.02', N'Phao DN24.037.02', 2,
+    5.00, N'Trụ côn', N'Composite', N'Đỏ',
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL,
+    N'Trên bãi', N'System'
+  ),
+  (
+    N'KCHT40863', N'D24.020.16', N'Phao D24.020.16', 3,
+    4.50, N'Trụ tròn', N'Thép', N'Đỏ',
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL,
+    N'Trên bãi', N'System'
+  );
 
--- Cập nhật trạng thái hiện tại
-UPDATE Phao
-SET TrangThaiHienTai = N'Trên bãi'
-WHERE Id = @Phao1Id;
+-- Lịch sử hoạt động cho phao mẫu đầu tiên
+DECLARE @Phao1Id INT = (SELECT Id FROM Phao WHERE KyHieuTaiSan = N'KCHT40861');
+INSERT INTO LichSuHoatDongPhao
+  (PhaoId, Nam, NgayBatDau, NgayKetThuc, LoaiTrangThai, MoTaTrangThai,
+   KinhDo, ViDo, NguoiTao)
+VALUES
+  (@Phao1Id, 2025, '2025-08-23', NULL, N'TREN_BAI', N'Trên bãi sau khi thay thả',
+   108.923333, 10.502500, N'System');
 
 GO
 
-PRINT N'✅ VMS Buoy Module được tạo thành công!';
+PRINT N'✅ VMS Buoy Module v1.1 được tạo thành công!';
 PRINT N'';
-PRINT N'📊 Thống kê:';
-PRINT N'   - 7 bảng: DmTuyenLuong, DmViTriPhaoBH, Phao, LichSuHoatDongPhao, LichSuBaoTri, LichSuThayDoiThietBi';
-PRINT N'   - 11 indexes để tối ưu hiệu suất';
-PRINT N'   - 9 stored procedures: sp_LayViTriPhaoBH_TheoTuyen, sp_ValidateThemHoatDongPhao, sp_ThemHoatDongPhao, sp_ThuHoiPhao, sp_ChuyenPhaoSangViTriMoi, sp_ThemLichSuBaoTri, sp_ThemLichSuThayDoiThietBi';
-PRINT N'   - 2 functions: fn_LayPhaoDangOViTriTheoNgay, fn_LayTrangThaiPhaoTheoNam';
-PRINT N'   - 2 views: vw_TrangThaiPhaoHienTai, vw_BaoCaoPhaoTheoLoai';
-PRINT N'   - Sample data: 5 tuyến luồng, 15 vị trí, 4 phao mẫu';
+PRINT N'📊 Thống kê schema:';
+PRINT N'   Tables  : DmTuyenLuong, DmViTriPhaoBH, DmDonVi, DmTramQuanLy, DmTinhThanhPho,';
+PRINT N'             Phao, LichSuHoatDongPhao, LichSuBaoTri, LichSuThayDoiThietBi (9 bảng)';
+PRINT N'   Indexes : 16 indexes';
+PRINT N'   SP      : sp_LayViTriPhaoBH_TheoTuyen, sp_ValidateThemHoatDongPhao,';
+PRINT N'             sp_ThemHoatDongPhao, sp_ThuHoiPhao, sp_ChuyenPhaoSangViTriMoi,';
+PRINT N'             sp_ThemLichSuBaoTri, sp_ThemLichSuThayDoiThietBi (7 SP)';
+PRINT N'   Functions: fn_LayPhaoDangOViTriTheoNgay, fn_LayTrangThaiPhaoTheoNam (2)';
+PRINT N'   Views   : vw_TrangThaiPhaoHienTai, vw_BaoCaoPhaoTheoLoai (2)';
 PRINT N'';
-PRINT N'🎯 Chức năng chính:';
-PRINT N'   - Thêm hoạt động phao với validation vị trí';
-PRINT N'   - Thu hồi phao về bãi';
-PRINT N'   - Chuyển phao sang vị trí mới';
-PRINT N'   - Quản lý bảo trì & thay đổi thiết bị';
-PRINT N'   - Snapshot pattern cho lịch sử';
-PRINT N'   - Computed column MaLoaiPhao tự động';
+PRINT N'📋 Thay đổi so với v1.0:';
+PRINT N'   + DmDonVi  – Đơn vị quản lý/vận hành';
+PRINT N'   + DmTramQuanLy – Trạm quản lý báo hiệu';
+PRINT N'   + DmTinhThanhPho – Tỉnh/Thành phố';
+PRINT N'   + Phao.ThoiGianSuDung, ThoiDiemThayTha, ThoiDiemSuaChuaGanNhat';
+PRINT N'   + Phao.TramQuanLyId, TinhThanhPhoId, DonViQuanLyId, DonViVanHanhId';
+PRINT N'   + Phao.SoQuyetDinhTang, NgayQuyetDinhTang, DienTich';
+PRINT N'   + Phao.Den_ChieuCaoTamSangHaiDo, Den_SoQuyetDinhTang';
+PRINT N'   + View vw_TrangThaiPhaoHienTai mở rộng đầy đủ cột';

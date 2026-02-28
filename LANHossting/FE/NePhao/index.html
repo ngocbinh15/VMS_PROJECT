@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -43,8 +43,10 @@
         <div class="text-muted small">Danh sách các phao báo hiệu hàng hải trong khu vực quản lý.</div>
       </div>
       <div class="d-flex gap-2">
-        <button class="btn btn-light border fw-bold text-secondary btn-modern"><i class="bi bi-clock-history me-1"></i>
-          Lịch Sử</button>
+        <button id="btnTimelineView" class="btn btn-light border fw-bold text-secondary btn-modern"><i
+            class="bi bi-clock-history me-1"></i> Vòng đời phao</button>
+        <button id="btnDispatchView" class="btn btn-light border fw-bold text-secondary btn-modern"><i
+            class="bi bi-geo-alt me-1"></i> Điều Phối</button>
         <button class="btn btn-primary-modern btn-modern d-flex align-items-center gap-2" data-bs-toggle="modal"
           data-bs-target="#buoyDetailModal"><i class="bi bi-plus-lg"></i> Thêm Phao</button>
       </div>
@@ -291,24 +293,1142 @@
     </div>
   </div>
 
+  <!-- ==================== DISPATCH & RELOCATION SCREEN ==================== -->
+  <div id="dispatchScreen" class="d-none">
+    <div class="dp-page">
+
+      <!-- Header -->
+      <div class="dp-header">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <button id="dpBtnBack" class="btn btn-sm btn-light border fw-semibold text-secondary"
+              style="border-radius:8px;">
+              <i class="bi bi-arrow-left me-1"></i>Quay lại
+            </button>
+          </div>
+          <h4 class="fw-bold mb-0 text-dark">Điều Phối &amp; Di Chuyển Phao</h4>
+          <div class="text-muted small">Quản lý điều phối phao và tái bố trí trực quan theo luồng.</div>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+          <button id="dpBtnHistory" class="btn btn-light border fw-semibold text-secondary"
+            style="border-radius:8px;padding:9px 16px;">
+            <i class="bi bi-clock-history me-1"></i>Lịch sử thao tác
+          </button>
+          <button id="dpBtnSave" class="btn fw-semibold d-flex align-items-center gap-2"
+            style="border-radius:8px;background:#4361ee;color:#fff;padding:9px 18px;">
+            <i class="bi bi-floppy"></i>Lưu thay đổi
+          </button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="dp-body">
+
+        <!-- ── Left: Available Inventory ── -->
+        <div class="dp-inventory">
+          <div class="dp-inv-header">
+            <div class="dp-inv-title">Danh sách phao</div>
+            <div class="dp-inv-search">
+              <i class="bi bi-search"></i>
+              <input type="text" id="dpSearchInv" placeholder="Tìm kiếm mã phao...">
+            </div>
+            <div class="dp-filter-bar">
+              <button class="dp-filter-btn active" data-filter="all"><i class="bi bi-funnel"></i> Tất cả</button>
+              <button class="dp-filter-btn" data-filter="ready"><i class="bi bi-check-circle-fill text-success"></i>
+                Sẵn sàng</button>
+              <button class="dp-filter-btn" data-filter="inspect"><i class="bi bi-wrench-adjustable text-warning"></i>
+                Cần kiểm tra</button>
+            </div>
+          </div>
+          <div class="dp-inv-list" id="dpInvList"></div>
+          <div class="dp-inv-footer">
+            <span id="dpInvCount">Hiển thị 0 / 0 phao</span>
+          </div>
+        </div>
+
+        <!-- ── Right: Dispatch Board ── -->
+        <div class="dp-board">
+
+          <!-- Route bar -->
+          <div class="dp-route-bar">
+            <select class="dp-route-sel" id="dpRouteSelect">
+              <option value="QN">Luồng Quy Nhơn (QN-Route)</option>
+              <option value="VT">Luồng Vũng Tàu (VT-Route)</option>
+              <option value="DN">Luồng Đà Nẵng (DN-Route)</option>
+            </select>
+            <div class="dp-stats-row">
+              <span class="dp-stat-total" id="dpStatTotal">-- vị trí ·</span>
+              <span class="dp-stat-active" id="dpStatActive">-- có phao ·</span>
+              <span class="dp-stat-empty" id="dpStatEmpty">-- trống</span>
+              <button class="btn btn-sm btn-light border fw-semibold" style="border-radius:8px;font-size:.76rem;">
+                <i class="bi bi-map me-1"></i>Bản đồ nhỏ
+              </button>
+            </div>
+          </div>
+
+          <!-- Positions grid -->
+          <div class="dp-positions-wrap">
+            <div class="dp-positions-title">Các vị trí trong luồng</div>
+            <div class="dp-pos-grid" id="dpPosGrid"></div>
+          </div>
+
+          <!-- Zones: Maintenance Dock + Warehouse -->
+          <div class="dp-zones-row">
+            <!-- Maintenance Dock -->
+            <div class="dp-zone">
+              <div class="dp-zone-header">
+                <div class="dp-zone-icon bg-danger bg-opacity-10 text-danger"><i class="bi bi-tools"></i></div>
+                <div>
+                  <div class="dp-zone-title">Bãi sửa chữa</div>
+                  <div style="font-size:.7rem;color:#94a3b8;">Phao đang sửa chữa / bảo trì</div>
+                </div>
+              </div>
+              <div class="dp-zone-chips" id="dpDockChips"></div>
+              <div class="dp-zone-drop" id="dpDockDrop">
+                <i class="bi bi-tools me-1"></i>Thả phao vào đây để đưa vào sửa chữa
+              </div>
+            </div>
+            <!-- Warehouse -->
+            <div class="dp-zone">
+              <div class="dp-zone-header">
+                <div class="dp-zone-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-box-seam"></i></div>
+                <div>
+                  <div class="dp-zone-title">Kho phao</div>
+                  <div style="font-size:.7rem;color:#94a3b8;">Phao sẵn sàng điều phối</div>
+                </div>
+              </div>
+              <div class="dp-zone-chips" id="dpWarehouseChips"></div>
+            </div>
+          </div>
+
+        </div><!-- end .dp-board -->
+      </div><!-- end .dp-body -->
+    </div><!-- end .dp-page -->
+  </div><!-- end #dispatchScreen -->
+
+  <!-- Drag ghost label -->
+  <div class="dp-drag-ghost" id="dpDragGhost"></div>
+
+  <!-- Undo toast -->
+  <div class="dp-undo-toast" id="dpUndoToast">
+    <i class="bi bi-check-circle-fill text-success"></i>
+    <span id="dpUndoMsg">Thao tác thực hiện thành công</span>
+    <button class="dp-undo-btn" id="dpUndoBtn">Hoàn tác</button>
+    <div class="dp-undo-bar">
+      <div class="dp-undo-bar-inner" id="dpUndoBarInner" style="width:100%;"></div>
+    </div>
+  </div>
+
+  <!-- ── DEPLOY MODAL ── -->
+  <div class="modal fade" id="dpDeployModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header border-bottom-0 pb-0">
+          <div class="d-flex align-items-center gap-2">
+            <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-3"><i class="bi bi-geo-alt-fill"></i></div>
+            <h6 class="modal-title fw-bold mb-0">Xác nhận điều phối phao</h6>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pt-3">
+          <div class="dp-modal-section">
+            <div class="dp-modal-section-title">Thông tin điều phối</div>
+            <div class="row g-2">
+              <div class="col-6">
+                <div style="font-size:.65rem;color:#94a3b8;font-weight:700;">PHAO</div>
+                <div class="fw-bold text-primary" id="dpDeployBuoyId" style="font-size:1rem;">---</div>
+                <div class="text-muted" style="font-size:.75rem;" id="dpDeployBuoyType">---</div>
+              </div>
+              <div class="col-6">
+                <div style="font-size:.65rem;color:#94a3b8;font-weight:700;">VỊ TRÍ MỚI</div>
+                <div class="fw-bold text-dark" id="dpDeployPos" style="font-size:.95rem;">---</div>
+                <div class="text-muted" style="font-size:.75rem;" id="dpDeployRoute">---</div>
+              </div>
+            </div>
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <label class="form-label-sm">Ngày thực hiện</label>
+              <input type="text" class="form-control form-control-sm" id="dpDeployDate" placeholder="dd/mm/yyyy">
+            </div>
+            <div class="col-6">
+              <label class="form-label-sm">Người thực hiện</label>
+              <input type="text" class="form-control form-control-sm" id="dpDeployActor" placeholder="Họ tên...">
+            </div>
+          </div>
+          <div>
+            <label class="form-label-sm">Ghi chú</label>
+            <input type="text" class="form-control form-control-sm" id="dpDeployNote" placeholder="Ghi chú (tùy chọn)">
+          </div>
+        </div>
+        <div class="modal-footer border-top-0">
+          <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" class="btn fw-bold" id="dpDeployConfirmBtn"
+            style="background:#4361ee;color:#fff;border-radius:8px;">
+            <i class="bi bi-check-lg me-1"></i>Xác nhận
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RELOCATE MODAL ── -->
+  <div class="modal fade" id="dpRelocateModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:500px;">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header border-bottom-0 pb-0">
+          <div class="d-flex align-items-center gap-2">
+            <div class="bg-warning bg-opacity-10 text-warning p-2 rounded-3"><i class="bi bi-arrow-left-right"></i>
+            </div>
+            <h6 class="modal-title fw-bold mb-0">Xác nhận đổi luồng</h6>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pt-3">
+          <div class="dp-modal-section">
+            <div class="dp-modal-section-title">Thông tin chuyển</div>
+            <div class="fw-bold text-primary mb-2" id="dpRelocBuoyId" style="font-size:1rem;">---</div>
+            <div class="dp-arrow-row">
+              <div class="dp-arrow-box">
+                <div class="dp-arrow-box-label">Tuyến cũ</div>
+                <div class="dp-arrow-box-val" id="dpRelocFromRoute">---</div>
+                <div style="font-size:.72rem;color:#64748b;" id="dpRelocFromPos">---</div>
+              </div>
+              <i class="bi bi-arrow-right text-muted" style="font-size:1.2rem;flex-shrink:0;"></i>
+              <div class="dp-arrow-box">
+                <div class="dp-arrow-box-label">Tuyến mới</div>
+                <div class="dp-arrow-box-val" id="dpRelocToRoute">---</div>
+                <div style="font-size:.72rem;color:#64748b;" id="dpRelocToPos">---</div>
+              </div>
+            </div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label-sm">Thời gian chuyển</label>
+              <input type="text" class="form-control form-control-sm" id="dpRelocDate" placeholder="dd/mm/yyyy">
+            </div>
+            <div class="col-6">
+              <label class="form-label-sm">Lý do chuyển</label>
+              <input type="text" class="form-control form-control-sm" id="dpRelocReason" placeholder="Lý do...">
+            </div>
+          </div>
+          <div class="dp-warning-box">
+            <i class="bi bi-info-circle me-1"></i>
+            Hệ thống sẽ tự động <strong>thu hồi</strong> khỏi tuyến cũ và <strong>đưa vào</strong> tuyến mới, cập nhật
+            timeline.
+          </div>
+        </div>
+        <div class="modal-footer border-top-0">
+          <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" class="btn fw-bold" id="dpRelocConfirmBtn"
+            style="background:#f59e0b;color:#fff;border-radius:8px;">
+            <i class="bi bi-arrow-left-right me-1"></i>Xác nhận chuyển
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MAINTENANCE MODAL ── -->
+  <div class="modal fade" id="dpMaintModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:460px;">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header border-bottom-0 pb-0">
+          <div class="d-flex align-items-center gap-2">
+            <div class="bg-danger bg-opacity-10 text-danger p-2 rounded-3"><i class="bi bi-tools"></i></div>
+            <h6 class="modal-title fw-bold mb-0">Đưa phao vào bãi sửa chữa</h6>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pt-3">
+          <div class="dp-modal-section">
+            <div class="dp-modal-section-title">Phao</div>
+            <div class="fw-bold text-dark" id="dpMaintBuoyId" style="font-size:1rem;">---</div>
+            <div class="text-muted" style="font-size:.78rem;" id="dpMaintBuoyLoc">---</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label-sm d-block mb-2">Lý do</label>
+            <div class="d-flex flex-column gap-2">
+              <label class="d-flex align-items-center gap-2 fw-semibold" style="font-size:.84rem;cursor:pointer;">
+                <input type="radio" name="dpMaintReason" value="Hỏng thiết bị" class="form-check-input m-0"> Hỏng thiết
+                bị
+              </label>
+              <label class="d-flex align-items-center gap-2 fw-semibold" style="font-size:.84rem;cursor:pointer;">
+                <input type="radio" name="dpMaintReason" value="Pin yếu / cần thay" class="form-check-input m-0"> Pin
+                yếu / cần thay
+              </label>
+              <label class="d-flex align-items-center gap-2 fw-semibold" style="font-size:.84rem;cursor:pointer;">
+                <input type="radio" name="dpMaintReason" value="Thay thế định kỳ" class="form-check-input m-0"> Thay thế
+                định kỳ
+              </label>
+              <label class="d-flex align-items-center gap-2 fw-semibold" style="font-size:.84rem;cursor:pointer;">
+                <input type="radio" name="dpMaintReason" value="other" class="form-check-input m-0"> Khác:
+                <input type="text" class="form-control form-control-sm" id="dpMaintOther" placeholder="Ghi chú..."
+                  style="max-width:170px;">
+              </label>
+            </div>
+          </div>
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label-sm">Ngày thu hồi</label>
+              <input type="text" class="form-control form-control-sm" id="dpMaintDate" placeholder="dd/mm/yyyy">
+            </div>
+            <div class="col-6">
+              <label class="form-label-sm">Kỹ thuật viên</label>
+              <input type="text" class="form-control form-control-sm" id="dpMaintTech" placeholder="Họ tên...">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-top-0">
+          <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" class="btn btn-danger fw-bold" id="dpMaintConfirmBtn" style="border-radius:8px;">
+            <i class="bi bi-tools me-1"></i>Xác nhận
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HISTORY OFFCANVAS ── -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="dpHistoryOffcanvas" style="width:380px;">
+    <div class="offcanvas-header border-bottom">
+      <h6 class="offcanvas-title fw-bold"><i class="bi bi-clock-history me-2"></i>Lịch sử thao tác</h6>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+      <div class="p-3 border-bottom">
+        <input type="text" class="form-control form-control-sm" id="dpHistorySearch"
+          placeholder="🔍 Tìm theo mã phao...">
+      </div>
+      <div id="dpHistoryList" style="overflow-y:auto;max-height:calc(100vh - 140px);"></div>
+    </div>
+  </div>
+
+  <!-- ==================== TIMELINE / FLOW DIAGRAM SCREEN V3 ==================== -->
+  <div id="timelineScreen" class="timeline-screen d-none">
+    <div class="fd-page">
+
+      <!-- Header -->
+      <div class="fd-header">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <button id="btnBackToMain" class="btn btn-sm btn-light border fw-semibold text-secondary"
+              style="border-radius:8px;">
+              <i class="bi bi-arrow-left me-1"></i>Quay lại
+            </button>
+          </div>
+          <h4 class="fw-bold mb-1 text-dark">Sơ đồ luồng di chuyển phao</h4>
+          <div class="text-muted small">Theo dõi đường di chuyển của phao theo vị trí và thời gian (2018–2025).</div>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-light border fw-semibold text-secondary" style="border-radius:8px;padding:9px 18px;">
+            <i class="bi bi-printer me-1"></i>In báo cáo
+          </button>
+          <button class="btn fw-semibold d-flex align-items-center gap-2"
+            style="border-radius:8px;background:#1d4ed8;color:#fff;padding:9px 18px;">
+            <i class="bi bi-download"></i>Xuất Excel
+          </button>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="fd-toolbar-bar">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <div>
+            <div class="fd-label">TUYẾN LUỒNG</div>
+            <select class="fd-sel">
+              <option>Tuyến Quy Nhơn (QN)</option>
+              <option>Tuyến Vũng Tàu (VT)</option>
+              <option>Tuyến Đà Nẵng (DN)</option>
+            </select>
+          </div>
+          <div>
+            <div class="fd-label">LỌC THEO PHAO</div>
+            <input id="fdFilterInput" class="fd-search" type="text" placeholder="Nhập mã phao…">
+          </div>
+          <div class="fd-legend-row">
+            <span class="fd-leg"><span class="fd-legdot" style="background:#22c55e;"></span>Hoạt động</span>
+            <span class="fd-leg"><span class="fd-legdot" style="background:#ef4444;"></span>Thu hồi</span>
+            <span class="fd-leg"><span class="fd-legdot" style="background:#f59e0b;"></span>Kho</span>
+            <span class="fd-leg"><span class="fd-legdot" style="background:#f97316;"></span>Sự cố</span>
+            <span class="fd-leg"><span class="fd-legdot" style="background:#0ea5e9;"></span>Bảo trì</span>
+            <span class="fd-leg"><span
+                style="display:inline-block;width:22px;height:0;border-bottom:2px dashed #888;vertical-align:middle;margin-right:4px;"></span>Thu
+              hồi về</span>
+            <span class="fd-leg"><span
+                style="display:inline-block;width:22px;height:0;border-bottom:3px dotted #888;vertical-align:middle;margin-right:4px;"></span>Kho</span>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <button id="fdZoomOut" class="fd-zbtn"><i class="bi bi-dash-lg"></i></button>
+          <span id="fdZoomLabel" class="fd-zlabel">100%</span>
+          <button id="fdZoomIn" class="fd-zbtn"><i class="bi bi-plus-lg"></i></button>
+          <button id="fdZoomReset" class="fd-zbtn" title="Reset zoom"><i class="bi bi-arrows-fullscreen"></i></button>
+        </div>
+      </div>
+
+      <!-- Flow Diagram Viewport -->
+      <div class="fd-card-wrap">
+        <div id="fdViewport">
+          <div id="fdInner">
+            <div id="fdGrid"></div>
+            <canvas id="fdCanvas" style="position:absolute;top:0;left:0;pointer-events:none;"></canvas>
+          </div>
+        </div>
+        <div id="fdTooltip"
+          style="display:none;position:fixed;z-index:9999;background:#1e293b;color:#fff;padding:8px 14px;border-radius:8px;font-size:.8rem;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.3);">
+        </div>
+      </div>
+
+      <!-- Status bar -->
+      <div class="fd-statusbar">
+        <span id="fdStatusText">Hiển thị <strong>21</strong> vị trí · <strong>22</strong> phao ·
+          <strong>2018–2025</strong></span>
+        <span class="text-muted" style="font-size:.78rem;">Ctrl + Scroll = Zoom &nbsp;·&nbsp; Kéo chuột = Pan
+          &nbsp;·&nbsp; Click node = Chi tiết</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Node Detail Modal -->
+  <div class="modal fade" id="fdNodeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:460px;">
+      <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-header border-bottom-0 pb-0">
+          <div class="d-flex align-items-center gap-2">
+            <span id="fdNodeDot"
+              style="width:14px;height:14px;border-radius:50%;display:inline-block;flex-shrink:0;"></span>
+            <h6 class="modal-title fw-bold mb-0" id="fdNodeTitle">Chi tiết phao</h6>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pt-2">
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="tl-label mb-1">MÃ PHAO</div>
+              <div class="fw-bold text-primary" style="font-size:1.05rem;" id="fdNodeId">---</div>
+            </div>
+            <div class="col-6">
+              <div class="tl-label mb-1">VỊ TRÍ</div>
+              <div class="fw-bold text-dark" id="fdNodePos">---</div>
+            </div>
+            <div class="col-6">
+              <div class="tl-label mb-1">NĂM</div>
+              <div class="fw-bold text-dark" id="fdNodeYear">---</div>
+            </div>
+            <div class="col-6">
+              <div class="tl-label mb-1">TRẠNG THÁI</div>
+              <div id="fdNodeStatus"
+                style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:700;">---
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="tl-label mb-1">GHI CHÚ</div>
+              <div class="text-secondary" id="fdNodeNote" style="font-size:.88rem;">---</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-top-0 pt-0">
+          <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Đóng</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ==================== END FLOW DIAGRAM SCREEN V3 ==================== -->
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
   <script src="./js/scripts.js"></script>
+  <script src="./js/dispatch.js"></script>
   <script>
-    // Khởi tạo Flatpickr cho tất cả trường ngày
     document.addEventListener('DOMContentLoaded', function () {
-      // Datepicker cho tất cả input[type="date"]
-      const dateInputs = document.querySelectorAll('input[type="date"]');
-      dateInputs.forEach(input => {
-        flatpickr(input, {
-          locale: 'vn',
-          dateFormat: 'd/m/Y',
-          allowInput: true,
-          enableTime: false
-        });
+      document.querySelectorAll('input[type="date"]').forEach(function (inp) {
+        flatpickr(inp, { locale: 'vn', dateFormat: 'd/m/Y', allowInput: true, enableTime: false });
       });
     });
+  </script>
+
+  <!-- ============================================================
+       FLOW DIAGRAM ENGINE V3
+  ============================================================ -->
+  <script>
+    (function () {
+      'use strict';
+
+      /* ── Constants ─────────────────────────────────────────── */
+      var YEARS = [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
+      var DUAL_YEARS = { 2021: true, 2022: true, 2023: true, 2024: true, 2025: true };
+
+      var POSITIONS = [
+        '"0"-QN', '"1"-QN', '"2"-QN', '"3"-QN', '"3A"-QN',
+        '"4"-QN', '"4A"-QN', '"5"-QN', '"6"-QN', '"7"-QN',
+        '"8"-QN', '"9"-QN', '"10"-QN', '"11"-QN', '"15"-QN',
+        '"14"-DTN', '"16"-DTN', '"17"-DTN', '"18"-DTN', '"20"-DTN',
+        'PC-QN'
+      ];
+
+      var TYPES = {
+        active: { bg: '#dcfce7', text: '#166534', label: 'Đang hoạt động' },
+        recalled: { bg: '#fee2e2', text: '#dc2626', label: 'Thu hồi' },
+        kho: { bg: '#fef9c3', text: '#92400e', label: 'Trong kho' },
+        incident: { bg: '#ffedd5', text: '#c2410c', label: 'Sự cố' },
+        maintenance: { bg: '#e0f2fe', text: '#0369a1', label: 'Bảo trì' },
+        transfer: { bg: '#ede9fe', text: '#6d28d9', label: 'Chuyển kho' }
+      };
+
+      var LINE_DASH = {
+        active: [],
+        recalled: [9, 5],
+        kho: [3, 5],
+        incident: [],
+        maintenance: [8, 4, 2, 4],
+        transfer: []
+      };
+
+      var BUOY_COLORS = [
+        '#2563eb', '#d97706', '#7c3aed', '#db2777', '#059669',
+        '#0891b2', '#dc2626', '#65a30d', '#9333ea', '#0f766e',
+        '#c2410c', '#4338ca', '#15803d', '#b45309', '#1d4ed8',
+        '#be185d', '#0369a1', '#16a34a', '#7e22ce', '#b91c1c',
+        '#0e7490', '#92400e'
+      ];
+
+      /* ── Buoy histories ─────────────────────────────────────── */
+      var BUOYS = [
+        {
+          id: 'T26.016.12', steps: [
+            { yr: 2018, pos: '"0"-QN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"0"-QN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"0"-QN', sl: 'L', type: 'active' },
+            { yr: 2021, pos: '"0"-QN', sl: 'L', type: 'active' },
+            { yr: 2022, pos: '"0"-QN', sl: 'L', type: 'active' },
+            { yr: 2023, pos: '"0"-QN', sl: 'L', type: 'active' },
+            { yr: 2024, pos: '"0"-QN', sl: 'L', type: 'active' },
+            { yr: 2025, pos: '"0"-QN', sl: 'L', type: 'active' }]
+        },
+        {
+          id: 'T26.097.18', steps: [
+            { yr: 2018, pos: '"1"-QN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"1"-QN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"1"-QN', sl: 'L', type: 'active' },
+            { yr: 2021, pos: '"1"-QN', sl: 'R', type: 'recalled', note: 'Thu hồi do sự cố trôi dạt' },
+            { yr: 2022, pos: '"0"-QN', sl: 'R', type: 'recalled' },
+            { yr: 2023, pos: '"1"-QN', sl: 'L', type: 'active', note: 'Tái sử dụng sau sửa chữa' },
+            { yr: 2024, pos: '"1"-QN', sl: 'L', type: 'active' },
+            { yr: 2025, pos: '"1"-QN', sl: 'L', type: 'active' }]
+        },
+        {
+          id: 'T26.093.18', steps: [
+            { yr: 2019, pos: '"2"-QN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"2"-QN', sl: 'L', type: 'active' },
+            { yr: 2021, pos: '"2"-QN', sl: 'R', type: 'recalled' },
+            { yr: 2022, pos: '"3"-QN', sl: 'L', type: 'active', note: 'Chuyển từ kho QN' },
+            { yr: 2023, pos: '"3"-QN', sl: 'L', type: 'active' },
+            { yr: 2024, pos: '"3"-QN', sl: 'L', type: 'active' },
+            { yr: 2025, pos: '"3"-QN', sl: 'L', type: 'active' }]
+        },
+        {
+          id: 'T26.002.14', steps: [
+            { yr: 2018, pos: '"2"-QN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"2"-QN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"2"-QN', sl: 'L', type: 'active' },
+            { yr: 2021, pos: '"2"-QN', sl: 'L', type: 'active' },
+            { yr: 2022, pos: '"2"-QN', sl: 'L', type: 'active' },
+            { yr: 2023, pos: '"2"-QN', sl: 'R', type: 'recalled', note: 'Hết niên hạn' },
+            { yr: 2024, pos: '"2"-QN', sl: 'R', type: 'recalled' }]
+        },
+        {
+          id: 'T26.018.12', steps: [
+            { yr: 2018, pos: '"3"-QN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"3"-QN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"3"-QN', sl: 'L', type: 'active' },
+            { yr: 2021, pos: '"3"-QN', sl: 'R', type: 'recalled' },
+            { yr: 2022, pos: '"7"-QN', sl: 'L', type: 'active', note: 'Chuyển sang vị trí mới' },
+            { yr: 2023, pos: '"7"-QN', sl: 'L', type: 'active' },
+            { yr: 2024, pos: '"7"-QN', sl: 'L', type: 'active' }]
+        },
+        {
+          id: 'T26.007.07', steps: [
+            { yr: 2018, pos: '"3A"-QN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"3A"-QN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"3A"-QN', sl: 'L', type: 'active' },
+            { yr: 2021, pos: '"3A"-QN', sl: 'L', type: 'active' },
+            { yr: 2022, pos: '"3A"-QN', sl: 'L', type: 'active' },
+            { yr: 2023, pos: '"3A"-QN', sl: 'L', type: 'active' },
+            { yr: 2024, pos: '"3A"-QN', sl: 'L', type: 'active' },
+            { yr: 2025, pos: '"3A"-QN', sl: 'L', type: 'active' }]
+        },
+        {
+          id: 'T26.017.12', steps: [
+            { yr: 2018, pos: '"4"-QN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"4"-QN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"4"-QN', sl: 'L', type: 'maintenance', note: 'Sơn định kỳ' },
+            { yr: 2021, pos: '"4"-QN', sl: 'L', type: 'active' },
+            { yr: 2022, pos: '"4"-QN', sl: 'L', type: 'active' },
+            { yr: 2023, pos: '"4"-QN', sl: 'L', type: 'active' },
+            { yr: 2024, pos: '"4"-QN', sl: 'L', type: 'active' },
+            { yr: 2025, pos: '"4"-QN', sl: 'L', type: 'active' }]
+        },
+        {
+          id: 'D20.013.05', steps: [
+            { yr: 2018, pos: '"4A"-QN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"4A"-QN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"4A"-QN', sl: 'L', type: 'active', note: 'TN - tân sử dụng' },
+            { yr: 2021, pos: '"4A"-QN', sl: 'L', type: 'active' },
+            { yr: 2022, pos: '"4A"-QN', sl: 'L', type: 'active' },
+            { yr: 2023, pos: '"4A"-QN', sl: 'R', type: 'recalled' },
+            { yr: 2024, pos: '"4A"-QN', sl: 'L', type: 'active', note: 'Phao mới thay thế' },
+            { yr: 2025, pos: '"4A"-QN', sl: 'L', type: 'active' }]
+        },
+        {
+          id: 'T26.007.14', steps: [
+            { yr: 2018, pos: '"5"-QN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"5"-QN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"5"-QN', sl: 'L', type: 'active' },
+            { yr: 2021, pos: '"5"-QN', sl: 'R', type: 'recalled' },
+            { yr: 2022, pos: '"5"-QN', sl: 'R', type: 'recalled' },
+            { yr: 2023, pos: '"5"-QN', sl: 'L', type: 'active', note: 'Sửa chữa xong, tái sử dụng' },
+            { yr: 2024, pos: '"5"-QN', sl: 'L', type: 'active' }]
+        },
+        {
+          id: 'D20.011.13', steps: [
+            { yr: 2018, pos: '"6"-QN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"6"-QN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"6"-QN', sl: 'L', type: 'active' },
+            { yr: 2021, pos: '"6"-QN', sl: 'L', type: 'active' },
+            { yr: 2022, pos: '"6"-QN', sl: 'L', type: 'active' },
+            { yr: 2023, pos: '"6"-QN', sl: 'L', type: 'active' },
+            { yr: 2024, pos: '"6"-QN', sl: 'L', type: 'active' },
+            { yr: 2025, pos: '"6"-QN', sl: 'L', type: 'active' }]
+        },
+        {
+          id: 'T26.010.09', steps: [
+            { yr: 2018, pos: '"7"-QN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"7"-QN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"7"-QN', sl: 'L', type: 'incident', note: 'Phao bị va chạm tàu thuyền' },
+            { yr: 2021, pos: '"7"-QN', sl: 'R', type: 'recalled' },
+            { yr: 2022, pos: '"8"-QN', sl: 'L', type: 'active', note: 'Thay thế - chuyển vị trí' },
+            { yr: 2023, pos: '"8"-QN', sl: 'L', type: 'active' },
+            { yr: 2024, pos: '"8"-QN', sl: 'L', type: 'active' },
+            { yr: 2025, pos: '"8"-QN', sl: 'L', type: 'active' }]
+        },
+        {
+          id: 'D20.013.13', steps: [
+            { yr: 2018, pos: '"8"-QN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"8"-QN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"8"-QN', sl: 'L', type: 'active' },
+            { yr: 2021, pos: '"8"-QN', sl: 'L', type: 'active' },
+            { yr: 2022, pos: '"8"-QN', sl: 'R', type: 'recalled' },
+            { yr: 2023, pos: '"9"-QN', sl: 'L', type: 'active', note: 'Chuyển vị trí QĐ số 34' },
+            { yr: 2024, pos: '"9"-QN', sl: 'L', type: 'active' },
+            { yr: 2025, pos: '"9"-QN', sl: 'L', type: 'active' }]
+        },
+        {
+          id: 'D20.107.18', steps: [
+            { yr: 2018, pos: '"9"-QN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"9"-QN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"9"-QN', sl: 'L', type: 'active' },
+            { yr: 2021, pos: '"9"-QN', sl: 'L', type: 'active' },
+            { yr: 2022, pos: '"9"-QN', sl: 'R', type: 'recalled' },
+            { yr: 2023, pos: '"9"-QN', sl: 'R', type: 'recalled' },
+            { yr: 2024, pos: '"9"-QN', sl: 'R', type: 'recalled' }]
+        },
+        {
+          id: 'T20.045.11', steps: [
+            { yr: 2018, pos: '"10"-QN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"10"-QN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"10"-QN', sl: 'L', type: 'active' },
+            { yr: 2021, pos: '"10"-QN', sl: 'L', type: 'active' },
+            { yr: 2022, pos: '"10"-QN', sl: 'L', type: 'active' },
+            { yr: 2023, pos: '"10"-QN', sl: 'L', type: 'active' },
+            { yr: 2024, pos: '"10"-QN', sl: 'L', type: 'active', note: 'Quy Nhơn bàn giao' },
+            { yr: 2025, pos: '"10"-QN', sl: 'L', type: 'active' }]
+        },
+        {
+          id: 'D20.014.13', steps: [
+            { yr: 2018, pos: '"11"-QN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"11"-QN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"11"-QN', sl: 'L', type: 'active' },
+            { yr: 2021, pos: '"11"-QN', sl: 'L', type: 'active' },
+            { yr: 2022, pos: '"11"-QN', sl: 'L', type: 'active' },
+            { yr: 2023, pos: '"11"-QN', sl: 'L', type: 'active' },
+            { yr: 2024, pos: '"11"-QN', sl: 'L', type: 'active' }]
+        },
+        {
+          id: 'T20.066.12', steps: [
+            { yr: 2018, pos: '"15"-QN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"15"-QN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"15"-QN', sl: 'L', type: 'active' },
+            { yr: 2021, pos: '"15"-QN', sl: 'L', type: 'active' },
+            { yr: 2022, pos: '"15"-QN', sl: 'L', type: 'active' },
+            { yr: 2023, pos: '"15"-QN', sl: 'L', type: 'active' },
+            { yr: 2024, pos: '"15"-QN', sl: 'L', type: 'active' },
+            { yr: 2025, pos: '"15"-QN', sl: 'L', type: 'active' }]
+        },
+        {
+          id: 'T20.043.13', steps: [
+            { yr: 2018, pos: '"14"-DTN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"14"-DTN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"14"-DTN', sl: 'L', type: 'active' },
+            { yr: 2021, pos: '"14"-DTN', sl: 'L', type: 'active' },
+            { yr: 2022, pos: '"14"-DTN', sl: 'R', type: 'recalled' },
+            { yr: 2023, pos: '"10"-QN', sl: 'R', type: 'recalled', note: 'Chuyển về Quy Nhơn' },
+            { yr: 2024, pos: '"10"-QN', sl: 'R', type: 'recalled' }]
+        },
+        {
+          id: 'T20.010.06', steps: [
+            { yr: 2018, pos: '"16"-DTN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"16"-DTN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"16"-DTN', sl: 'L', type: 'active', note: 'TN - thay mới' },
+            { yr: 2021, pos: '"16"-DTN', sl: 'L', type: 'active' },
+            { yr: 2022, pos: '"16"-DTN', sl: 'L', type: 'active' },
+            { yr: 2023, pos: '"16"-DTN', sl: 'L', type: 'active' },
+            { yr: 2024, pos: '"16"-DTN', sl: 'L', type: 'active' }]
+        },
+        {
+          id: 'T20.068.12', steps: [
+            { yr: 2018, pos: '"17"-DTN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"17"-DTN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"17"-DTN', sl: 'L', type: 'active' },
+            { yr: 2021, pos: '"17"-DTN', sl: 'L', type: 'active' },
+            { yr: 2022, pos: '"17"-DTN', sl: 'L', type: 'active' },
+            { yr: 2023, pos: '"17"-DTN', sl: 'L', type: 'active' },
+            { yr: 2024, pos: '"17"-DTN', sl: 'L', type: 'active' },
+            { yr: 2025, pos: '"17"-DTN', sl: 'L', type: 'active' }]
+        },
+        {
+          id: 'T20.008.06', steps: [
+            { yr: 2018, pos: '"18"-DTN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"18"-DTN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"18"-DTN', sl: 'L', type: 'active', note: 'TN' },
+            { yr: 2021, pos: '"18"-DTN', sl: 'L', type: 'active' },
+            { yr: 2022, pos: '"18"-DTN', sl: 'L', type: 'active' },
+            { yr: 2023, pos: '"18"-DTN', sl: 'R', type: 'recalled' },
+            { yr: 2024, pos: '"18"-DTN', sl: 'L', type: 'active', note: 'Phao mới thay thế' },
+            { yr: 2025, pos: '"18"-DTN', sl: 'L', type: 'active' }]
+        },
+        {
+          id: 'D20.017.06', steps: [
+            { yr: 2018, pos: '"20"-DTN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: '"20"-DTN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: '"20"-DTN', sl: 'L', type: 'active' },
+            { yr: 2021, pos: '"20"-DTN', sl: 'L', type: 'active' },
+            { yr: 2022, pos: '"20"-DTN', sl: 'L', type: 'active' },
+            { yr: 2023, pos: '"20"-DTN', sl: 'L', type: 'incident', note: 'Va chạm tàu thuyền' },
+            { yr: 2024, pos: '"20"-DTN', sl: 'R', type: 'recalled' },
+            { yr: 2025, pos: '"20"-DTN', sl: 'L', type: 'active', note: 'Phao mới T20.074.22' }]
+        },
+        {
+          id: 'T20.067.12', steps: [
+            { yr: 2018, pos: 'PC-QN', sl: 'L', type: 'active' },
+            { yr: 2019, pos: 'PC-QN', sl: 'L', type: 'active' },
+            { yr: 2020, pos: 'PC-QN', sl: 'L', type: 'active' },
+            { yr: 2021, pos: 'PC-QN', sl: 'L', type: 'active' },
+            { yr: 2022, pos: 'PC-QN', sl: 'L', type: 'active' },
+            { yr: 2023, pos: 'PC-QN', sl: 'L', type: 'active' },
+            { yr: 2024, pos: 'PC-QN', sl: 'L', type: 'active' },
+            { yr: 2025, pos: 'PC-QN', sl: 'L', type: 'active' }]
+        }
+      ];
+
+      /* ── Column index mapping ─────────────────────────────── */
+      var COLS = [];
+      YEARS.forEach(function (yr) {
+        COLS.push({ yr: yr, sl: 'L' });
+        if (DUAL_YEARS[yr]) COLS.push({ yr: yr, sl: 'R' });
+      });
+      var colIdx = {};
+      COLS.forEach(function (c, i) { colIdx[c.yr + '_' + c.sl] = i; });
+
+      function getColIdx(yr, sl) {
+        var key = yr + '_' + (DUAL_YEARS[yr] ? sl : 'L');
+        return (colIdx[key] !== undefined) ? colIdx[key] : 0;
+      }
+      function getPosIdx(pos) { return POSITIONS.indexOf(pos); }
+
+      /* ── State ──────────────────────────────────────────────── */
+      var scale = 1.0, panX = 0, panY = 0;
+      var isDragging = false, dragStartX = 0, dragStartY = 0, dragPanX = 0, dragPanY = 0;
+      var highlightBuoyId = null;
+      var filterQuery = '';
+      var gridBuilt = false;
+
+      /* ── Build HTML grid ────────────────────────────────────── */
+      function buildGrid() {
+        var grid = document.getElementById('fdGrid');
+        if (!grid) return;
+
+        // Build occupancy map
+        var occ = {};
+        BUOYS.forEach(function (buoy, bi) {
+          buoy.steps.forEach(function (step) {
+            var pi = getPosIdx(step.pos);
+            var ci = getColIdx(step.yr, step.sl);
+            if (pi < 0) return;
+            var k = pi + '_' + ci;
+            if (!occ[k]) occ[k] = [];
+            occ[k].push({ bi: bi, buoy: buoy, step: step });
+          });
+        });
+
+        var html = '<table class="fd-table" id="fdTable"><colgroup><col style="width:100px;min-width:100px;">';
+        COLS.forEach(function () { html += '<col style="width:88px;min-width:80px;">'; });
+        html += '</colgroup>';
+
+        // Year group header row
+        html += '<thead><tr class="fd-tr-hdr"><th class="fd-th-pos fd-sticky" rowspan="2">VỊ TRÍ</th>';
+        YEARS.forEach(function (yr) {
+          var span = DUAL_YEARS[yr] ? 2 : 1;
+          html += '<th class="fd-th-year" colspan="' + span + '">' + yr + '</th>';
+        });
+        html += '</tr><tr class="fd-tr-subhdr">';
+        COLS.forEach(function (c) {
+          html += '<th class="fd-th-sub' + (c.sl === 'R' ? ' fd-sub-r' : '') + '">' +
+            (c.sl === 'L' ? 'Trên luồng' : 'Thu hồi về') + '</th>';
+        });
+        html += '</tr></thead><tbody>';
+
+        POSITIONS.forEach(function (pos, pi) {
+          html += '<tr class="fd-tr-pos">';
+          html += '<td class="fd-td-pos fd-sticky">' + pos + '</td>';
+          COLS.forEach(function (c, ci) {
+            var k = pi + '_' + ci;
+            var entries = occ[k] || [];
+            var slotClass = c.sl === 'R' ? ' fd-td-r' : '';
+            html += '<td class="fd-td' + slotClass + '" id="fdc_' + pi + '_' + ci + '">';
+            entries.forEach(function (e) {
+              var t = TYPES[e.step.type] || TYPES.active;
+              var bc = BUOY_COLORS[e.bi % BUOY_COLORS.length];
+              var noteHtml = e.step.note ? '<span class="fd-node-note" title="' + e.step.note + '">' + e.step.note + '</span>' : '';
+              html += '<div class="fd-node" ' +
+                'data-bi="' + e.bi + '" data-buoy="' + e.buoy.id + '" data-pos="' + pos + '" ' +
+                'data-yr="' + c.yr + '" data-type="' + e.step.type + '" data-sl="' + c.sl + '" ' +
+                'data-note="' + (e.step.note || '') + '" ' +
+                'style="border-left:3px solid ' + bc + ';background:' + t.bg + ';color:' + t.text + ';">' +
+                '<span class="fd-node-id">' + e.buoy.id + '</span>' + noteHtml +
+                '</div>';
+            });
+            html += '</td>';
+          });
+          html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        grid.innerHTML = html;
+
+        // Wire node events
+        grid.querySelectorAll('.fd-node').forEach(function (el) {
+          el.addEventListener('click', function (e) { e.stopPropagation(); onNodeClick(el); });
+          el.addEventListener('mouseenter', function () { onNodeHover(el, true); });
+          el.addEventListener('mouseleave', function () { onNodeHover(el, false); });
+        });
+
+        // Size canvas to match table
+        setTimeout(function () {
+          var table = document.getElementById('fdTable');
+          var inner = document.getElementById('fdInner');
+          var canvas = document.getElementById('fdCanvas');
+          if (table && inner && canvas) {
+            var tw = table.scrollWidth;
+            var th = table.scrollHeight;
+            inner.style.width = tw + 'px';
+            inner.style.height = th + 'px';
+            canvas.width = tw;
+            canvas.height = th;
+            drawCanvas();
+            updateStickyHeader();
+          }
+        }, 80);
+
+        gridBuilt = true;
+      }
+
+      /* ── Node edge coordinate (relative to fdInner) ───────────
+         edge: 'R' right-center, 'L' left-center,
+               'B' bottom-center, 'T' top-center, 'C' center     */
+      function nodeCenterEdge(posIdx, colIndex, edge) {
+        var cell = document.getElementById('fdc_' + posIdx + '_' + colIndex);
+        var inner = document.getElementById('fdInner');
+        if (!cell || !inner) return null;
+        var cr = cell.getBoundingClientRect();
+        var ir = inner.getBoundingClientRect();
+        var l = cr.left - ir.left, t = cr.top - ir.top;
+        var w = cr.width, h = cr.height;
+        switch (edge) {
+          case 'R': return { x: l + w, y: t + h / 2 };
+          case 'L': return { x: l, y: t + h / 2 };
+          case 'B': return { x: l + w / 2, y: t + h };
+          case 'T': return { x: l + w / 2, y: t };
+          default: return { x: l + w / 2, y: t + h / 2 };
+        }
+      }
+
+      /* ── Canvas draw ─────────────────────────────────────────── */
+      function drawCanvas() {
+        var canvas = document.getElementById('fdCanvas');
+        if (!canvas) return;
+        var ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        var active = filterQuery.trim().toLowerCase();
+
+        BUOYS.forEach(function (buoy, bi) {
+          if (active && buoy.id.toLowerCase().indexOf(active) < 0) return;
+          if (buoy.steps.length < 2) return;
+
+          var bc = BUOY_COLORS[bi % BUOY_COLORS.length];
+          var isHL = (highlightBuoyId === buoy.id);
+          var isDim = (highlightBuoyId && !isHL);
+          var alpha = isDim ? 0.07 : (isHL ? 1.0 : 0.72);
+          var lw = isHL ? 2.8 : 1.8;
+          // per-buoy lateral offset to prevent total overlap
+          var offset = ((bi % 5) - 2) * 2.5;
+
+          for (var si = 0; si < buoy.steps.length - 1; si++) {
+            var s1 = buoy.steps[si];
+            var s2 = buoy.steps[si + 1];
+            var pi1 = getPosIdx(s1.pos), ci1 = getColIdx(s1.yr, s1.sl);
+            var pi2 = getPosIdx(s2.pos), ci2 = getColIdx(s2.yr, s2.sl);
+
+            // Choose exit/entry edges so lines go AROUND node pills
+            var srcEdge, dstEdge;
+            if (ci2 > ci1) { srcEdge = 'R'; dstEdge = 'L'; }  // moving right
+            else if (ci2 < ci1) { srcEdge = 'L'; dstEdge = 'R'; }  // moving left
+            else if (pi2 > pi1) { srcEdge = 'B'; dstEdge = 'T'; }  // same col, down
+            else if (pi2 < pi1) { srcEdge = 'T'; dstEdge = 'B'; }  // same col, up
+            else { srcEdge = 'C'; dstEdge = 'C'; }   // same cell
+
+            var p1 = nodeCenterEdge(pi1, ci1, srcEdge);
+            var p2 = nodeCenterEdge(pi2, ci2, dstEdge);
+            if (!p1 || !p2) continue;
+
+            var dash = LINE_DASH[s2.type] || [];
+            var color = (s2.type === 'incident') ? '#ef4444' :
+              (s2.type === 'maintenance') ? '#f97316' : bc;
+
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lw;
+            ctx.setLineDash(dash);
+            if (isHL) { ctx.shadowColor = color; ctx.shadowBlur = 8; }
+
+            var dx = p2.x - p1.x;
+            var dy = p2.y - p1.y;
+            var cp1x, cp1y, cp2x, cp2y;
+            if (srcEdge === 'R' || srcEdge === 'L') {
+              // Horizontal / diagonal: control points arc horizontally
+              var hArc = Math.max(Math.abs(dx) * 0.45, 32);
+              var hDir = (srcEdge === 'R') ? 1 : -1;
+              cp1x = p1.x + hDir * hArc + offset;
+              cp1y = p1.y;
+              cp2x = p2.x - hDir * hArc + offset;
+              cp2y = p2.y;
+            } else {
+              // Vertical: control points arc out vertically, offset per buoy avoids stacking
+              var vArc = Math.max(Math.abs(dy) * 0.45, 32);
+              var vDir = (srcEdge === 'B') ? 1 : -1;
+              cp1x = p1.x + offset;
+              cp1y = p1.y + vDir * vArc;
+              cp2x = p2.x + offset;
+              cp2y = p2.y - vDir * vArc;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+            ctx.stroke();
+
+            // Filled triangle arrowhead — always solid regardless of line dash
+            ctx.setLineDash([]);
+            ctx.shadowBlur = 0;
+            var angle = Math.atan2(p2.y - cp2y, p2.x - cp2x);
+            var aLen = isHL ? 12 : 10;   // bigger = more visible
+            var aWid = 0.44;             // half-angle of the tip
+            ctx.beginPath();
+            ctx.moveTo(p2.x, p2.y);
+            ctx.lineTo(
+              p2.x - aLen * Math.cos(angle - aWid),
+              p2.y - aLen * Math.sin(angle - aWid)
+            );
+            ctx.lineTo(
+              p2.x - aLen * Math.cos(angle + aWid),
+              p2.y - aLen * Math.sin(angle + aWid)
+            );
+            ctx.closePath();
+            ctx.fillStyle = color;
+            // Full opacity for arrowhead even on dimmed lines
+            ctx.globalAlpha = isDim ? 0.15 : 1.0;
+            ctx.fill();
+            ctx.restore();
+          }
+        });
+      }
+
+      /* ── Interactions ───────────────────────────────────────── */
+      function onNodeClick(el) {
+        var bi = parseInt(el.dataset.bi);
+        var bc = BUOY_COLORS[bi % BUOY_COLORS.length];
+        var type = el.dataset.type;
+        var t = TYPES[type] || TYPES.active;
+        document.getElementById('fdNodeDot').style.background = bc;
+        document.getElementById('fdNodeTitle').textContent = 'Chi tiết · ' + el.dataset.pos + ' / ' + el.dataset.yr;
+        document.getElementById('fdNodeId').textContent = el.dataset.buoy;
+        document.getElementById('fdNodePos').textContent = el.dataset.pos;
+        document.getElementById('fdNodeYear').textContent = el.dataset.yr;
+        document.getElementById('fdNodeNote').textContent = el.dataset.note || '(không có ghi chú)';
+        var s = document.getElementById('fdNodeStatus');
+        s.textContent = t.label; s.style.background = t.bg; s.style.color = t.text;
+        new bootstrap.Modal(document.getElementById('fdNodeModal')).show();
+      }
+
+      function onNodeHover(el, entering) {
+        var bid = entering ? el.dataset.buoy : null;
+        if (highlightBuoyId === bid) return;
+        highlightBuoyId = bid;
+        drawCanvas();
+        document.querySelectorAll('.fd-node').forEach(function (n) {
+          n.style.opacity = (!bid || n.dataset.buoy === bid) ? '1' : '0.18';
+        });
+      }
+
+      /* ── Zoom & Pan ─────────────────────────────────────────── */
+      function applyTransform() {
+        var inner = document.getElementById('fdInner');
+        if (!inner) return;
+        inner.style.transform = 'scale(' + scale + ') translate(' + panX + 'px,' + panY + 'px)';
+        inner.style.transformOrigin = '0 0';
+        var lbl = document.getElementById('fdZoomLabel');
+        if (lbl) lbl.textContent = Math.round(scale * 100) + '%';
+        updateStickyHeader();
+      }
+
+      function clampScale(s) { return Math.max(0.35, Math.min(3.0, s)); }
+
+      /* ── Sticky header: compensate for CSS transform breaking position:sticky ── */
+      function updateStickyHeader() {
+        var vp = document.getElementById('fdViewport');
+        var thead = document.querySelector('#fdTable thead');
+        if (!vp || !thead) return;
+        // In the local space of #fdInner (transform: scale(S) translate(Px,Py)),
+        // the visible top of the viewport corresponds to local y = scrollTop/S - panY
+        var visTopLocal = vp.scrollTop / scale - panY;
+        thead.style.transform = 'translateY(' + visTopLocal + 'px)';
+      }
+
+      function setupZoomPan() {
+        var vp = document.getElementById('fdViewport');
+        if (!vp) return;
+
+        vp.addEventListener('wheel', function (e) {
+          if (!e.ctrlKey) return;
+          e.preventDefault();
+          scale = clampScale(scale + (e.deltaY < 0 ? 0.1 : -0.1));
+          applyTransform();
+          drawCanvas();
+        }, { passive: false });
+
+        // Keep header sticky on vertical scroll (CSS sticky breaks inside transform)
+        vp.addEventListener('scroll', function () { updateStickyHeader(); });
+
+        vp.addEventListener('mousedown', function (e) {
+          if (e.target.closest && e.target.closest('.fd-node')) return;
+          isDragging = true;
+          dragStartX = e.clientX; dragStartY = e.clientY;
+          dragPanX = panX; dragPanY = panY;
+          vp.style.cursor = 'grabbing';
+        });
+        window.addEventListener('mousemove', function (e) {
+          if (!isDragging) return;
+          panX = dragPanX + (e.clientX - dragStartX) / scale;
+          panY = dragPanY + (e.clientY - dragStartY) / scale;
+          applyTransform();
+        });
+        window.addEventListener('mouseup', function () {
+          if (!isDragging) return;
+          isDragging = false;
+          var vp2 = document.getElementById('fdViewport');
+          if (vp2) vp2.style.cursor = 'grab';
+        });
+
+        document.getElementById('fdZoomIn').addEventListener('click', function () {
+          scale = clampScale(scale + 0.15); applyTransform(); drawCanvas();
+        });
+        document.getElementById('fdZoomOut').addEventListener('click', function () {
+          scale = clampScale(scale - 0.15); applyTransform(); drawCanvas();
+        });
+        document.getElementById('fdZoomReset').addEventListener('click', function () {
+          scale = 1; panX = 0; panY = 0; applyTransform(); drawCanvas();
+        });
+      }
+
+      /* ── Filter ──────────────────────────────────────────────── */
+      function setupFilter() {
+        var inp = document.getElementById('fdFilterInput');
+        if (!inp) return;
+        inp.addEventListener('input', function () {
+          filterQuery = inp.value.trim();
+          var q = filterQuery.toLowerCase();
+          document.querySelectorAll('.fd-node').forEach(function (n) {
+            n.style.display = (!q || n.dataset.buoy.toLowerCase().indexOf(q) >= 0) ? '' : 'none';
+          });
+          drawCanvas();
+        });
+      }
+
+      /* ── Screen toggle ──────────────────────────────────────── */
+      document.addEventListener('DOMContentLoaded', function () {
+        var mainContent = document.querySelector('.container-fluid.px-4.pb-5');
+        var timelineScreen = document.getElementById('timelineScreen');
+        var btnTimeline = document.getElementById('btnTimelineView');
+        var btnBack = document.getElementById('btnBackToMain');
+
+        if (btnTimeline) {
+          btnTimeline.addEventListener('click', function () {
+            if (mainContent) mainContent.classList.add('d-none');
+            timelineScreen.classList.remove('d-none');
+            if (!gridBuilt) {
+              setTimeout(function () {
+                buildGrid();
+                setupZoomPan();
+                setupFilter();
+                applyTransform();
+              }, 60);
+            }
+          });
+        }
+
+        if (btnBack) {
+          btnBack.addEventListener('click', function () {
+            timelineScreen.classList.add('d-none');
+            if (mainContent) mainContent.classList.remove('d-none');
+            highlightBuoyId = null;
+            filterQuery = '';
+            var inp = document.getElementById('fdFilterInput');
+            if (inp) inp.value = '';
+            document.querySelectorAll('.fd-node').forEach(function (n) {
+              n.style.opacity = '1'; n.style.display = '';
+            });
+          });
+        }
+
+        window.addEventListener('resize', function () {
+          if (!timelineScreen || timelineScreen.classList.contains('d-none')) return;
+          var table = document.getElementById('fdTable');
+          var inner = document.getElementById('fdInner');
+          var canvas = document.getElementById('fdCanvas');
+          if (table && inner && canvas) {
+            var tw = table.scrollWidth, th = table.scrollHeight;
+            inner.style.width = tw + 'px'; inner.style.height = th + 'px';
+            canvas.width = tw; canvas.height = th;
+            drawCanvas();
+          }
+        });
+      });
+
+    })();
   </script>
 </body>
 

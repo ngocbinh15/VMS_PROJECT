@@ -9,57 +9,97 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = LANHossting
 build_property.RootNamespace = LANHossting
-build_property.ProjectDir = F:\Soure_Code\AAVMS_Project\LANHossting\
+build_property.ProjectDir = f:\Soure_Code\AAVMS_Project\LANHossting\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 8.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = F:\Soure_Code\AAVMS_Project\LANHossting
+build_property.MSBuildProjectDirectory = f:\Soure_Code\AAVMS_Project\LANHossting
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 8.0
 build_property.EnableCodeStyleSeverity = 
 
-[F:/Soure_Code/AAVMS_Project/LANHossting/Views/Home/Index.cshtml]
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/Admin/Dashboard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cRGFzaGJvYXJkLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[F:/Soure_Code/AAVMS_Project/LANHossting/Views/Home/Privacy.cshtml]
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[F:/Soure_Code/AAVMS_Project/LANHossting/Views/Shared/Error.cshtml]
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/Kho/Dashboard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcS2hvXERhc2hib2FyZC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/Login/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9naW5cSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/Phao/ChiTiet.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGhhb1xDaGlUaWV0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/Phao/Dashboard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGhhb1xEYXNoYm9hcmQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/Phao/DieuPhoi.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGhhb1xEaWV1UGhvaS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/Phao/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGhhb1xFZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/Phao/LichSu.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGhhb1xMaWNoU3UuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[F:/Soure_Code/AAVMS_Project/LANHossting/Views/Shared/_ValidationScriptsPartial.cshtml]
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/Shared/_MainLayout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9NYWluTGF5b3V0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/Shared/_UserInfo.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Vc2VySW5mby5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[F:/Soure_Code/AAVMS_Project/LANHossting/Views/TestDb/DanhSachKho.cshtml]
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/TestDb/DanhSachKho.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGVzdERiXERhbmhTYWNoS2hvLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[F:/Soure_Code/AAVMS_Project/LANHossting/Views/TestDb/DanhSachPhao.cshtml]
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/TestDb/DanhSachPhao.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGVzdERiXERhbmhTYWNoUGhhby5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[F:/Soure_Code/AAVMS_Project/LANHossting/Views/TestDb/DanhSachTuyenLuong.cshtml]
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/TestDb/DanhSachTuyenLuong.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGVzdERiXERhbmhTYWNoVHV5ZW5MdW9uZy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[F:/Soure_Code/AAVMS_Project/LANHossting/Views/TestDb/Index.cshtml]
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/TestDb/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGVzdERiXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[F:/Soure_Code/AAVMS_Project/LANHossting/Views/_ViewImports.cshtml]
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[F:/Soure_Code/AAVMS_Project/LANHossting/Views/_ViewStart.cshtml]
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[F:/Soure_Code/AAVMS_Project/LANHossting/Views/Shared/_Layout.cshtml]
+[f:/Soure_Code/AAVMS_Project/LANHossting/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-89ypfebxa4

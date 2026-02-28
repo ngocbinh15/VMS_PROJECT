@@ -1,0 +1,140 @@
+@*
+    _MainLayout.cshtml — Shared layout for Kho & Phao modules.
+    Provides: HTML boilerplate, CDNs, glass-nav with logo + UserInfo,
+              logout confirmation modal, and section hooks for per-module content.
+*@
+@{
+    var fullName = Context.Session.GetString("HoTen") ?? "";
+    var role     = Context.Session.GetString("RoleName") ?? "";
+    var initials = fullName.Length >= 2
+        ? fullName.Substring(0, 2).ToUpper()
+        : "VMS";
+}
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@(ViewData["Title"] ?? "VMS")</title>
+
+    <!-- Bootstrap 5.3.2 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+          rel="stylesheet">
+
+    <!-- ═══ SHARED BASE CSS ═══ -->
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a0ca3;
+            --secondary: #4cc9f0;
+            --success: #10b981;
+            --danger: #ef476f;
+            --warning: #f59e0b;
+            --info: #3f37c9;
+            --border-radius: 16px;
+            --card-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            padding-top: 80px;
+            overflow-x: hidden;
+            font-size: 0.95rem;
+        }
+        /* ═══ SHARED GLASS NAV ═══ */
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            padding: 12px 0;
+        }
+        /* ═══ SHARED TOAST ═══ */
+        .toast-container-shared {
+            position: fixed; top: 90px; right: 20px; z-index: 9999;
+        }
+        /* ═══ SHARED LOGOUT BUTTON ═══ */
+        .btn-logout-shared {
+            transition: all 0.2s ease;
+        }
+        .btn-logout-shared:hover {
+            background-color: rgba(239, 71, 111, 0.1);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+    </style>
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+
+<body>
+
+    <!-- ═══════════════════ SHARED NAVBAR ═══════════════════ -->
+    <nav class="navbar navbar-expand-lg fixed-top glass-nav">
+        <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+
+            <!-- Logo bên trái -->
+            <a class="navbar-brand m-0 p-0" href="#">
+                <img src="~/image_2.png"
+                     asp-append-version="true"
+                     alt="Tổng Công ty Bảo đảm An toàn Hàng hải Việt Nam"
+                     height="55">
+            </a>
+
+            <!-- Bên phải: module actions (optional) + user info -->
+            <div class="d-flex align-items-center gap-3">
+                @await RenderSectionAsync("NavbarExtra", required: false)
+
+                <!-- ── User Info (shared) ── -->
+                <div class="text-end d-none d-sm-block">
+                    <div class="fw-bold text-dark small">@fullName</div>
+                    <div class="text-muted" style="font-size: 0.7rem;">@role</div>
+                </div>
+                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                     style="width: 40px; height: 40px; font-size: 0.85rem;">
+                    @initials
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold btn-logout-shared" title="Đăng xuất"
+                        data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">
+                    <i class="bi bi-box-arrow-right me-1"></i>Đăng Xuất
+                </button>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- ═══════════════════ LOGOUT CONFIRM MODAL ═══════════════════ -->
+    <div class="modal fade" id="logoutConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-body text-center py-4">
+                    <div class="text-danger mb-3"><i class="bi bi-box-arrow-right" style="font-size: 2.5rem;"></i></div>
+                    <h6 class="fw-bold">Xác nhận đăng xuất</h6>
+                    <p class="text-muted small mb-0">Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?</p>
+                </div>
+                <div class="modal-footer border-top-0 justify-content-center pt-0 pb-4">
+                    <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">Hủy</button>
+                    <a href="@Url.Action("Logout", "Login")" class="btn btn-danger fw-bold px-4">
+                        <i class="bi bi-box-arrow-right me-1"></i>Đăng xuất
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ BODY CONTENT ═══════════════════ -->
+    @RenderBody()
+
+    <!-- ═══════════════════ SCRIPTS ═══════════════════ -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>
+

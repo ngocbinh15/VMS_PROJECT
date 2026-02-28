@@ -1,121 +1,1390 @@
+@model LANHossting.ViewModels.Buoy.PhaoIndexViewModel
 @{
-    ViewData["Title"] = "Dashboard - Quản Lý Phao";
+    ViewData["Title"] = "VMS - Quản Lý Phao";
+    Layout = "_MainLayout";
 }
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"]</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <style>
-        body {
-            background: linear-gradient(135deg, #f8fafc 0%, #dbeafe 100%);
-            min-height: 100vh;
-            font-family: 'Inter', sans-serif;
-        }
-        .navbar-custom {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .card-dashboard {
+@section Styles {
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+<style>
+        .stat-card {
+            background: white;
+            border-radius: var(--border-radius);
             border: none;
-            border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            transition: transform 0.3s ease;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            transition: 0.3s ease;
         }
-        .card-dashboard:hover {
+        .stat-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
-        .icon-box {
-            width: 64px;
-            height: 64px;
+        .stat-icon {
+            width: 45px;
+            height: 45px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
-            margin-bottom: 16px;
+            font-size: 1.25rem;
         }
+        .table-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            border: none;
+            overflow: hidden;
+        }
+        .table-custom thead th {
+            background: #f8fafc;
+            color: #64748b;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            padding: 16px;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+        .table-custom td {
+            padding: 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        .table-custom tr:hover td {
+            background-color: #f8fafc;
+        }
+        .btn-modern {
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 10px 20px;
+            transition: 0.2s;
+            border: none;
+        }
+        .search-input {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px 16px 10px 40px;
+            width: 100%;
+            transition: 0.2s;
+        }
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+            outline: none;
+        }
+        .badge-status {
+            padding: 6px 10px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .badge-active   { background: #dcfce7; color: #166534; }
+        .badge-maint   { background: #fef9c3; color: #854d0e; }
+        .badge-thu-hoi { background: #dbeafe; color: #1e40af; }
+        .badge-cho-thue{ background: #ede9fe; color: #5b21b6; }
+        .badge-mat-dau { background: #fee2e2; color: #991b1b; }
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: #64748b;
+            transition: 0.2s;
+            background: transparent;
+            border: 1px solid transparent;
+        }
+        .action-btn:hover { background: #f1f5f9; color: var(--primary); transform: scale(1.1); }
+        .action-btn-edit:hover { color: var(--warning); }
+        .action-btn-delete:hover { color: var(--danger); background: #fef2f2; }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Fixed-size modals ── */
+        #phaoDetailModal .modal-content,
+        #phaoEditModal .modal-content {
+            min-height: 620px;
+            max-height: 85vh;
+        }
+        #phaoDetailModal .modal-body,
+        #phaoEditModal .modal-body {
+            overflow-y: auto;
+            min-height: 460px;
+        }
+        #phaoDetailModal .tab-content,
+        #phaoEditModal .tab-content {
+            min-height: 380px;
+        }
+
+        /* ── Detail modal readability ── */
+        .detail-section-title {
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #475569;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+            margin-top: 8px;
+        }
+        .detail-section-title i { margin-right: 6px; color: var(--primary); }
+        .detail-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin-bottom: 2px;
+            letter-spacing: 0.3px;
+        }
+        .detail-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1e293b;
+            min-height: 24px;
+        }
+        .detail-value.text-primary { color: var(--primary) !important; }
+        .detail-pair { margin-bottom: 14px; }
+
+        /* ── Edit dropdown readonly coords ── */
+        .coord-display {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.9rem;
+        }
+
+        /* Toast notification */
+        .toast-container { position: fixed; top: 90px; right: 20px; z-index: 9999; }
+
+        /* ── Blue enterprise theme (#0d6efd) ── */
+        #phaoEditModal .modal-title { color: #0d6efd !important; }
+        #phaoEditModal .nav-link.active {
+            color: #0d6efd !important;
+            border-bottom-color: #0d6efd !important;
+        }
+        #phaoEditModal .nav-link:hover { color: #0d6efd; }
+        #phaoEditModal .detail-section-title i { color: #0d6efd; }
+        #phaoDetailModal .modal-title { color: #0d6efd !important; }
+        #phaoDetailModal .nav-link.active {
+            color: #0d6efd !important;
+            border-bottom-color: #0d6efd !important;
+        }
+        #phaoDetailModal .nav-link:hover { color: #0d6efd; }
+        #phaoDetailModal .detail-section-title i { color: #0d6efd; }
     </style>
-</head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
-        <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="#">
-                <i class="bi bi-droplet me-2"></i>VMS - Quản Lý Phao
-            </a>
-            <div class="d-flex align-items-center text-white">
-                <i class="bi bi-person-circle me-2"></i>
-                <span class="me-3">@ViewBag.FullName (@ViewBag.Role)</span>
-                <a href="@Url.Action("Logout", "Login")" class="btn btn-outline-light btn-sm">
-                    <i class="bi bi-box-arrow-right me-1"></i>Đăng xuất
+}
+
+    <!-- ═══════════════════ TOAST ═══════════════════ -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ═══════════════════ MAIN CONTENT ═══════════════════ -->
+    <div class="container-fluid px-4 pb-5">
+
+        <!-- ── Header ── -->
+        <div class="d-flex justify-content-between align-items-end mb-4 animate-fade-in">
+            <div>
+                <h4 class="fw-bold mb-1 text-dark">Quản Lý Hệ Thống Phao</h4>
+                <div class="text-muted small">Danh sách các phao báo hiệu hàng hải trong khu vực quản lý.</div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="@Url.Action("LichSu", "Phao")" class="btn btn-light border fw-bold text-secondary btn-modern">
+                    <i class="bi bi-clock-history me-1"></i> Vòng đời phao
+                </a>
+                <a href="@Url.Action("DieuPhoi", "Phao")" class="btn btn-light border fw-bold text-secondary btn-modern">
+                    <i class="bi bi-geo-alt me-1"></i> Điều Phối
                 </a>
             </div>
         </div>
-    </nav>
 
-    <div class="container mt-5">
-        <h2 class="mb-4 fw-bold">
-            <i class="bi bi-speedometer2 me-2 text-primary"></i>
-            Dashboard Quản Lý Phao
-        </h2>
-        
-        <div class="row g-4">
-            <!-- Card Danh sách Phao -->
+        <!-- ── Stats Cards (3 cards, no Dự Phòng) ── -->
+        <div class="row g-4 mb-4 animate-fade-in" style="animation-delay: 0.1s;">
             <div class="col-md-4">
-                <div class="card card-dashboard">
-                    <div class="card-body p-4">
-                        <div class="icon-box bg-primary bg-opacity-10 text-primary">
-                            <i class="bi bi-droplet-fill"></i>
-                        </div>
-                        <h5 class="fw-bold mb-2">Danh Sách Phao</h5>
-                        <p class="text-muted mb-3">Quản lý phao báo hiệu</p>
-                        <a href="#" class="btn btn-primary btn-sm">
-                            <i class="bi bi-arrow-right me-1"></i>Xem
-                        </a>
+                <div class="stat-card d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-layers-fill"></i></div>
+                    <div>
+                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Tổng Số Phao</h6>
+                        <h4 class="fw-bold mb-0" id="statTongSo">@Model.ThongKe.TongSoPhao</h4>
                     </div>
                 </div>
             </div>
-
-            <!-- Card Tuyến luồng -->
             <div class="col-md-4">
-                <div class="card card-dashboard">
-                    <div class="card-body p-4">
-                        <div class="icon-box bg-info bg-opacity-10 text-info">
-                            <i class="bi bi-map"></i>
-                        </div>
-                        <h5 class="fw-bold mb-2">Tuyến Luồng</h5>
-                        <p class="text-muted mb-3">Quản lý tuyến luồng</p>
-                        <a href="#" class="btn btn-info btn-sm text-white">
-                            <i class="bi bi-arrow-right me-1"></i>Xem
-                        </a>
+                <div class="stat-card d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-check-circle-fill"></i></div>
+                    <div>
+                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Trên Luồng</h6>
+                        <h4 class="fw-bold mb-0" id="statTrenLuong">@Model.ThongKe.SoPhaoTrenLuong</h4>
                     </div>
                 </div>
             </div>
-
-            <!-- Card Vị trí -->
             <div class="col-md-4">
-                <div class="card card-dashboard">
-                    <div class="card-body p-4">
-                        <div class="icon-box bg-success bg-opacity-10 text-success">
-                            <i class="bi bi-geo-alt-fill"></i>
-                        </div>
-                        <h5 class="fw-bold mb-2">Vị Trí Phao</h5>
-                        <p class="text-muted mb-3">Vị trí phao trên luồng</p>
-                        <a href="#" class="btn btn-success btn-sm">
-                            <i class="bi bi-arrow-right me-1"></i>Xem
-                        </a>
+                <div class="stat-card d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-wrench-adjustable"></i></div>
+                    <div>
+                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Bảo Trì / Sự Cố</h6>
+                        <h4 class="fw-bold mb-0" id="statBaoTri">@Model.ThongKe.SoPhaoSuCo</h4>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Table ── -->
+        <div class="table-card animate-fade-in" style="animation-delay: 0.2s;">
+            <!-- Search & Filter Bar -->
+            <div class="p-3 border-bottom border-light bg-white d-flex flex-wrap gap-3 align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3 flex-grow-1">
+                    <div class="position-relative" style="min-width: 300px;">
+                        <i class="bi bi-search position-absolute text-muted" style="left: 12px; top: 11px;"></i>
+                        <input type="text" class="search-input" id="searchInput"
+                               value="@Model.SearchTerm"
+                               placeholder="Tìm kiếm theo ký hiệu, mã phao, loại phao...">
+                    </div>
+                    <select class="form-select border-light bg-light fw-semibold text-secondary"
+                            style="width: auto; border-radius: 12px;" id="routeFilter">
+                        <option value="">Tất cả tuyến</option>
+                        @foreach (var tuyen in Model.DanhSachTuyenLuong)
+                        {
+                            var isSelected = Model.SelectedTuyenLuongId == tuyen.Id;
+                            if (isSelected)
+                            {
+                                <option value="@tuyen.Id" selected>@tuyen.TenTuyen (@tuyen.MaTuyen)</option>
+                            }
+                            else
+                            {
+                                <option value="@tuyen.Id">@tuyen.TenTuyen (@tuyen.MaTuyen)</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="text-muted small fw-bold">
+                    Tổng: <span class="text-primary" id="totalCount">@Model.DanhSachPhao.Count</span> phao
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="table-responsive">
+                <table class="table table-custom w-100 align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4 text-center" width="5%">STT</th>
+                            <th width="14%">Ký hiệu</th>
+                            <th width="11%">Mã phao</th>
+                            <th width="9%" class="text-center">Đường kính (m)</th>
+                            <th width="14%">Vị trí hiện tại</th>
+                            <th width="11%">Tuyến luồng</th>
+                            <th width="11%">Sửa chữa gần nhất</th>
+                            <th width="10%" class="text-center">Trạng thái</th>
+                            <th width="15%" class="text-end pe-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="buoyTableBody">
+                        @if (Model.DanhSachPhao.Any())
+                        {
+                            var index = 0;
+                            @foreach (var phao in Model.DanhSachPhao)
+                            {
+                                index++;
+                                <tr class="animate-fade-in" style="animation-delay: @(index * 0.03)s" data-id="@phao.Id">
+                                    <td class="text-center ps-4 fw-bold text-muted">@index</td>
+                                    <td>
+                                        <div class="fw-bold text-dark">@phao.KyHieuTaiSan</div>
+                                        <div class="small text-muted" style="font-size: 0.75rem;">@phao.MaLoaiPhao</div>
+                                    </td>
+                                    <td class="fw-semibold text-primary">@phao.MaPhaoDayDu</td>
+                                    <td class="text-center font-monospace text-muted">
+                                        @(phao.DuongKinhPhao?.ToString("F2") ?? "--")
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(phao.ViTriHienTai))
+                                        {
+                                            <div class="small fw-bold text-dark">
+                                                <i class="bi bi-geo-alt-fill text-danger me-1"></i>@phao.ViTriHienTai
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(phao.ToaDo))
+                                            {
+                                                <div class="small text-muted ms-3">@phao.ToaDo</div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">--</span>
+                                        }
+                                    </td>
+                                    <td class="small fw-semibold text-secondary">
+                                        @(phao.TuyenLuong ?? "--")
+                                    </td>
+                                    <td class="small fw-bold text-dark">
+                                        @(phao.NgaySuaChuaGanNhat?.ToString("dd/MM/yyyy") ?? "--")
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge-status @phao.TrangThaiHienThiClass">
+                                            @phao.TrangThaiHienTai
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <div class="d-flex justify-content-end gap-1">
+                                            <button class="action-btn" title="Xem chi tiết"
+                                                    onclick="viewPhaoDetail(@phao.Id)">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            <button class="action-btn action-btn-edit" title="Chỉnh sửa"
+                                                    onclick="openEditModal(@phao.Id)">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </button>
+                                            <button class="action-btn action-btn-delete" title="Xóa"
+                                                    onclick="confirmDelete(@phao.Id, '@phao.KyHieuTaiSan')">
+                                                <i class="bi bi-trash3"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-5">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                                    @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                                    {
+                                        <span>Không tìm thấy phao nào phù hợp với "<strong>@Model.SearchTerm</strong>"</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Chưa có dữ liệu phao trong hệ thống.</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-4 py-3 border-top border-light d-flex justify-content-between align-items-center bg-white">
+                <div class="text-muted small fw-bold">
+                    Hiển thị <span class="text-primary" id="displayCount">@Model.DanhSachPhao.Count</span> phao
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    <!-- ═══════════════════ DETAIL MODAL (fixed size) ═══════════════════ -->
+    <div class="modal fade" id="phaoDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-primary">Thông Tin Phao Báo Hiệu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <div id="modalLoading" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="mt-2 text-muted">Đang tải...</div>
+                    </div>
+                    <div id="modalContent" class="d-none">
+                        <ul class="nav nav-tabs mb-3" role="tablist" style="border-bottom: 2px solid #f1f5f9;">
+                            <li class="nav-item"><button class="nav-link active fw-semibold" data-bs-toggle="tab" data-bs-target="#tabGeneral">Thông tin chung</button></li>
+                            <li class="nav-item"><button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#tabXich">Xích & Rùa</button></li>
+                            <li class="nav-item"><button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#tabDen">Đèn báo hiệu</button></li>
+                            <li class="nav-item"><button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#tabQuanLy">Quản lý</button></li>
+                        </ul>
+                        <div class="tab-content">
+                            <!-- TAB: Thông tin chung -->
+                            <div class="tab-pane fade show active" id="tabGeneral">
+                                <div class="detail-section-title"><i class="bi bi-info-circle-fill"></i>ĐỊNH DANH</div>
+                                <div class="row">
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Ký hiệu tài sản</div><div class="detail-value text-primary" id="dtKyHieu">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Mã phao đầy đủ</div><div class="detail-value" id="dtMaPhao">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Loại phao</div><div class="detail-value" id="dtLoaiPhao">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Trạng thái</div><div class="detail-value" id="dtTrangThai">--</div></div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-rulers"></i>KỸ THUẬT</div>
+                                <div class="row">
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Đường kính (m)</div><div class="detail-value" id="dtDuongKinh">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Chiều cao toàn bộ (m)</div><div class="detail-value" id="dtChieuCao">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Hình dạng</div><div class="detail-value" id="dtHinhDang">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Vật liệu</div><div class="detail-value" id="dtVatLieu">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Màu sắc</div><div class="detail-value" id="dtMauSac">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Diện tích (m²)</div><div class="detail-value" id="dtDienTich">--</div></div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-geo-alt-fill"></i>VỊ TRÍ</div>
+                                <div class="row">
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Vị trí hiện tại</div><div class="detail-value" id="dtViTri">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Tuyến luồng</div><div class="detail-value" id="dtTuyen">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Vĩ độ</div><div class="detail-value font-monospace" id="dtViDo">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Kinh độ</div><div class="detail-value font-monospace" id="dtKinhDo">--</div></div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-calendar-event"></i>THỜI GIAN</div>
+                                <div class="row">
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Thời gian sử dụng</div><div class="detail-value" id="dtThoiGianSD">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Thời điểm thay thả</div><div class="detail-value" id="dtThoiDiemThayTha">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Sửa chữa gần nhất</div><div class="detail-value" id="dtSuaChuaGanNhat">--</div></div>
+                                </div>
+                            </div>
+                            <!-- TAB: Xích & Rùa -->
+                            <div class="tab-pane fade" id="tabXich">
+                                <div class="detail-section-title"><i class="bi bi-link-45deg"></i>XÍCH PHAO</div>
+                                <div class="row">
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Đường kính (Ø mm)</div><div class="detail-value" id="dtXichPhao_DK">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Chiều dài (m)</div><div class="detail-value" id="dtXichPhao_CD">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Thời điểm sử dụng</div><div class="detail-value" id="dtXichPhao_SD">--</div></div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-link-45deg"></i>XÍCH RÙA</div>
+                                <div class="row">
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Đường kính (Ø mm)</div><div class="detail-value" id="dtXichRua_DK">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Chiều dài (m)</div><div class="detail-value" id="dtXichRua_CD">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Thời điểm sử dụng</div><div class="detail-value" id="dtXichRua_SD">--</div></div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-box-fill"></i>RÙA (NEO CHÌM)</div>
+                                <div class="row">
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Trọng lượng (tấn)</div><div class="detail-value" id="dtRua_TL">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Thời điểm sử dụng</div><div class="detail-value" id="dtRua_SD">--</div></div>
+                                </div>
+                            </div>
+                            <!-- TAB: Đèn báo hiệu -->
+                            <div class="tab-pane fade" id="tabDen">
+                                <div class="detail-section-title"><i class="bi bi-lightbulb-fill"></i>ĐÈN BÁO HIỆU</div>
+                                <div class="row">
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Chủng loại</div><div class="detail-value" id="dtDen_CL">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Kết nối AIS</div><div class="detail-value" id="dtDen_AIS">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Đặc tính ánh sáng</div><div class="detail-value" id="dtDen_AS">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Chiếu xa tầm sáng (hải lý)</div><div class="detail-value" id="dtDen_CX">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Chiều cao tầm sáng hải đồ (m)</div><div class="detail-value" id="dtDen_CCTSHD">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Nguồn năng lượng</div><div class="detail-value" id="dtDen_NL">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Thời điểm sử dụng</div><div class="detail-value" id="dtDen_SD">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Sửa chữa gần nhất</div><div class="detail-value" id="dtDen_SC">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Số QĐ tăng đèn</div><div class="detail-value" id="dtDen_SQDT">--</div></div>
+                                </div>
+                            </div>
+                            <!-- TAB: Quản lý -->
+                            <div class="tab-pane fade" id="tabQuanLy">
+                                <div class="detail-section-title"><i class="bi bi-building"></i>ĐƠN VỊ QUẢN LÝ</div>
+                                <div class="row">
+                                    <div class="col-md-6 detail-pair"><div class="detail-label">Trạm quản lý</div><div class="detail-value" id="dtTramQL">--</div></div>
+                                    <div class="col-md-6 detail-pair"><div class="detail-label">Tỉnh / Thành phố</div><div class="detail-value" id="dtTinhTP">--</div></div>
+                                    <div class="col-md-6 detail-pair"><div class="detail-label">Đơn vị quản lý</div><div class="detail-value" id="dtDVQL">--</div></div>
+                                    <div class="col-md-6 detail-pair"><div class="detail-label">Đơn vị vận hành</div><div class="detail-value" id="dtDVVH">--</div></div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-file-earmark-text"></i>QUYẾT ĐỊNH TĂNG TÀI SẢN</div>
+                                <div class="row">
+                                    <div class="col-md-6 detail-pair"><div class="detail-label">Số quyết định tăng</div><div class="detail-value" id="dtSoQDTang">--</div></div>
+                                    <div class="col-md-6 detail-pair"><div class="detail-label">Ngày quyết định tăng</div><div class="detail-value" id="dtNgayQDTang">--</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ EDIT MODAL ═══════════════════ -->
+    <div class="modal fade" id="phaoEditModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header pb-0 border-bottom-0">
+                    <h5 class="modal-title fw-bold text-primary"><i class="bi bi-pencil-square me-2"></i>Chỉnh Sửa Phao</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <div id="editLoading" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="mt-2 text-muted">Đang tải...</div>
+                    </div>
+                    <div id="editContent" class="d-none">
+                        <input type="hidden" id="editId">
+                        <ul class="nav nav-tabs mb-3" role="tablist" style="border-bottom: 2px solid #f1f5f9;">
+                            <li class="nav-item"><button class="nav-link active fw-semibold" data-bs-toggle="tab" data-bs-target="#editTabGeneral">Thông tin chung</button></li>
+                            <li class="nav-item"><button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#editTabXich">Xích & Rùa</button></li>
+                            <li class="nav-item"><button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#editTabDen">Đèn báo hiệu</button></li>
+                            <li class="nav-item"><button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#editTabQuanLy">Quản lý</button></li>
+                        </ul>
+                        <div class="tab-content">
+                            <!-- Edit Tab: Thông tin chung -->
+                            <div class="tab-pane fade show active" id="editTabGeneral">
+                                <div class="detail-section-title"><i class="bi bi-info-circle-fill"></i>ĐỊNH DANH</div>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Ký hiệu tài sản</label>
+                                        <input type="text" class="form-control form-control-sm" id="edKyHieu" maxlength="50">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Mã phao đầy đủ <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control form-control-sm" id="edMaPhao" maxlength="50" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Tên phao</label>
+                                        <input type="text" class="form-control form-control-sm" id="edTenPhao" maxlength="255">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Số phao hiện tại</label>
+                                        <input type="number" class="form-control form-control-sm" id="edSoPhao">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Trạng thái hoạt động <span class="text-danger">*</span></label>
+                                        <select class="form-select form-select-sm" id="edTrangThai">
+                                            <option value="">— Chọn trạng thái —</option>
+                                            <option value="Trên luồng">Trên luồng</option>
+                                            <option value="Thu hồi">Thu hồi</option>
+                                            <option value="Cho thuê">Cho thuê</option>
+                                            <option value="Sửa chữa">Sửa chữa</option>
+                                            <option value="Mất dấu">Mất dấu</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Tuyến luồng</label>
+                                        <select class="form-select form-select-sm" id="edTuyenLuong" disabled>
+                                            <option value="">—— Chọn tuyến luồng ——</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-rulers"></i>KỸ THUẬT</div>
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Đường kính (m)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edDuongKinh">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Chiều cao toàn bộ (m)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edChieuCao">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Hình dạng</label>
+                                        <input type="text" class="form-control form-control-sm" id="edHinhDang" maxlength="100">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Vật liệu</label>
+                                        <input type="text" class="form-control form-control-sm" id="edVatLieu" maxlength="100">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Màu sắc</label>
+                                        <input type="text" class="form-control form-control-sm" id="edMauSac" maxlength="100">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Diện tích (m²)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edDienTich">
+                                    </div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-geo-alt-fill"></i>VỊ TRÍ</div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Vị trí phao báo hiệu</label>
+                                        <select class="form-select form-select-sm" id="edViTri" disabled>
+                                            <option value="">-- Chọn tuyến luồng trước --</option>
+                                        </select>
+                                        <div id="edViTriWarning" class="alert alert-warning py-1 px-2 mt-1 mb-0 small d-none">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i><span id="edViTriWarningText"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Vĩ độ</label>
+                                        <div class="coord-display" id="edViDo">--</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Kinh độ</label>
+                                        <div class="coord-display" id="edKinhDo">--</div>
+                                    </div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-calendar-event"></i>THỜI GIAN</div>
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Thời gian sử dụng (năm)</label>
+                                        <input type="number" class="form-control form-control-sm" id="edThoiGianSD">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Thời điểm thay thả</label>
+                                        <input type="date" class="form-control form-control-sm" id="edThoiDiemThayTha">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Sửa chữa gần nhất</label>
+                                        <input type="date" class="form-control form-control-sm" id="edSuaChuaGanNhat">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Edit Tab: Xích & Rùa -->
+                            <div class="tab-pane fade" id="editTabXich">
+                                <div class="detail-section-title"><i class="bi bi-link-45deg"></i>XÍCH PHAO</div>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Đường kính (Ø mm)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edXichPhao_DK">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Chiều dài (m)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edXichPhao_CD">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Thời điểm sử dụng</label>
+                                        <input type="date" class="form-control form-control-sm" id="edXichPhao_SD">
+                                    </div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-link-45deg"></i>XÍCH RÙA</div>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Đường kính (Ø mm)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edXichRua_DK">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Chiều dài (m)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edXichRua_CD">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Thời điểm sử dụng</label>
+                                        <input type="date" class="form-control form-control-sm" id="edXichRua_SD">
+                                    </div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-box-fill"></i>RÙA (NEO CHÌM)</div>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Trọng lượng (tấn)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edRua_TL">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Thời điểm sử dụng</label>
+                                        <input type="date" class="form-control form-control-sm" id="edRua_SD">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Edit Tab: Đèn báo hiệu -->
+                            <div class="tab-pane fade" id="editTabDen">
+                                <div class="detail-section-title"><i class="bi bi-lightbulb-fill"></i>ĐÈN BÁO HIỆU</div>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Chủng loại</label>
+                                        <input type="text" class="form-control form-control-sm" id="edDen_CL" maxlength="100">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Kết nối AIS</label>
+                                        <select class="form-select form-select-sm" id="edDen_AIS">
+                                            <option value="">-- Chọn --</option>
+                                            <option value="true">Có</option>
+                                            <option value="false">Không</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Đặc tính ánh sáng</label>
+                                        <input type="text" class="form-control form-control-sm" id="edDen_AS" maxlength="255">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Chiếu xa tầm sáng (hải lý)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edDen_CX">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Chiều cao tầm sáng hải đồ (m)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edDen_CCTSHD">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Nguồn năng lượng</label>
+                                        <input type="text" class="form-control form-control-sm" id="edDen_NL" maxlength="100">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Thời điểm sử dụng</label>
+                                        <input type="date" class="form-control form-control-sm" id="edDen_SD">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Sửa chữa gần nhất</label>
+                                        <input type="date" class="form-control form-control-sm" id="edDen_SC">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Số QĐ tăng đèn</label>
+                                        <input type="text" class="form-control form-control-sm" id="edDen_SQDT" maxlength="100">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Edit Tab: Quản lý -->
+                            <div class="tab-pane fade" id="editTabQuanLy">
+                                <div class="detail-section-title"><i class="bi bi-building"></i>ĐƠN VỊ QUẢN LÝ</div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Trạm quản lý</label>
+                                        <select class="form-select form-select-sm" id="edTramQL">
+                                            <option value="">-- Chọn trạm --</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Tỉnh / Thành phố</label>
+                                        <select class="form-select form-select-sm" id="edTinhTP">
+                                            <option value="">-- Chọn tỉnh/TP --</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Đơn vị quản lý</label>
+                                        <select class="form-select form-select-sm" id="edDVQL">
+                                            <option value="">-- Chọn đơn vị --</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Đơn vị vận hành</label>
+                                        <select class="form-select form-select-sm" id="edDVVH">
+                                            <option value="">-- Chọn đơn vị --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-file-earmark-text"></i>QUYẾT ĐỊNH TĂNG TÀI SẢN</div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Số quyết định tăng</label>
+                                        <input type="text" class="form-control form-control-sm" id="edSoQDTang" maxlength="100">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Ngày quyết định tăng</label>
+                                        <input type="date" class="form-control form-control-sm" id="edNgayQDTang">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary fw-bold text-white" id="btnSaveEdit" onclick="saveEdit()">
+                        <i class="bi bi-check-lg me-1"></i>Lưu thay đổi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ DELETE CONFIRM MODAL ═══════════════════ -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-body text-center py-4">
+                    <div class="text-danger mb-3"><i class="bi bi-exclamation-triangle-fill fs-1"></i></div>
+                    <h6 class="fw-bold">Xác nhận xóa phao</h6>
+                    <p class="text-muted small mb-0">Bạn có chắc chắn muốn xóa phao <strong id="deletePhaoName"></strong>?</p>
+                    <p class="text-danger small">Thao tác này không thể hoàn tác.</p>
+                    <input type="hidden" id="deletePhaoId">
+                </div>
+                <div class="modal-footer border-top-0 justify-content-center pt-0">
+                    <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-danger fw-bold px-4" onclick="executeDelete()">
+                        <i class="bi bi-trash3 me-1"></i>Xóa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ SCRIPTS ═══════════════════ -->
+    @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        // ══════════════════════════════════════════════
+        // URLs
+        // ══════════════════════════════════════════════
+        const URLS = {
+            danhSach: '@Url.Action("DanhSach", "Phao")',
+            chiTiet:  '@Url.Action("ChiTietJson", "Phao")',
+            capNhat:  '@Url.Action("CapNhat", "Phao")',
+            xoa:      '@Url.Action("Xoa", "Phao")',
+            dropdownData: '@Url.Action("GetDropdownData", "Phao")',
+            viTriByTuyen: '@Url.Action("GetViTriByTuyenLuong", "Phao")',
+            checkViTriTrung: '@Url.Action("CheckViTriTrung", "Phao")'
+        };
+        // Flatpickr instances for date inputs in edit modal
+        const fpDate = {};
+
+        // ══════════════════════════════════════════════
+        // UTILITY
+        // ══════════════════════════════════════════════
+        function setText(id, val) { document.getElementById(id).textContent = val || '--'; }
+        function fmt(v) { return v != null ? parseFloat(v).toFixed(2) : '--'; }
+        function fmtDate(v) {
+            if (!v) return '--';
+            return new Date(v).toLocaleDateString('vi-VN');
+        }
+        function fmtDateInput(v) {
+            if (!v) return '';
+            const d = new Date(v);
+            return d.toISOString().split('T')[0];
+        }
+        function getVal(id) { return document.getElementById(id).value; }
+        function getNumVal(id) { const v = document.getElementById(id).value; return v === '' ? null : parseFloat(v); }
+        function getIntVal(id) { const v = document.getElementById(id).value; return v === '' ? null : parseInt(v); }
+
+        function splitCoords(toaDo) {
+            if (!toaDo) return { viDo: '--', kinhDo: '--' };
+            const parts = toaDo.trim().split(/\s+/);
+            return { viDo: parts[0] || '--', kinhDo: parts[1] || '--' };
+        }
+
+        // Dropdown cache
+        let _dropdownCache = null;
+        function loadDropdownData() {
+            if (_dropdownCache) return Promise.resolve(_dropdownCache);
+            return fetch(URLS.dropdownData).then(r => r.json()).then(d => { _dropdownCache = d; return d; });
+        }
+        function populateSelect(selectId, items, selectedVal) {
+            const sel = document.getElementById(selectId);
+            const firstOpt = sel.options[0]; // keep "-- Chọn --"
+            sel.innerHTML = '';
+            sel.appendChild(firstOpt);
+            items.forEach(it => {
+                const opt = document.createElement('option');
+                opt.value = it.value;
+                opt.textContent = it.text;
+                sel.appendChild(opt);
+            });
+            if (selectedVal != null) sel.value = selectedVal;
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const icon = type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill';
+            const bg = type === 'success' ? 'bg-success' : 'bg-danger';
+            const html = `<div class="toast align-items-center text-white ${bg} border-0 show" role="alert">
+                <div class="d-flex"><div class="toast-body"><i class="bi ${icon} me-2"></i>${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>`;
+            container.insertAdjacentHTML('beforeend', html);
+            const toast = container.lastElementChild;
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        // ══════════════════════════════════════════════
+        // AJAX FILTER (search + route)
+        // ══════════════════════════════════════════════
+        let filterTimeout = null;
+
+        function reloadTable() {
+            const search = document.getElementById('searchInput').value.trim();
+            const tuyenLuongId = document.getElementById('routeFilter').value;
+            const params = new URLSearchParams();
+            if (search) params.set('search', search);
+            if (tuyenLuongId) params.set('tuyenLuongId', tuyenLuongId);
+
+            fetch(URLS.danhSach + '?' + params.toString())
+                .then(r => r.json())
+                .then(data => {
+                    renderTable(data.items);
+                    updateStats(data.thongKe);
+                })
+                .catch(err => {
+                    console.error('Filter error:', err);
+                    showToast('Lỗi tải dữ liệu', 'error');
+                });
+        }
+
+        function renderTable(items) {
+            const tbody = document.getElementById('buoyTableBody');
+            document.getElementById('totalCount').textContent = items.length;
+            document.getElementById('displayCount').textContent = items.length;
+
+            if (!items.length) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-5">
+                    <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+                    <span>Không tìm thấy phao nào phù hợp.</span></td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = items.map((p, i) => {
+                const viTri = p.viTriHienTai
+                    ? `<div class="small fw-bold text-dark"><i class="bi bi-geo-alt-fill text-danger me-1"></i>${p.viTriHienTai}</div>
+                       ${p.toaDo ? `<div class="small text-muted ms-3">${p.toaDo}</div>` : ''}`
+                    : '<span class="text-muted small">--</span>';
+
+                const dk = p.duongKinhPhao != null ? parseFloat(p.duongKinhPhao).toFixed(2) : '--';
+                const ngaySC = p.ngaySuaChuaGanNhat ? new Date(p.ngaySuaChuaGanNhat).toLocaleDateString('vi-VN') : 'Chưa sửa chữa';
+
+                // Escape single quotes for onclick
+                const kyHieuSafe = (p.kyHieuTaiSan || '--').replace(/'/g, "\\'");
+
+                return `<tr data-id="${p.id}">
+                    <td class="text-center ps-4 fw-bold text-muted">${i + 1}</td>
+                    <td><div class="fw-bold text-dark">${p.kyHieuTaiSan || '--'}</div>
+                        <div class="small text-muted" style="font-size:0.75rem">${p.maLoaiPhao || ''}</div></td>
+                    <td class="fw-semibold text-primary">${p.maPhaoDayDu}</td>
+                    <td class="text-center font-monospace text-muted">${dk}</td>
+                    <td>${viTri}</td>
+                    <td class="small fw-semibold text-secondary">${p.tuyenLuong || '--'}</td>
+                    <td class="small fw-bold text-dark">${ngaySC}</td>
+                    <td class="text-center"><span class="badge-status ${p.trangThaiHienThiClass}">${p.trangThaiHienTai || '--'}</span></td>
+                    <td class="text-end pe-4">
+                        <div class="d-flex justify-content-end gap-1">
+                            <button class="action-btn" title="Xem chi tiết" onclick="viewPhaoDetail(${p.id})"><i class="bi bi-eye"></i></button>
+                            <button class="action-btn action-btn-edit" title="Chỉnh sửa" onclick="openEditModal(${p.id})"><i class="bi bi-pencil-square"></i></button>
+                            <button class="action-btn action-btn-delete" title="Xóa" onclick="confirmDelete(${p.id}, '${kyHieuSafe}')"><i class="bi bi-trash3"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function updateStats(tk) {
+            document.getElementById('statTongSo').textContent = tk.tongSoPhao;
+            document.getElementById('statTrenLuong').textContent = tk.soPhaoTrenLuong;
+            document.getElementById('statBaoTri').textContent = tk.soPhaoSuCo || 0;
+        }
+
+        // Debounced search
+        document.getElementById('searchInput').addEventListener('input', function () {
+            clearTimeout(filterTimeout);
+            filterTimeout = setTimeout(reloadTable, 400);
+        });
+
+        // Route filter
+        document.getElementById('routeFilter').addEventListener('change', reloadTable);
+
+        // ══════════════════════════════════════════════
+        // VIEW DETAIL MODAL
+        // ══════════════════════════════════════════════
+        function viewPhaoDetail(id) {
+            const modal = new bootstrap.Modal(document.getElementById('phaoDetailModal'));
+            document.getElementById('modalLoading').classList.remove('d-none');
+            document.getElementById('modalContent').classList.add('d-none');
+
+            // Reset to first tab
+            const firstTab = document.querySelector('#phaoDetailModal .nav-link');
+            if (firstTab) bootstrap.Tab.getOrCreateInstance(firstTab).show();
+
+            modal.show();
+
+            fetch(URLS.chiTiet + '/' + id)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('modalLoading').classList.add('d-none');
+                    document.getElementById('modalContent').classList.remove('d-none');
+
+                    setText('dtKyHieu', data.kyHieuTaiSan);
+                    setText('dtMaPhao', data.maPhaoDayDu);
+                    setText('dtLoaiPhao', data.maLoaiPhao);
+                    setText('dtTrangThai', data.trangThaiHienTai);
+                    setText('dtDuongKinh', fmt(data.duongKinhPhao));
+                    setText('dtChieuCao', fmt(data.chieuCaoToanBo));
+                    setText('dtHinhDang', data.hinhDang);
+                    setText('dtVatLieu', data.vatLieu);
+                    setText('dtMauSac', data.mauSac);
+                    setText('dtViTri', data.viTriHienTai);
+                    setText('dtTuyen', data.tuyenLuong);
+                    // v1.1 – Tọa độ tách Vĩ độ / Kinh độ
+                    const coords = splitCoords(data.toaDoThietKe);
+                    setText('dtViDo', coords.viDo);
+                    setText('dtKinhDo', coords.kinhDo);
+                    setText('dtDienTich', fmt(data.dienTich));
+                    setText('dtThoiGianSD', data.thoiGianSuDung != null ? data.thoiGianSuDung + ' năm' : '--');
+                    setText('dtThoiDiemThayTha', fmtDate(data.thoiDiemThayTha));
+                    setText('dtSuaChuaGanNhat', fmtDate(data.thoiDiemSuaChuaGanNhat));
+
+                    setText('dtXichPhao_DK', fmt(data.xichPhao_DuongKinh));
+                    setText('dtXichPhao_CD', fmt(data.xichPhao_ChieuDai));
+                    setText('dtXichPhao_SD', fmtDate(data.xichPhao_ThoiDiemSuDung));
+                    setText('dtXichRua_DK', fmt(data.xichRua_DuongKinh));
+                    setText('dtXichRua_CD', fmt(data.xichRua_ChieuDai));
+                    setText('dtXichRua_SD', fmtDate(data.xichRua_ThoiDiemSuDung));
+                    setText('dtRua_TL', fmt(data.rua_TrongLuong));
+                    setText('dtRua_SD', fmtDate(data.rua_ThoiDiemSuDung));
+
+                    setText('dtDen_CL', data.den_ChungLoai);
+                    setText('dtDen_AIS', data.den_KetNoiAIS === true ? 'Có' : data.den_KetNoiAIS === false ? 'Không' : '--');
+                    setText('dtDen_AS', data.den_DacTinhAnhSang);
+                    setText('dtDen_CX', fmt(data.den_ChieuXaTamSang));
+                    setText('dtDen_NL', data.den_NguonCapNangLuong);
+                    setText('dtDen_SD', fmtDate(data.den_ThoiDiemSuDung));
+                    setText('dtDen_SC', fmtDate(data.den_ThoiDiemSuaChua));
+                    // v1.1 – Đèn mở rộng
+                    setText('dtDen_CCTSHD', fmt(data.den_ChieuCaoTamSangHaiDo));
+                    setText('dtDen_SQDT', data.den_SoQuyetDinhTang);
+                    // v1.1 – Quản lý
+                    setText('dtTramQL', data.tramQuanLyTen);
+                    setText('dtTinhTP', data.tinhThanhPhoTen);
+                    setText('dtDVQL', data.donViQuanLyTen);
+                    setText('dtDVVH', data.donViVanHanhTen);
+                    setText('dtSoQDTang', data.soQuyetDinhTang);
+                    setText('dtNgayQDTang', fmtDate(data.ngayQuyetDinhTang));
+                })
+                .catch(err => {
+                    document.getElementById('modalLoading').innerHTML =
+                        '<div class="text-danger"><i class="bi bi-exclamation-circle fs-1"></i><div class="mt-2">Không thể tải dữ liệu</div></div>';
+                });
+        }
+
+        // ══════════════════════════════════════════════
+        // EDIT MODAL
+        // ══════════════════════════════════════════════
+        // ── Toggle Tuyến/ViTri enable/disable theo TrangThaiHoatDong ──
+        function applyTrangThaiLogic(val) {
+            const isTrenLuong = val === 'Trên luồng';
+            const ddlTuyen = document.getElementById('edTuyenLuong');
+            const ddlViTri = document.getElementById('edViTri');
+            ddlTuyen.disabled = !isTrenLuong;
+            if (!isTrenLuong) {
+                ddlTuyen.value = '';
+                ddlViTri.innerHTML = '<option value="">—— Chọn tuyến luồng trước ——</option>';
+                ddlViTri.disabled = true;
+                document.getElementById('edViDo').textContent = '--';
+                document.getElementById('edKinhDo').textContent = '--';
+                document.getElementById('edViTriWarning').classList.add('d-none');
+                document.getElementById('btnSaveEdit').disabled = false;
+            }
+        }
+
+        // ── Toggle Tuyến/ViTri theo TrangThaiHoatDong ──
+        function applyTrangThaiLogic(val) {
+            const isTrenLuong = val === 'Trên luồng';
+            const ddlTuyen = document.getElementById('edTuyenLuong');
+            const ddlViTri = document.getElementById('edViTri');
+            ddlTuyen.disabled = !isTrenLuong;
+            if (!isTrenLuong) {
+                ddlTuyen.value = '';
+                ddlViTri.innerHTML = '<option value="">-- Chọn tuyến luồng trước --</option>';
+                ddlViTri.disabled = true;
+                document.getElementById('edViDo').textContent = '--';
+                document.getElementById('edKinhDo').textContent = '--';
+                document.getElementById('edViTriWarning').classList.add('d-none');
+                document.getElementById('btnSaveEdit').disabled = false;
+            }
+        }
+
+        // ── Cascade: load ViTri by TuyenLuong ──
+        let _viTriByTuyenCache = {};
+        async function loadViTriByTuyen(tuyenLuongId) {
+            const selViTri = document.getElementById('edViTri');
+            const warn = document.getElementById('edViTriWarning');
+            warn.classList.add('d-none');
+            if (!tuyenLuongId) {
+                selViTri.innerHTML = '<option value="">-- Chọn tuyến luồng trước --</option>';
+                selViTri.disabled = true;
+                updateEditCoords();
+                return [];
+            }
+            if (_viTriByTuyenCache[tuyenLuongId]) {
+                const cached = _viTriByTuyenCache[tuyenLuongId];
+                populateViTriSelect(cached, null);
+                selViTri.disabled = false;
+                return cached;
+            }
+            const resp = await fetch(URLS.viTriByTuyen + '?tuyenLuongId=' + tuyenLuongId);
+            const items = await resp.json();
+            _viTriByTuyenCache[tuyenLuongId] = items;
+            populateViTriSelect(items, null);
+            selViTri.disabled = false;
+            return items;
+        }
+
+        function populateViTriSelect(items, selectedVal) {
+            const sel = document.getElementById('edViTri');
+            sel.innerHTML = '<option value="">-- Chọn vị trí --</option>';
+            items.forEach(it => {
+                const opt = document.createElement('option');
+                opt.value = it.id;
+                opt.textContent = it.maPhaoBH;
+                opt.dataset.toaDo = it.toaDoThietKe || '';
+                sel.appendChild(opt);
+            });
+            if (selectedVal != null) sel.value = selectedVal;
+        }
+
+        function updateEditCoords() {
+            const sel = document.getElementById('edViTri');
+            const selOpt = sel.options[sel.selectedIndex];
+            const toaDo = selOpt && selOpt.dataset.toaDo ? selOpt.dataset.toaDo : null;
+            if (toaDo) {
+                const c = splitCoords(toaDo);
+                document.getElementById('edViDo').textContent = c.viDo;
+                document.getElementById('edKinhDo').textContent = c.kinhDo;
+            } else {
+                document.getElementById('edViDo').textContent = '--';
+                document.getElementById('edKinhDo').textContent = '--';
+            }
+        }
+
+        // ── Duplicate ViTri check ──
+        async function checkViTriDuplicate() {
+            const viTriId = getIntVal('edViTri');
+            const phaoId = parseInt(getVal('editId'));
+            const warn = document.getElementById('edViTriWarning');
+            const btn = document.getElementById('btnSaveEdit');
+            warn.classList.add('d-none');
+
+            if (!viTriId) { btn.disabled = false; return; }
+
+            try {
+                const resp = await fetch(URLS.checkViTriTrung + '?viTriId=' + viTriId + '&excludePhaoId=' + phaoId);
+                const result = await resp.json();
+                if (result.trung) {
+                    document.getElementById('edViTriWarningText').textContent =
+                        'Vị trí này đang được sử dụng bởi phao: ' + (result.tenPhao || result.maPhao);
+                    warn.classList.remove('d-none');
+                    btn.disabled = true;
+                } else {
+                    btn.disabled = false;
+                }
+            } catch { btn.disabled = false; }
+        }
+
+        // ── Tab height sync ──
+        function syncTabHeight() {
+            const general = document.getElementById('editTabGeneral');
+            if (!general) return;
+            requestAnimationFrame(() => {
+                const h = general.scrollHeight;
+                document.querySelectorAll('#phaoEditModal .tab-pane').forEach(pane => {
+                    if (pane.id !== 'editTabGeneral') pane.style.minHeight = h + 'px';
+                });
+            });
+        }
+
+        function openEditModal(id) {
+            const modal = new bootstrap.Modal(document.getElementById('phaoEditModal'));
+            document.getElementById('editLoading').classList.remove('d-none');
+            document.getElementById('editContent').classList.add('d-none');
+            document.getElementById('edViTriWarning').classList.add('d-none');
+            document.getElementById('btnSaveEdit').disabled = false;
+            _viTriByTuyenCache = {};
+
+            // Reset to first tab
+            const firstTab = document.querySelector('#phaoEditModal .nav-link');
+            if (firstTab) bootstrap.Tab.getOrCreateInstance(firstTab).show();
+
+            modal.show();
+
+            // Load both: phao detail + dropdown data in parallel
+            Promise.all([
+                fetch(URLS.chiTiet + '/' + id).then(r => r.json()),
+                loadDropdownData()
+            ])
+            .then(async ([data, dd]) => {
+                    document.getElementById('editLoading').classList.add('d-none');
+                    document.getElementById('editContent').classList.remove('d-none');
+
+                    document.getElementById('editId').value = data.id;
+                    document.getElementById('edKyHieu').value = data.kyHieuTaiSan || '';
+                    document.getElementById('edMaPhao').value = data.maPhaoDayDu || '';
+                    document.getElementById('edTenPhao').value = data.tenPhao || '';
+                    document.getElementById('edSoPhao').value = data.soPhaoHienTai ?? '';
+                    document.getElementById('edDuongKinh').value = data.duongKinhPhao ?? '';
+                    document.getElementById('edChieuCao').value = data.chieuCaoToanBo ?? '';
+                    document.getElementById('edHinhDang').value = data.hinhDang || '';
+                    document.getElementById('edVatLieu').value = data.vatLieu || '';
+                    document.getElementById('edMauSac').value = data.mauSac || '';
+                    // v1.1 – Thông tin chung mở rộng
+                    document.getElementById('edThoiGianSD').value = data.thoiGianSuDung ?? '';
+                    fpDate['edThoiDiemThayTha'].setDate(data.thoiDiemThayTha ? new Date(data.thoiDiemThayTha) : null, false);
+                    fpDate['edSuaChuaGanNhat'].setDate(data.thoiDiemSuaChuaGanNhat ? new Date(data.thoiDiemSuaChuaGanNhat) : null, false);
+                    document.getElementById('edDienTich').value = data.dienTich ?? '';
+
+                    // ── Trạng thái hoạt động ──
+                    const trangThaiVal = data.trangThaiHoatDong || '';
+                    document.getElementById('edTrangThai').value = trangThaiVal;
+                    applyTrangThaiLogic(trangThaiVal);
+                    document.getElementById('edTrangThai').onchange = function () {
+                        applyTrangThaiLogic(this.value);
+                    };
+
+                    // ── Tuyến luồng dropdown ──
+                    populateSelect('edTuyenLuong', dd.tuyenLuong, data.tuyenLuongId);
+                    // Re-apply disabled state after populate
+                    document.getElementById('edTuyenLuong').disabled = trangThaiVal !== 'Trên luồng';
+                    document.getElementById('edTuyenLuong').onchange = async function () {
+                        await loadViTriByTuyen(this.value);
+                        updateEditCoords();
+                        document.getElementById('edViTriWarning').classList.add('d-none');
+                        document.getElementById('btnSaveEdit').disabled = false;
+                    };
+
+                    // ── Cascade: load ViTri for current TuyenLuong ──
+                    if (trangThaiVal === 'Trên luồng' && data.tuyenLuongId) {
+                        const items = await loadViTriByTuyen(data.tuyenLuongId);
+                        populateViTriSelect(items, data.viTriPhaoBHHienTaiId);
+                    }
+                    // Show coords
+                    if (data.toaDoThietKe) {
+                        const c = splitCoords(data.toaDoThietKe);
+                        document.getElementById('edViDo').textContent = c.viDo;
+                        document.getElementById('edKinhDo').textContent = c.kinhDo;
+                    } else {
+                        updateEditCoords();
+                    }
+
+                    // ── ViTri change: coords + duplicate check ──
+                    document.getElementById('edViTri').onchange = async function () {
+                        updateEditCoords();
+                        await checkViTriDuplicate();
+                    };
+
+                    // Populate dropdowns: Quản lý
+                    populateSelect('edTramQL', dd.tramQuanLy, data.tramQuanLyId);
+                    populateSelect('edTinhTP', dd.tinhThanhPho, data.tinhThanhPhoId);
+                    populateSelect('edDVQL', dd.donVi, data.donViQuanLyId);
+                    populateSelect('edDVVH', dd.donVi, data.donViVanHanhId);
+
+                    document.getElementById('edXichPhao_DK').value = data.xichPhao_DuongKinh ?? '';
+                    document.getElementById('edXichPhao_CD').value = data.xichPhao_ChieuDai ?? '';
+                    fpDate['edXichPhao_SD'].setDate(data.xichPhao_ThoiDiemSuDung ? new Date(data.xichPhao_ThoiDiemSuDung) : null, false);
+                    document.getElementById('edXichRua_DK').value = data.xichRua_DuongKinh ?? '';
+                    document.getElementById('edXichRua_CD').value = data.xichRua_ChieuDai ?? '';
+                    fpDate['edXichRua_SD'].setDate(data.xichRua_ThoiDiemSuDung ? new Date(data.xichRua_ThoiDiemSuDung) : null, false);
+                    document.getElementById('edRua_TL').value = data.rua_TrongLuong ?? '';
+                    fpDate['edRua_SD'].setDate(data.rua_ThoiDiemSuDung ? new Date(data.rua_ThoiDiemSuDung) : null, false);
+
+                    document.getElementById('edDen_CL').value = data.den_ChungLoai || '';
+                    document.getElementById('edDen_AIS').value = data.den_KetNoiAIS === true ? 'true' : data.den_KetNoiAIS === false ? 'false' : '';
+                    document.getElementById('edDen_AS').value = data.den_DacTinhAnhSang || '';
+                    document.getElementById('edDen_CX').value = data.den_ChieuXaTamSang ?? '';
+                    document.getElementById('edDen_NL').value = data.den_NguonCapNangLuong || '';
+                    fpDate['edDen_SD'].setDate(data.den_ThoiDiemSuDung ? new Date(data.den_ThoiDiemSuDung) : null, false);
+                    fpDate['edDen_SC'].setDate(data.den_ThoiDiemSuaChua ? new Date(data.den_ThoiDiemSuaChua) : null, false);
+                    // v1.1 – Đèn mở rộng
+                    document.getElementById('edDen_CCTSHD').value = data.den_ChieuCaoTamSangHaiDo ?? '';
+                    document.getElementById('edDen_SQDT').value = data.den_SoQuyetDinhTang || '';
+                    // v1.1 – Quản lý (text inputs)
+                    document.getElementById('edSoQDTang').value = data.soQuyetDinhTang || '';
+                    fpDate['edNgayQDTang'].setDate(data.ngayQuyetDinhTang ? new Date(data.ngayQuyetDinhTang) : null, false);
+
+                    // ── Tab height sync ──
+                    syncTabHeight();
+                })
+                .catch(err => {
+                    document.getElementById('editLoading').innerHTML =
+                        '<div class="text-danger"><i class="bi bi-exclamation-circle fs-1"></i><div class="mt-2">Không thể tải dữ liệu</div></div>';
+                });
+        }
+
+        function saveEdit() {
+            const maPhao = getVal('edMaPhao').trim();
+            if (!maPhao) {
+                showToast('Mã phao đầy đủ là bắt buộc', 'error');
+                return;
+            }
+
+            const trangThaiHoatDong = getVal('edTrangThai').trim();
+            if (!trangThaiHoatDong) {
+                showToast('Vui lòng chọn trạng thái hoạt động', 'error');
+                return;
+            }
+            const isTrenLuong = trangThaiHoatDong === 'Trên luồng';
+
+            const btn = document.getElementById('btnSaveEdit');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang lưu...';
+
+            const aisVal = getVal('edDen_AIS');
+            const dto = {
+                id: parseInt(getVal('editId')),
+                maPhaoDayDu: maPhao,
+                kyHieuTaiSan: getVal('edKyHieu') || null,
+                tenPhao: getVal('edTenPhao') || null,
+                soPhaoHienTai: getIntVal('edSoPhao'),
+                duongKinhPhao: getNumVal('edDuongKinh'),
+                chieuCaoToanBo: getNumVal('edChieuCao'),
+                hinhDang: getVal('edHinhDang') || null,
+                vatLieu: getVal('edVatLieu') || null,
+                mauSac: getVal('edMauSac') || null,
+                // v1.1 – Thông tin chung mở rộng
+                thoiGianSuDung: getIntVal('edThoiGianSD'),
+                thoiDiemThayTha: getVal('edThoiDiemThayTha') || null,
+                thoiDiemSuaChuaGanNhat: getVal('edSuaChuaGanNhat') || null,
+                dienTich: getNumVal('edDienTich'),
+                trangThaiHoatDong: trangThaiHoatDong,
+                viTriPhaoBHHienTaiId: isTrenLuong ? getIntVal('edViTri') : null,
+                xichPhao_DuongKinh: getNumVal('edXichPhao_DK'),
+                xichPhao_ChieuDai: getNumVal('edXichPhao_CD'),
+                xichPhao_ThoiDiemSuDung: getVal('edXichPhao_SD') || null,
+                xichRua_DuongKinh: getNumVal('edXichRua_DK'),
+                xichRua_ChieuDai: getNumVal('edXichRua_CD'),
+                xichRua_ThoiDiemSuDung: getVal('edXichRua_SD') || null,
+                rua_TrongLuong: getNumVal('edRua_TL'),
+                rua_ThoiDiemSuDung: getVal('edRua_SD') || null,
+                den_ChungLoai: getVal('edDen_CL') || null,
+                den_KetNoiAIS: aisVal === 'true' ? true : aisVal === 'false' ? false : null,
+                den_DacTinhAnhSang: getVal('edDen_AS') || null,
+                den_ChieuXaTamSang: getNumVal('edDen_CX'),
+                den_NguonCapNangLuong: getVal('edDen_NL') || null,
+                den_ThoiDiemSuDung: getVal('edDen_SD') || null,
+                den_ThoiDiemSuaChua: getVal('edDen_SC') || null,
+                // v1.1 – Đèn mở rộng
+                den_ChieuCaoTamSangHaiDo: getNumVal('edDen_CCTSHD'),
+                den_SoQuyetDinhTang: getVal('edDen_SQDT') || null,
+                // v1.1 – Quản lý
+                tramQuanLyId: getIntVal('edTramQL'),
+                tinhThanhPhoId: getIntVal('edTinhTP'),
+                donViQuanLyId: getIntVal('edDVQL'),
+                donViVanHanhId: getIntVal('edDVVH'),
+                soQuyetDinhTang: getVal('edSoQDTang') || null,
+                ngayQuyetDinhTang: getVal('edNgayQDTang') || null
+            };
+
+            fetch(URLS.capNhat, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dto)
+            })
+            .then(r => r.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Lưu thay đổi';
+
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('phaoEditModal')).hide();
+                    showToast('Cập nhật phao thành công!');
+                    reloadTable();
+                } else {
+                    showToast(data.error || 'Lỗi cập nhật', 'error');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Lưu thay đổi';
+                showToast('Lỗi kết nối server', 'error');
+            });
+        }
+
+        // ══════════════════════════════════════════════
+        // DELETE
+        // ══════════════════════════════════════════════
+        function confirmDelete(id, name) {
+            document.getElementById('deletePhaoId').value = id;
+            document.getElementById('deletePhaoName').textContent = name;
+            new bootstrap.Modal(document.getElementById('deleteConfirmModal')).show();
+        }
+
+        function executeDelete() {
+            const id = document.getElementById('deletePhaoId').value;
+
+            fetch(URLS.xoa + '/' + id, { method: 'POST' })
+                .then(r => r.json())
+                .then(data => {
+                    bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
+                    if (data.success) {
+                        showToast('Đã xóa phao thành công!');
+                        reloadTable();
+                    } else {
+                        showToast(data.error || 'Lỗi xóa phao', 'error');
+                    }
+                })
+                .catch(err => {
+                    bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
+                    showToast('Lỗi kết nối server', 'error');
+                });
+        }
+
+        // ── Flatpickr init (dd/MM/yyyy for all modal date inputs) ──────────────
+        ['edThoiDiemThayTha','edSuaChuaGanNhat','edXichPhao_SD','edXichRua_SD',
+         'edRua_SD','edDen_SD','edDen_SC','edNgayQDTang'].forEach(function(id) {
+            fpDate[id] = flatpickr(document.getElementById(id), {
+                dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'd/m/Y',
+                allowInput: true
+            });
+        });
+    </script>
+    }
