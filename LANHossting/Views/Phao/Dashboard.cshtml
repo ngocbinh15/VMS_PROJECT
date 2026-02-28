@@ -109,21 +109,79 @@
         /* ── Fixed-size modals ── */
         #phaoDetailModal .modal-content,
         #phaoEditModal .modal-content {
-            min-height: 520px;
-            max-height: 80vh;
+            min-height: 620px;
+            max-height: 85vh;
         }
         #phaoDetailModal .modal-body,
         #phaoEditModal .modal-body {
             overflow-y: auto;
-            min-height: 380px;
+            min-height: 460px;
         }
         #phaoDetailModal .tab-content,
         #phaoEditModal .tab-content {
-            min-height: 280px;
+            min-height: 380px;
+        }
+
+        /* ── Detail modal readability ── */
+        .detail-section-title {
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #475569;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+            margin-top: 8px;
+        }
+        .detail-section-title i { margin-right: 6px; color: var(--primary); }
+        .detail-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin-bottom: 2px;
+            letter-spacing: 0.3px;
+        }
+        .detail-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1e293b;
+            min-height: 24px;
+        }
+        .detail-value.text-primary { color: var(--primary) !important; }
+        .detail-pair { margin-bottom: 14px; }
+
+        /* ── Edit dropdown readonly coords ── */
+        .coord-display {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.9rem;
         }
 
         /* Toast notification */
         .toast-container { position: fixed; top: 90px; right: 20px; z-index: 9999; }
+
+        /* ── Blue enterprise theme (#0d6efd) ── */
+        #phaoEditModal .modal-title { color: #0d6efd !important; }
+        #phaoEditModal .nav-link.active {
+            color: #0d6efd !important;
+            border-bottom-color: #0d6efd !important;
+        }
+        #phaoEditModal .nav-link:hover { color: #0d6efd; }
+        #phaoEditModal .detail-section-title i { color: #0d6efd; }
+        #phaoDetailModal .modal-title { color: #0d6efd !important; }
+        #phaoDetailModal .nav-link.active {
+            color: #0d6efd !important;
+            border-bottom-color: #0d6efd !important;
+        }
+        #phaoDetailModal .nav-link:hover { color: #0d6efd; }
+        #phaoDetailModal .detail-section-title i { color: #0d6efd; }
     </style>
 }
 
@@ -335,140 +393,93 @@
                         <div class="mt-2 text-muted">Đang tải...</div>
                     </div>
                     <div id="modalContent" class="d-none">
-                        <ul class="nav nav-tabs mb-4" role="tablist" style="border-bottom: 2px solid #f1f5f9;">
-                            <li class="nav-item">
-                                <button class="nav-link active fw-semibold" data-bs-toggle="tab" data-bs-target="#tabGeneral">Thông tin chung</button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#tabXich">Xích & Rùa</button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#tabDen">Đèn báo hiệu</button>
-                            </li>
+                        <ul class="nav nav-tabs mb-3" role="tablist" style="border-bottom: 2px solid #f1f5f9;">
+                            <li class="nav-item"><button class="nav-link active fw-semibold" data-bs-toggle="tab" data-bs-target="#tabGeneral">Thông tin chung</button></li>
+                            <li class="nav-item"><button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#tabXich">Xích & Rùa</button></li>
+                            <li class="nav-item"><button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#tabDen">Đèn báo hiệu</button></li>
+                            <li class="nav-item"><button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#tabQuanLy">Quản lý</button></li>
                         </ul>
                         <div class="tab-content">
+                            <!-- TAB: Thông tin chung -->
                             <div class="tab-pane fade show active" id="tabGeneral">
-                                <div class="row g-3">
-                                    <div class="col-md-3">
-                                        <label class="form-label text-muted small fw-bold text-uppercase">Ký hiệu tài sản</label>
-                                        <div class="fw-bold text-primary fs-6" id="dtKyHieu">--</div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label text-muted small fw-bold text-uppercase">Mã phao đầy đủ</label>
-                                        <div class="fw-bold" id="dtMaPhao">--</div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label text-muted small fw-bold text-uppercase">Loại phao</label>
-                                        <div id="dtLoaiPhao">--</div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label text-muted small fw-bold text-uppercase">Trạng thái</label>
-                                        <div id="dtTrangThai">--</div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label text-muted small fw-bold text-uppercase">Đường kính (m)</label>
-                                        <div id="dtDuongKinh">--</div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label text-muted small fw-bold text-uppercase">Chiều cao toàn bộ (m)</label>
-                                        <div id="dtChieuCao">--</div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label text-muted small fw-bold text-uppercase">Hình dạng</label>
-                                        <div id="dtHinhDang">--</div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label text-muted small fw-bold text-uppercase">Vật liệu</label>
-                                        <div id="dtVatLieu">--</div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label text-muted small fw-bold text-uppercase">Màu sắc</label>
-                                        <div id="dtMauSac">--</div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label text-muted small fw-bold text-uppercase">Vị trí hiện tại</label>
-                                        <div id="dtViTri">--</div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label text-muted small fw-bold text-uppercase">Tuyến luồng</label>
-                                        <div id="dtTuyen">--</div>
-                                    </div>
+                                <div class="detail-section-title"><i class="bi bi-info-circle-fill"></i>ĐỊNH DANH</div>
+                                <div class="row">
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Ký hiệu tài sản</div><div class="detail-value text-primary" id="dtKyHieu">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Mã phao đầy đủ</div><div class="detail-value" id="dtMaPhao">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Loại phao</div><div class="detail-value" id="dtLoaiPhao">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Trạng thái</div><div class="detail-value" id="dtTrangThai">--</div></div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-rulers"></i>KỸ THUẬT</div>
+                                <div class="row">
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Đường kính (m)</div><div class="detail-value" id="dtDuongKinh">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Chiều cao toàn bộ (m)</div><div class="detail-value" id="dtChieuCao">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Hình dạng</div><div class="detail-value" id="dtHinhDang">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Vật liệu</div><div class="detail-value" id="dtVatLieu">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Màu sắc</div><div class="detail-value" id="dtMauSac">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Diện tích (m²)</div><div class="detail-value" id="dtDienTich">--</div></div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-geo-alt-fill"></i>VỊ TRÍ</div>
+                                <div class="row">
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Vị trí hiện tại</div><div class="detail-value" id="dtViTri">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Tuyến luồng</div><div class="detail-value" id="dtTuyen">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Vĩ độ</div><div class="detail-value font-monospace" id="dtViDo">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Kinh độ</div><div class="detail-value font-monospace" id="dtKinhDo">--</div></div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-calendar-event"></i>THỜI GIAN</div>
+                                <div class="row">
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Thời gian sử dụng</div><div class="detail-value" id="dtThoiGianSD">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Thời điểm thay thả</div><div class="detail-value" id="dtThoiDiemThayTha">--</div></div>
+                                    <div class="col-md-3 detail-pair"><div class="detail-label">Sửa chữa gần nhất</div><div class="detail-value" id="dtSuaChuaGanNhat">--</div></div>
                                 </div>
                             </div>
+                            <!-- TAB: Xích & Rùa -->
                             <div class="tab-pane fade" id="tabXich">
-                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">XÍCH PHAO</h6>
-                                <div class="row g-3 mb-4">
-                                    <div class="col-md-4">
-                                        <label class="form-label text-muted small fw-bold">Đường kính (Ø mm)</label>
-                                        <div id="dtXichPhao_DK">--</div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label text-muted small fw-bold">Chiều dài (m)</label>
-                                        <div id="dtXichPhao_CD">--</div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label text-muted small fw-bold">Thời điểm sử dụng</label>
-                                        <div id="dtXichPhao_SD">--</div>
-                                    </div>
+                                <div class="detail-section-title"><i class="bi bi-link-45deg"></i>XÍCH PHAO</div>
+                                <div class="row">
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Đường kính (Ø mm)</div><div class="detail-value" id="dtXichPhao_DK">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Chiều dài (m)</div><div class="detail-value" id="dtXichPhao_CD">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Thời điểm sử dụng</div><div class="detail-value" id="dtXichPhao_SD">--</div></div>
                                 </div>
-                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">XÍCH RÙA</h6>
-                                <div class="row g-3 mb-4">
-                                    <div class="col-md-4">
-                                        <label class="form-label text-muted small fw-bold">Đường kính (Ø mm)</label>
-                                        <div id="dtXichRua_DK">--</div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label text-muted small fw-bold">Chiều dài (m)</label>
-                                        <div id="dtXichRua_CD">--</div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label text-muted small fw-bold">Thời điểm sử dụng</label>
-                                        <div id="dtXichRua_SD">--</div>
-                                    </div>
+                                <div class="detail-section-title"><i class="bi bi-link-45deg"></i>XÍCH RÙA</div>
+                                <div class="row">
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Đường kính (Ø mm)</div><div class="detail-value" id="dtXichRua_DK">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Chiều dài (m)</div><div class="detail-value" id="dtXichRua_CD">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Thời điểm sử dụng</div><div class="detail-value" id="dtXichRua_SD">--</div></div>
                                 </div>
-                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">RÙA</h6>
-                                <div class="row g-3">
-                                    <div class="col-md-4">
-                                        <label class="form-label text-muted small fw-bold">Trọng lượng (kg)</label>
-                                        <div id="dtRua_TL">--</div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label text-muted small fw-bold">Thời điểm sử dụng</label>
-                                        <div id="dtRua_SD">--</div>
-                                    </div>
+                                <div class="detail-section-title"><i class="bi bi-box-fill"></i>RÙA (NEO CHÌM)</div>
+                                <div class="row">
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Trọng lượng (tấn)</div><div class="detail-value" id="dtRua_TL">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Thời điểm sử dụng</div><div class="detail-value" id="dtRua_SD">--</div></div>
                                 </div>
                             </div>
+                            <!-- TAB: Đèn báo hiệu -->
                             <div class="tab-pane fade" id="tabDen">
-                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">ĐÈN BÁO HIỆU</h6>
-                                <div class="row g-3">
-                                    <div class="col-md-4">
-                                        <label class="form-label text-muted small fw-bold">Chủng loại</label>
-                                        <div id="dtDen_CL">--</div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label text-muted small fw-bold">Kết nối AIS</label>
-                                        <div id="dtDen_AIS">--</div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label text-muted small fw-bold">Đặc tính ánh sáng</label>
-                                        <div id="dtDen_AS">--</div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label text-muted small fw-bold">Chiếu xa tầm sáng (hải lý)</label>
-                                        <div id="dtDen_CX">--</div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label text-muted small fw-bold">Nguồn năng lượng</label>
-                                        <div id="dtDen_NL">--</div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label text-muted small fw-bold">Thời điểm sử dụng</label>
-                                        <div id="dtDen_SD">--</div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label text-muted small fw-bold">Sửa chữa gần nhất</label>
-                                        <div id="dtDen_SC">--</div>
-                                    </div>
+                                <div class="detail-section-title"><i class="bi bi-lightbulb-fill"></i>ĐÈN BÁO HIỆU</div>
+                                <div class="row">
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Chủng loại</div><div class="detail-value" id="dtDen_CL">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Kết nối AIS</div><div class="detail-value" id="dtDen_AIS">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Đặc tính ánh sáng</div><div class="detail-value" id="dtDen_AS">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Chiếu xa tầm sáng (hải lý)</div><div class="detail-value" id="dtDen_CX">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Chiều cao tầm sáng hải đồ (m)</div><div class="detail-value" id="dtDen_CCTSHD">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Nguồn năng lượng</div><div class="detail-value" id="dtDen_NL">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Thời điểm sử dụng</div><div class="detail-value" id="dtDen_SD">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Sửa chữa gần nhất</div><div class="detail-value" id="dtDen_SC">--</div></div>
+                                    <div class="col-md-4 detail-pair"><div class="detail-label">Số QĐ tăng đèn</div><div class="detail-value" id="dtDen_SQDT">--</div></div>
+                                </div>
+                            </div>
+                            <!-- TAB: Quản lý -->
+                            <div class="tab-pane fade" id="tabQuanLy">
+                                <div class="detail-section-title"><i class="bi bi-building"></i>ĐƠN VỊ QUẢN LÝ</div>
+                                <div class="row">
+                                    <div class="col-md-6 detail-pair"><div class="detail-label">Trạm quản lý</div><div class="detail-value" id="dtTramQL">--</div></div>
+                                    <div class="col-md-6 detail-pair"><div class="detail-label">Tỉnh / Thành phố</div><div class="detail-value" id="dtTinhTP">--</div></div>
+                                    <div class="col-md-6 detail-pair"><div class="detail-label">Đơn vị quản lý</div><div class="detail-value" id="dtDVQL">--</div></div>
+                                    <div class="col-md-6 detail-pair"><div class="detail-label">Đơn vị vận hành</div><div class="detail-value" id="dtDVVH">--</div></div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-file-earmark-text"></i>QUYẾT ĐỊNH TĂNG TÀI SẢN</div>
+                                <div class="row">
+                                    <div class="col-md-6 detail-pair"><div class="detail-label">Số quyết định tăng</div><div class="detail-value" id="dtSoQDTang">--</div></div>
+                                    <div class="col-md-6 detail-pair"><div class="detail-label">Ngày quyết định tăng</div><div class="detail-value" id="dtNgayQDTang">--</div></div>
                                 </div>
                             </div>
                         </div>
@@ -486,7 +497,7 @@
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4">
                 <div class="modal-header pb-0 border-bottom-0">
-                    <h5 class="modal-title fw-bold text-warning"><i class="bi bi-pencil-square me-2"></i>Chỉnh Sửa Phao</h5>
+                    <h5 class="modal-title fw-bold text-primary"><i class="bi bi-pencil-square me-2"></i>Chỉnh Sửa Phao</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body pt-2">
@@ -496,20 +507,16 @@
                     </div>
                     <div id="editContent" class="d-none">
                         <input type="hidden" id="editId">
-                        <ul class="nav nav-tabs mb-4" role="tablist" style="border-bottom: 2px solid #f1f5f9;">
-                            <li class="nav-item">
-                                <button class="nav-link active fw-semibold" data-bs-toggle="tab" data-bs-target="#editTabGeneral">Thông tin chung</button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#editTabXich">Xích & Rùa</button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#editTabDen">Đèn báo hiệu</button>
-                            </li>
+                        <ul class="nav nav-tabs mb-3" role="tablist" style="border-bottom: 2px solid #f1f5f9;">
+                            <li class="nav-item"><button class="nav-link active fw-semibold" data-bs-toggle="tab" data-bs-target="#editTabGeneral">Thông tin chung</button></li>
+                            <li class="nav-item"><button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#editTabXich">Xích & Rùa</button></li>
+                            <li class="nav-item"><button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#editTabDen">Đèn báo hiệu</button></li>
+                            <li class="nav-item"><button class="nav-link fw-semibold" data-bs-toggle="tab" data-bs-target="#editTabQuanLy">Quản lý</button></li>
                         </ul>
                         <div class="tab-content">
                             <!-- Edit Tab: Thông tin chung -->
                             <div class="tab-pane fade show active" id="editTabGeneral">
+                                <div class="detail-section-title"><i class="bi bi-info-circle-fill"></i>ĐỊNH DANH</div>
                                 <div class="row g-3">
                                     <div class="col-md-4">
                                         <label class="form-label small fw-bold">Ký hiệu tài sản</label>
@@ -528,6 +535,15 @@
                                         <input type="number" class="form-control form-control-sm" id="edSoPhao">
                                     </div>
                                     <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Tuyến luồng</label>
+                                        <select class="form-select form-select-sm" id="edTuyenLuong">
+                                            <option value="">-- Chọn tuyến luồng --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-rulers"></i>KỸ THUẬT</div>
+                                <div class="row g-3">
+                                    <div class="col-md-3">
                                         <label class="form-label small fw-bold">Đường kính (m)</label>
                                         <input type="number" step="0.01" class="form-control form-control-sm" id="edDuongKinh">
                                     </div>
@@ -536,26 +552,61 @@
                                         <input type="number" step="0.01" class="form-control form-control-sm" id="edChieuCao">
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label small fw-bold">Trạng thái</label>
-                                        <input type="text" class="form-control form-control-sm" id="edTrangThai" maxlength="255">
-                                    </div>
-                                    <div class="col-md-4">
                                         <label class="form-label small fw-bold">Hình dạng</label>
                                         <input type="text" class="form-control form-control-sm" id="edHinhDang" maxlength="100">
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="form-label small fw-bold">Vật liệu</label>
                                         <input type="text" class="form-control form-control-sm" id="edVatLieu" maxlength="100">
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <label class="form-label small fw-bold">Màu sắc</label>
                                         <input type="text" class="form-control form-control-sm" id="edMauSac" maxlength="100">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Diện tích (m²)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edDienTich">
+                                    </div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-geo-alt-fill"></i>VỊ TRÍ</div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Vị trí phao báo hiệu</label>
+                                        <select class="form-select form-select-sm" id="edViTri" disabled>
+                                            <option value="">-- Chọn tuyến luồng trước --</option>
+                                        </select>
+                                        <div id="edViTriWarning" class="alert alert-warning py-1 px-2 mt-1 mb-0 small d-none">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i><span id="edViTriWarningText"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Vĩ độ</label>
+                                        <div class="coord-display" id="edViDo">--</div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Kinh độ</label>
+                                        <div class="coord-display" id="edKinhDo">--</div>
+                                    </div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-calendar-event"></i>THỜI GIAN</div>
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Thời gian sử dụng (năm)</label>
+                                        <input type="number" class="form-control form-control-sm" id="edThoiGianSD">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Thời điểm thay thả</label>
+                                        <input type="date" class="form-control form-control-sm" id="edThoiDiemThayTha">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Sửa chữa gần nhất</label>
+                                        <input type="date" class="form-control form-control-sm" id="edSuaChuaGanNhat">
                                     </div>
                                 </div>
                             </div>
                             <!-- Edit Tab: Xích & Rùa -->
                             <div class="tab-pane fade" id="editTabXich">
-                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">XÍCH PHAO</h6>
+                                <div class="detail-section-title"><i class="bi bi-link-45deg"></i>XÍCH PHAO</div>
                                 <div class="row g-3 mb-4">
                                     <div class="col-md-4">
                                         <label class="form-label small fw-bold">Đường kính (Ø mm)</label>
@@ -570,7 +621,7 @@
                                         <input type="date" class="form-control form-control-sm" id="edXichPhao_SD">
                                     </div>
                                 </div>
-                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">XÍCH RÙA</h6>
+                                <div class="detail-section-title"><i class="bi bi-link-45deg"></i>XÍCH RÙA</div>
                                 <div class="row g-3 mb-4">
                                     <div class="col-md-4">
                                         <label class="form-label small fw-bold">Đường kính (Ø mm)</label>
@@ -585,10 +636,10 @@
                                         <input type="date" class="form-control form-control-sm" id="edXichRua_SD">
                                     </div>
                                 </div>
-                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">RÙA</h6>
+                                <div class="detail-section-title"><i class="bi bi-box-fill"></i>RÙA (NEO CHÌM)</div>
                                 <div class="row g-3">
                                     <div class="col-md-4">
-                                        <label class="form-label small fw-bold">Trọng lượng (kg)</label>
+                                        <label class="form-label small fw-bold">Trọng lượng (tấn)</label>
                                         <input type="number" step="0.01" class="form-control form-control-sm" id="edRua_TL">
                                     </div>
                                     <div class="col-md-4">
@@ -599,7 +650,7 @@
                             </div>
                             <!-- Edit Tab: Đèn báo hiệu -->
                             <div class="tab-pane fade" id="editTabDen">
-                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">ĐÈN BÁO HIỆU</h6>
+                                <div class="detail-section-title"><i class="bi bi-lightbulb-fill"></i>ĐÈN BÁO HIỆU</div>
                                 <div class="row g-3">
                                     <div class="col-md-4">
                                         <label class="form-label small fw-bold">Chủng loại</label>
@@ -622,6 +673,10 @@
                                         <input type="number" step="0.01" class="form-control form-control-sm" id="edDen_CX">
                                     </div>
                                     <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Chiều cao tầm sáng hải đồ (m)</label>
+                                        <input type="number" step="0.01" class="form-control form-control-sm" id="edDen_CCTSHD">
+                                    </div>
+                                    <div class="col-md-4">
                                         <label class="form-label small fw-bold">Nguồn năng lượng</label>
                                         <input type="text" class="form-control form-control-sm" id="edDen_NL" maxlength="100">
                                     </div>
@@ -633,6 +688,51 @@
                                         <label class="form-label small fw-bold">Sửa chữa gần nhất</label>
                                         <input type="date" class="form-control form-control-sm" id="edDen_SC">
                                     </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Số QĐ tăng đèn</label>
+                                        <input type="text" class="form-control form-control-sm" id="edDen_SQDT" maxlength="100">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Edit Tab: Quản lý -->
+                            <div class="tab-pane fade" id="editTabQuanLy">
+                                <div class="detail-section-title"><i class="bi bi-building"></i>ĐƠN VỊ QUẢN LÝ</div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Trạm quản lý</label>
+                                        <select class="form-select form-select-sm" id="edTramQL">
+                                            <option value="">-- Chọn trạm --</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Tỉnh / Thành phố</label>
+                                        <select class="form-select form-select-sm" id="edTinhTP">
+                                            <option value="">-- Chọn tỉnh/TP --</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Đơn vị quản lý</label>
+                                        <select class="form-select form-select-sm" id="edDVQL">
+                                            <option value="">-- Chọn đơn vị --</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Đơn vị vận hành</label>
+                                        <select class="form-select form-select-sm" id="edDVVH">
+                                            <option value="">-- Chọn đơn vị --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="detail-section-title"><i class="bi bi-file-earmark-text"></i>QUYẾT ĐỊNH TĂNG TÀI SẢN</div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Số quyết định tăng</label>
+                                        <input type="text" class="form-control form-control-sm" id="edSoQDTang" maxlength="100">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Ngày quyết định tăng</label>
+                                        <input type="date" class="form-control form-control-sm" id="edNgayQDTang">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -640,7 +740,7 @@
                 </div>
                 <div class="modal-footer border-top-0 pt-0">
                     <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-warning fw-bold text-white" id="btnSaveEdit" onclick="saveEdit()">
+                    <button type="button" class="btn btn-primary fw-bold text-white" id="btnSaveEdit" onclick="saveEdit()">
                         <i class="bi bi-check-lg me-1"></i>Lưu thay đổi
                     </button>
                 </div>
@@ -679,7 +779,10 @@
             danhSach: '@Url.Action("DanhSach", "Phao")',
             chiTiet:  '@Url.Action("ChiTietJson", "Phao")',
             capNhat:  '@Url.Action("CapNhat", "Phao")',
-            xoa:      '@Url.Action("Xoa", "Phao")'
+            xoa:      '@Url.Action("Xoa", "Phao")',
+            dropdownData: '@Url.Action("GetDropdownData", "Phao")',
+            viTriByTuyen: '@Url.Action("GetViTriByTuyenLuong", "Phao")',
+            checkViTriTrung: '@Url.Action("CheckViTriTrung", "Phao")'
         };
 
         // ══════════════════════════════════════════════
@@ -699,6 +802,32 @@
         function getVal(id) { return document.getElementById(id).value; }
         function getNumVal(id) { const v = document.getElementById(id).value; return v === '' ? null : parseFloat(v); }
         function getIntVal(id) { const v = document.getElementById(id).value; return v === '' ? null : parseInt(v); }
+
+        function splitCoords(toaDo) {
+            if (!toaDo) return { viDo: '--', kinhDo: '--' };
+            const parts = toaDo.trim().split(/\s+/);
+            return { viDo: parts[0] || '--', kinhDo: parts[1] || '--' };
+        }
+
+        // Dropdown cache
+        let _dropdownCache = null;
+        function loadDropdownData() {
+            if (_dropdownCache) return Promise.resolve(_dropdownCache);
+            return fetch(URLS.dropdownData).then(r => r.json()).then(d => { _dropdownCache = d; return d; });
+        }
+        function populateSelect(selectId, items, selectedVal) {
+            const sel = document.getElementById(selectId);
+            const firstOpt = sel.options[0]; // keep "-- Chọn --"
+            sel.innerHTML = '';
+            sel.appendChild(firstOpt);
+            items.forEach(it => {
+                const opt = document.createElement('option');
+                opt.value = it.value;
+                opt.textContent = it.text;
+                sel.appendChild(opt);
+            });
+            if (selectedVal != null) sel.value = selectedVal;
+        }
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
@@ -827,6 +956,14 @@
                     setText('dtMauSac', data.mauSac);
                     setText('dtViTri', data.viTriHienTai);
                     setText('dtTuyen', data.tuyenLuong);
+                    // v1.1 – Tọa độ tách Vĩ độ / Kinh độ
+                    const coords = splitCoords(data.toaDoThietKe);
+                    setText('dtViDo', coords.viDo);
+                    setText('dtKinhDo', coords.kinhDo);
+                    setText('dtDienTich', fmt(data.dienTich));
+                    setText('dtThoiGianSD', data.thoiGianSuDung != null ? data.thoiGianSuDung + ' năm' : '--');
+                    setText('dtThoiDiemThayTha', fmtDate(data.thoiDiemThayTha));
+                    setText('dtSuaChuaGanNhat', fmtDate(data.thoiDiemSuaChuaGanNhat));
 
                     setText('dtXichPhao_DK', fmt(data.xichPhao_DuongKinh));
                     setText('dtXichPhao_CD', fmt(data.xichPhao_ChieuDai));
@@ -844,6 +981,16 @@
                     setText('dtDen_NL', data.den_NguonCapNangLuong);
                     setText('dtDen_SD', fmtDate(data.den_ThoiDiemSuDung));
                     setText('dtDen_SC', fmtDate(data.den_ThoiDiemSuaChua));
+                    // v1.1 – Đèn mở rộng
+                    setText('dtDen_CCTSHD', fmt(data.den_ChieuCaoTamSangHaiDo));
+                    setText('dtDen_SQDT', data.den_SoQuyetDinhTang);
+                    // v1.1 – Quản lý
+                    setText('dtTramQL', data.tramQuanLyTen);
+                    setText('dtTinhTP', data.tinhThanhPhoTen);
+                    setText('dtDVQL', data.donViQuanLyTen);
+                    setText('dtDVVH', data.donViVanHanhTen);
+                    setText('dtSoQDTang', data.soQuyetDinhTang);
+                    setText('dtNgayQDTang', fmtDate(data.ngayQuyetDinhTang));
                 })
                 .catch(err => {
                     document.getElementById('modalLoading').innerHTML =
@@ -854,10 +1001,102 @@
         // ══════════════════════════════════════════════
         // EDIT MODAL
         // ══════════════════════════════════════════════
+        // ── Cascade: load ViTri by TuyenLuong ──
+        let _viTriByTuyenCache = {};
+        async function loadViTriByTuyen(tuyenLuongId) {
+            const selViTri = document.getElementById('edViTri');
+            const warn = document.getElementById('edViTriWarning');
+            warn.classList.add('d-none');
+            if (!tuyenLuongId) {
+                selViTri.innerHTML = '<option value="">-- Chọn tuyến luồng trước --</option>';
+                selViTri.disabled = true;
+                updateEditCoords();
+                return [];
+            }
+            if (_viTriByTuyenCache[tuyenLuongId]) {
+                const cached = _viTriByTuyenCache[tuyenLuongId];
+                populateViTriSelect(cached, null);
+                selViTri.disabled = false;
+                return cached;
+            }
+            const resp = await fetch(URLS.viTriByTuyen + '?tuyenLuongId=' + tuyenLuongId);
+            const items = await resp.json();
+            _viTriByTuyenCache[tuyenLuongId] = items;
+            populateViTriSelect(items, null);
+            selViTri.disabled = false;
+            return items;
+        }
+
+        function populateViTriSelect(items, selectedVal) {
+            const sel = document.getElementById('edViTri');
+            sel.innerHTML = '<option value="">-- Chọn vị trí --</option>';
+            items.forEach(it => {
+                const opt = document.createElement('option');
+                opt.value = it.id;
+                opt.textContent = it.maPhaoBH;
+                opt.dataset.toaDo = it.toaDoThietKe || '';
+                sel.appendChild(opt);
+            });
+            if (selectedVal != null) sel.value = selectedVal;
+        }
+
+        function updateEditCoords() {
+            const sel = document.getElementById('edViTri');
+            const selOpt = sel.options[sel.selectedIndex];
+            const toaDo = selOpt && selOpt.dataset.toaDo ? selOpt.dataset.toaDo : null;
+            if (toaDo) {
+                const c = splitCoords(toaDo);
+                document.getElementById('edViDo').textContent = c.viDo;
+                document.getElementById('edKinhDo').textContent = c.kinhDo;
+            } else {
+                document.getElementById('edViDo').textContent = '--';
+                document.getElementById('edKinhDo').textContent = '--';
+            }
+        }
+
+        // ── Duplicate ViTri check ──
+        async function checkViTriDuplicate() {
+            const viTriId = getIntVal('edViTri');
+            const phaoId = parseInt(getVal('editId'));
+            const warn = document.getElementById('edViTriWarning');
+            const btn = document.getElementById('btnSaveEdit');
+            warn.classList.add('d-none');
+
+            if (!viTriId) { btn.disabled = false; return; }
+
+            try {
+                const resp = await fetch(URLS.checkViTriTrung + '?viTriId=' + viTriId + '&excludePhaoId=' + phaoId);
+                const result = await resp.json();
+                if (result.trung) {
+                    document.getElementById('edViTriWarningText').textContent =
+                        'Vị trí này đang được sử dụng bởi phao: ' + (result.tenPhao || result.maPhao);
+                    warn.classList.remove('d-none');
+                    btn.disabled = true;
+                } else {
+                    btn.disabled = false;
+                }
+            } catch { btn.disabled = false; }
+        }
+
+        // ── Tab height sync ──
+        function syncTabHeight() {
+            const general = document.getElementById('editTabGeneral');
+            if (!general) return;
+            requestAnimationFrame(() => {
+                const h = general.scrollHeight;
+                document.querySelectorAll('#phaoEditModal .tab-pane').forEach(pane => {
+                    if (pane.id !== 'editTabGeneral') pane.style.minHeight = h + 'px';
+                });
+            });
+        }
+
         function openEditModal(id) {
             const modal = new bootstrap.Modal(document.getElementById('phaoEditModal'));
             document.getElementById('editLoading').classList.remove('d-none');
             document.getElementById('editContent').classList.add('d-none');
+            document.getElementById('edViTriWarning').classList.add('d-none');
+            document.getElementById('btnSaveEdit').disabled = false;
+            _viTriByTuyenCache = {};
 
             // Reset to first tab
             const firstTab = document.querySelector('#phaoEditModal .nav-link');
@@ -865,9 +1104,12 @@
 
             modal.show();
 
-            fetch(URLS.chiTiet + '/' + id)
-                .then(r => r.json())
-                .then(data => {
+            // Load both: phao detail + dropdown data in parallel
+            Promise.all([
+                fetch(URLS.chiTiet + '/' + id).then(r => r.json()),
+                loadDropdownData()
+            ])
+            .then(async ([data, dd]) => {
                     document.getElementById('editLoading').classList.add('d-none');
                     document.getElementById('editContent').classList.remove('d-none');
 
@@ -878,10 +1120,49 @@
                     document.getElementById('edSoPhao').value = data.soPhaoHienTai ?? '';
                     document.getElementById('edDuongKinh').value = data.duongKinhPhao ?? '';
                     document.getElementById('edChieuCao').value = data.chieuCaoToanBo ?? '';
-                    document.getElementById('edTrangThai').value = data.trangThaiHienTai || '';
                     document.getElementById('edHinhDang').value = data.hinhDang || '';
                     document.getElementById('edVatLieu').value = data.vatLieu || '';
                     document.getElementById('edMauSac').value = data.mauSac || '';
+                    // v1.1 – Thông tin chung mở rộng
+                    document.getElementById('edThoiGianSD').value = data.thoiGianSuDung ?? '';
+                    document.getElementById('edThoiDiemThayTha').value = fmtDateInput(data.thoiDiemThayTha);
+                    document.getElementById('edSuaChuaGanNhat').value = fmtDateInput(data.thoiDiemSuaChuaGanNhat);
+                    document.getElementById('edDienTich').value = data.dienTich ?? '';
+
+                    // ── Tuyến luồng dropdown ──
+                    populateSelect('edTuyenLuong', dd.tuyenLuong, data.tuyenLuongId);
+                    document.getElementById('edTuyenLuong').onchange = async function () {
+                        await loadViTriByTuyen(this.value);
+                        updateEditCoords();
+                        document.getElementById('edViTriWarning').classList.add('d-none');
+                        document.getElementById('btnSaveEdit').disabled = false;
+                    };
+
+                    // ── Cascade: load ViTri for current TuyenLuong ──
+                    if (data.tuyenLuongId) {
+                        const items = await loadViTriByTuyen(data.tuyenLuongId);
+                        populateViTriSelect(items, data.viTriPhaoBHHienTaiId);
+                    }
+                    // Show coords
+                    if (data.toaDoThietKe) {
+                        const c = splitCoords(data.toaDoThietKe);
+                        document.getElementById('edViDo').textContent = c.viDo;
+                        document.getElementById('edKinhDo').textContent = c.kinhDo;
+                    } else {
+                        updateEditCoords();
+                    }
+
+                    // ── ViTri change: coords + duplicate check ──
+                    document.getElementById('edViTri').onchange = async function () {
+                        updateEditCoords();
+                        await checkViTriDuplicate();
+                    };
+
+                    // Populate dropdowns: Quản lý
+                    populateSelect('edTramQL', dd.tramQuanLy, data.tramQuanLyId);
+                    populateSelect('edTinhTP', dd.tinhThanhPho, data.tinhThanhPhoId);
+                    populateSelect('edDVQL', dd.donVi, data.donViQuanLyId);
+                    populateSelect('edDVVH', dd.donVi, data.donViVanHanhId);
 
                     document.getElementById('edXichPhao_DK').value = data.xichPhao_DuongKinh ?? '';
                     document.getElementById('edXichPhao_CD').value = data.xichPhao_ChieuDai ?? '';
@@ -899,6 +1180,15 @@
                     document.getElementById('edDen_NL').value = data.den_NguonCapNangLuong || '';
                     document.getElementById('edDen_SD').value = fmtDateInput(data.den_ThoiDiemSuDung);
                     document.getElementById('edDen_SC').value = fmtDateInput(data.den_ThoiDiemSuaChua);
+                    // v1.1 – Đèn mở rộng
+                    document.getElementById('edDen_CCTSHD').value = data.den_ChieuCaoTamSangHaiDo ?? '';
+                    document.getElementById('edDen_SQDT').value = data.den_SoQuyetDinhTang || '';
+                    // v1.1 – Quản lý (text inputs)
+                    document.getElementById('edSoQDTang').value = data.soQuyetDinhTang || '';
+                    document.getElementById('edNgayQDTang').value = fmtDateInput(data.ngayQuyetDinhTang);
+
+                    // ── Tab height sync ──
+                    syncTabHeight();
                 })
                 .catch(err => {
                     document.getElementById('editLoading').innerHTML =
@@ -926,10 +1216,15 @@
                 soPhaoHienTai: getIntVal('edSoPhao'),
                 duongKinhPhao: getNumVal('edDuongKinh'),
                 chieuCaoToanBo: getNumVal('edChieuCao'),
-                trangThaiHienTai: getVal('edTrangThai') || null,
                 hinhDang: getVal('edHinhDang') || null,
                 vatLieu: getVal('edVatLieu') || null,
                 mauSac: getVal('edMauSac') || null,
+                // v1.1 – Thông tin chung mở rộng
+                thoiGianSuDung: getIntVal('edThoiGianSD'),
+                thoiDiemThayTha: getVal('edThoiDiemThayTha') || null,
+                thoiDiemSuaChuaGanNhat: getVal('edSuaChuaGanNhat') || null,
+                dienTich: getNumVal('edDienTich'),
+                viTriPhaoBHHienTaiId: getIntVal('edViTri'),
                 xichPhao_DuongKinh: getNumVal('edXichPhao_DK'),
                 xichPhao_ChieuDai: getNumVal('edXichPhao_CD'),
                 xichPhao_ThoiDiemSuDung: getVal('edXichPhao_SD') || null,
@@ -944,7 +1239,17 @@
                 den_ChieuXaTamSang: getNumVal('edDen_CX'),
                 den_NguonCapNangLuong: getVal('edDen_NL') || null,
                 den_ThoiDiemSuDung: getVal('edDen_SD') || null,
-                den_ThoiDiemSuaChua: getVal('edDen_SC') || null
+                den_ThoiDiemSuaChua: getVal('edDen_SC') || null,
+                // v1.1 – Đèn mở rộng
+                den_ChieuCaoTamSangHaiDo: getNumVal('edDen_CCTSHD'),
+                den_SoQuyetDinhTang: getVal('edDen_SQDT') || null,
+                // v1.1 – Quản lý
+                tramQuanLyId: getIntVal('edTramQL'),
+                tinhThanhPhoId: getIntVal('edTinhTP'),
+                donViQuanLyId: getIntVal('edDVQL'),
+                donViVanHanhId: getIntVal('edDVVH'),
+                soQuyetDinhTang: getVal('edSoQDTang') || null,
+                ngayQuyetDinhTang: getVal('edNgayQDTang') || null
             };
 
             fetch(URLS.capNhat, {

@@ -84,6 +84,7 @@ namespace LANHossting.Application.DTOs.Buoy
         // Vị trí
         public int? ViTriPhaoBHHienTaiId { get; set; }
         public string? ViTriHienTai { get; set; }
+        public int? TuyenLuongId { get; set; }
         public string? TuyenLuong { get; set; }
         public string? ToaDoThietKe { get; set; }
 

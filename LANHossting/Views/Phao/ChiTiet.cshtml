@@ -15,27 +15,35 @@
     }
     .detail-card .card-header {
         background: transparent;
-        border-bottom: 1px solid #e2e8f0;
+        border-bottom: 2px solid #e2e8f0;
         padding: 16px 24px;
-        font-weight: 700;
-        font-size: .95rem;
-        color: #1e293b;
+        font-weight: 800;
+        font-size: .82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #0d6efd;
     }
-    .detail-card .card-header i { margin-right: 8px; }
+    .detail-card .card-header i { margin-right: 8px; color: #0d6efd; }
     .detail-card .card-body { padding: 20px 24px; }
     .detail-row { display: flex; padding: 8px 0; border-bottom: 1px solid #f8fafc; }
     .detail-row:last-child { border-bottom: none; }
-    .detail-label { width: 240px; min-width: 240px; color: #64748b; font-size: .85rem; font-weight: 600; }
-    .detail-value { flex: 1; color: #1e293b; font-size: .9rem; }
+    .detail-label { width: 240px; min-width: 240px; color: #94a3b8; font-size: .82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+    .detail-value { flex: 1; color: #1e293b; font-size: .95rem; font-weight: 600; }
     .page-header { margin-bottom: 24px; }
     .page-header h4 { font-weight: 800; color: #1e293b; margin-bottom: 4px; }
     .page-header .breadcrumb { font-size: .82rem; }
     .badge-status { padding: 5px 14px; border-radius: 20px; font-weight: 600; font-size: .78rem; }
-    .section-blue .card-header { color: var(--primary, #2563eb); }
-    .section-green .card-header { color: #059669; }
-    .section-orange .card-header { color: #d97706; }
-    .section-purple .card-header { color: #7c3aed; }
-    .section-red .card-header { color: #dc2626; }
+    .coord-display-inline {
+        background: #f8fafc;
+        border: 1px dashed #cbd5e1;
+        border-radius: 8px;
+        padding: 4px 10px;
+        font-family: 'Courier New', monospace;
+        font-weight: 600;
+        color: #475569;
+        font-size: .88rem;
+        display: inline-block;
+    }
 </style>
 }
 
@@ -79,75 +87,115 @@
         </div>
     }
 
+    @{
+        // Split toạ độ
+        var toaDoParts = (p.ToaDoThietKe ?? "").Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var viDo = toaDoParts.Length > 0 ? toaDoParts[0] : "—";
+        var kinhDo = toaDoParts.Length > 1 ? toaDoParts[1] : "—";
+    }
+
     <div class="row">
-        <!-- I. THÔNG TIN CHUNG -->
+        <!-- ĐỊNH DANH -->
         <div class="col-lg-6">
-            <div class="card detail-card section-blue">
-                <div class="card-header"><i class="bi bi-info-circle-fill"></i>I. Thông Tin Chung</div>
+            <div class="card detail-card">
+                <div class="card-header"><i class="bi bi-info-circle-fill"></i>ĐỊNH DANH</div>
                 <div class="card-body">
                     <div class="detail-row"><span class="detail-label">Ký hiệu tài sản</span><span class="detail-value">@FmtStr(p.KyHieuTaiSan)</span></div>
+                    <div class="detail-row"><span class="detail-label">Mã phao đầy đủ</span><span class="detail-value fw-bold text-primary">@FmtStr(p.MaPhaoDayDu)</span></div>
                     <div class="detail-row"><span class="detail-label">Tên phao</span><span class="detail-value">@FmtStr(p.TenPhao)</span></div>
-                    <div class="detail-row"><span class="detail-label">Số phao</span><span class="detail-value">@FmtInt(p.SoPhaoHienTai)</span></div>
-                    <div class="detail-row"><span class="detail-label">Thời gian sử dụng</span><span class="detail-value">@FmtInt(p.ThoiGianSuDung, "năm")</span></div>
-                    <div class="detail-row"><span class="detail-label">Thời điểm thay, thả</span><span class="detail-value">@Fmt(p.ThoiDiemThayTha)</span></div>
-                    <div class="detail-row"><span class="detail-label">Sửa chữa gần nhất</span><span class="detail-value">@Fmt(p.ThoiDiemSuaChuaGanNhat)</span></div>
-                    <div class="detail-row"><span class="detail-label">Hình dạng</span><span class="detail-value">@FmtStr(p.HinhDang)</span></div>
-                    <div class="detail-row"><span class="detail-label">Kết cấu, vật liệu</span><span class="detail-value">@FmtStr(p.VatLieu)</span></div>
-                    <div class="detail-row"><span class="detail-label">Màu sắc</span><span class="detail-value">@FmtStr(p.MauSac)</span></div>
+                    <div class="detail-row"><span class="detail-label">Số phao hiện tại</span><span class="detail-value">@FmtInt(p.SoPhaoHienTai)</span></div>
+                    <div class="detail-row"><span class="detail-label">Tuyến luồng</span><span class="detail-value">@FmtStr(p.TuyenLuong)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KỸ THUẬT -->
+        <div class="col-lg-6">
+            <div class="card detail-card">
+                <div class="card-header"><i class="bi bi-rulers"></i>KỸ THUẬT</div>
+                <div class="card-body">
+                    <div class="detail-row"><span class="detail-label">Đường kính</span><span class="detail-value">@FmtDec(p.DuongKinhPhao, "m")</span></div>
                     <div class="detail-row"><span class="detail-label">Chiều cao toàn bộ</span><span class="detail-value">@FmtDec(p.ChieuCaoToanBo, "m")</span></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- II. XÍCH PHAO -->
-        <div class="col-lg-6">
-            <div class="card detail-card section-green">
-                <div class="card-header"><i class="bi bi-link-45deg"></i>II. Xích Phao</div>
-                <div class="card-body">
-                    <div class="detail-row"><span class="detail-label">Đường kính xích phao</span><span class="detail-value">@FmtDec(p.XichPhao_DuongKinh, "mm")</span></div>
-                    <div class="detail-row"><span class="detail-label">Chiều dài xích phao</span><span class="detail-value">@FmtDec(p.XichPhao_ChieuDai, "m")</span></div>
-                    <div class="detail-row"><span class="detail-label">Thời điểm sử dụng</span><span class="detail-value">@Fmt(p.XichPhao_ThoiDiemSuDung)</span></div>
-                </div>
-            </div>
-
-            <!-- III. XÍCH RÙA -->
-            <div class="card detail-card section-green">
-                <div class="card-header"><i class="bi bi-link"></i>III. Xích Rùa</div>
-                <div class="card-body">
-                    <div class="detail-row"><span class="detail-label">Đường kính xích rùa</span><span class="detail-value">@FmtDec(p.XichRua_DuongKinh, "mm")</span></div>
-                    <div class="detail-row"><span class="detail-label">Chiều dài xích rùa</span><span class="detail-value">@FmtDec(p.XichRua_ChieuDai, "m")</span></div>
-                    <div class="detail-row"><span class="detail-label">Thời điểm sử dụng</span><span class="detail-value">@Fmt(p.XichRua_ThoiDiemSuDung)</span></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- IV. RÙA & QUẢN LÝ -->
-        <div class="col-lg-6">
-            <div class="card detail-card section-orange">
-                <div class="card-header"><i class="bi bi-geo-alt-fill"></i>IV. Rùa & Quản Lý</div>
-                <div class="card-body">
-                    <div class="detail-row"><span class="detail-label">Trọng lượng rùa</span><span class="detail-value">@FmtDec(p.Rua_TrongLuong, "tấn")</span></div>
-                    <div class="detail-row"><span class="detail-label">Thời điểm sử dụng rùa</span><span class="detail-value">@Fmt(p.Rua_ThoiDiemSuDung)</span></div>
-                    <div class="detail-row"><span class="detail-label">Trạm quản lý</span><span class="detail-value">@FmtStr(p.TramQuanLyTen)</span></div>
-                    <div class="detail-row"><span class="detail-label">Tỉnh / Thành phố</span><span class="detail-value">@FmtStr(p.TinhThanhPhoTen)</span></div>
-                    <div class="detail-row"><span class="detail-label">Đơn vị quản lý</span><span class="detail-value">@FmtStr(p.DonViQuanLyTen)</span></div>
-                    <div class="detail-row"><span class="detail-label">Đơn vị vận hành</span><span class="detail-value">@FmtStr(p.DonViVanHanhTen)</span></div>
-                    <div class="detail-row"><span class="detail-label">Vị trí phao</span><span class="detail-value">@FmtStr(p.ViTriHienTai)</span></div>
-                    <div class="detail-row"><span class="detail-label">Tọa độ thiết kế</span><span class="detail-value">@FmtStr(p.ToaDoThietKe)</span></div>
-                    <div class="detail-row"><span class="detail-label">Tình trạng</span><span class="detail-value">@FmtStr(p.TrangThaiHienTai)</span></div>
-                    <div class="detail-row"><span class="detail-label">Số quyết định tăng</span><span class="detail-value">@FmtStr(p.SoQuyetDinhTang)</span></div>
-                    <div class="detail-row"><span class="detail-label">Ngày quyết định tăng</span><span class="detail-value">@Fmt(p.NgayQuyetDinhTang)</span></div>
+                    <div class="detail-row"><span class="detail-label">Hình dạng</span><span class="detail-value">@FmtStr(p.HinhDang)</span></div>
+                    <div class="detail-row"><span class="detail-label">Vật liệu</span><span class="detail-value">@FmtStr(p.VatLieu)</span></div>
+                    <div class="detail-row"><span class="detail-label">Màu sắc</span><span class="detail-value">@FmtStr(p.MauSac)</span></div>
                     <div class="detail-row"><span class="detail-label">Diện tích</span><span class="detail-value">@FmtDec(p.DienTich, "m²")</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- V. ĐÈN BÁO HIỆU -->
+        <!-- VỊ TRÍ -->
         <div class="col-lg-6">
-            <div class="card detail-card section-red">
-                <div class="card-header"><i class="bi bi-lightbulb-fill"></i>V. Đèn Báo Hiệu</div>
+            <div class="card detail-card">
+                <div class="card-header"><i class="bi bi-geo-alt-fill"></i>VỊ TRÍ</div>
                 <div class="card-body">
-                    <div class="detail-row"><span class="detail-label">Chủng loại đèn</span><span class="detail-value">@FmtStr(p.Den_ChungLoai)</span></div>
+                    <div class="detail-row"><span class="detail-label">Vị trí phao báo hiệu</span><span class="detail-value">@FmtStr(p.ViTriHienTai)</span></div>
+                    <div class="detail-row">
+                        <span class="detail-label">Vĩ độ</span>
+                        <span class="detail-value"><span class="coord-display-inline">@viDo</span></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Kinh độ</span>
+                        <span class="detail-value"><span class="coord-display-inline">@kinhDo</span></span>
+                    </div>
+                    <div class="detail-row"><span class="detail-label">Trạng thái</span><span class="detail-value">@FmtStr(p.TrangThaiHienTai)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- THỜI GIAN -->
+        <div class="col-lg-6">
+            <div class="card detail-card">
+                <div class="card-header"><i class="bi bi-calendar-event"></i>THỜI GIAN</div>
+                <div class="card-body">
+                    <div class="detail-row"><span class="detail-label">Thời gian sử dụng</span><span class="detail-value">@FmtInt(p.ThoiGianSuDung, "năm")</span></div>
+                    <div class="detail-row"><span class="detail-label">Thời điểm thay, thả</span><span class="detail-value">@Fmt(p.ThoiDiemThayTha)</span></div>
+                    <div class="detail-row"><span class="detail-label">Sửa chữa gần nhất</span><span class="detail-value">@Fmt(p.ThoiDiemSuaChuaGanNhat)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- XÍCH PHAO -->
+        <div class="col-lg-6">
+            <div class="card detail-card">
+                <div class="card-header"><i class="bi bi-link-45deg"></i>XÍCH PHAO</div>
+                <div class="card-body">
+                    <div class="detail-row"><span class="detail-label">Đường kính</span><span class="detail-value">@FmtDec(p.XichPhao_DuongKinh, "mm")</span></div>
+                    <div class="detail-row"><span class="detail-label">Chiều dài</span><span class="detail-value">@FmtDec(p.XichPhao_ChieuDai, "m")</span></div>
+                    <div class="detail-row"><span class="detail-label">Thời điểm sử dụng</span><span class="detail-value">@Fmt(p.XichPhao_ThoiDiemSuDung)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- XÍCH RÙA -->
+        <div class="col-lg-6">
+            <div class="card detail-card">
+                <div class="card-header"><i class="bi bi-link-45deg"></i>XÍCH RÙA</div>
+                <div class="card-body">
+                    <div class="detail-row"><span class="detail-label">Đường kính</span><span class="detail-value">@FmtDec(p.XichRua_DuongKinh, "mm")</span></div>
+                    <div class="detail-row"><span class="detail-label">Chiều dài</span><span class="detail-value">@FmtDec(p.XichRua_ChieuDai, "m")</span></div>
+                    <div class="detail-row"><span class="detail-label">Thời điểm sử dụng</span><span class="detail-value">@Fmt(p.XichRua_ThoiDiemSuDung)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RÙA (NEO CHÌM) -->
+        <div class="col-lg-6">
+            <div class="card detail-card">
+                <div class="card-header"><i class="bi bi-box-fill"></i>RÙA (NEO CHÌM)</div>
+                <div class="card-body">
+                    <div class="detail-row"><span class="detail-label">Trọng lượng</span><span class="detail-value">@FmtDec(p.Rua_TrongLuong, "tấn")</span></div>
+                    <div class="detail-row"><span class="detail-label">Thời điểm sử dụng</span><span class="detail-value">@Fmt(p.Rua_ThoiDiemSuDung)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ĐÈN BÁO HIỆU -->
+        <div class="col-lg-6">
+            <div class="card detail-card">
+                <div class="card-header"><i class="bi bi-lightbulb-fill"></i>ĐÈN BÁO HIỆU</div>
+                <div class="card-body">
+                    <div class="detail-row"><span class="detail-label">Chủng loại</span><span class="detail-value">@FmtStr(p.Den_ChungLoai)</span></div>
                     <div class="detail-row"><span class="detail-label">Kết nối AIS</span><span class="detail-value">@FmtBool(p.Den_KetNoiAIS)</span></div>
                     <div class="detail-row"><span class="detail-label">Đặc tính ánh sáng</span><span class="detail-value">@FmtStr(p.Den_DacTinhAnhSang)</span></div>
                     <div class="detail-row"><span class="detail-label">Chiều xa tâm sáng</span><span class="detail-value">@FmtDec(p.Den_ChieuXaTamSang, "hải lý")</span></div>
@@ -156,6 +204,30 @@
                     <div class="detail-row"><span class="detail-label">Thời điểm sử dụng đèn</span><span class="detail-value">@Fmt(p.Den_ThoiDiemSuDung)</span></div>
                     <div class="detail-row"><span class="detail-label">Sửa chữa gần nhất (đèn)</span><span class="detail-value">@Fmt(p.Den_ThoiDiemSuaChua)</span></div>
                     <div class="detail-row"><span class="detail-label">Số QĐ tăng đèn</span><span class="detail-value">@FmtStr(p.Den_SoQuyetDinhTang)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ĐƠN VỊ QUẢN LÝ -->
+        <div class="col-lg-6">
+            <div class="card detail-card">
+                <div class="card-header"><i class="bi bi-building"></i>ĐƠN VỊ QUẢN LÝ</div>
+                <div class="card-body">
+                    <div class="detail-row"><span class="detail-label">Trạm quản lý</span><span class="detail-value">@FmtStr(p.TramQuanLyTen)</span></div>
+                    <div class="detail-row"><span class="detail-label">Tỉnh / Thành phố</span><span class="detail-value">@FmtStr(p.TinhThanhPhoTen)</span></div>
+                    <div class="detail-row"><span class="detail-label">Đơn vị quản lý</span><span class="detail-value">@FmtStr(p.DonViQuanLyTen)</span></div>
+                    <div class="detail-row"><span class="detail-label">Đơn vị vận hành</span><span class="detail-value">@FmtStr(p.DonViVanHanhTen)</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUYẾT ĐỊNH TĂNG TÀI SẢN -->
+        <div class="col-lg-6">
+            <div class="card detail-card">
+                <div class="card-header"><i class="bi bi-file-earmark-text"></i>QUYẾT ĐỊNH TĂNG TÀI SẢN</div>
+                <div class="card-body">
+                    <div class="detail-row"><span class="detail-label">Số quyết định tăng</span><span class="detail-value">@FmtStr(p.SoQuyetDinhTang)</span></div>
+                    <div class="detail-row"><span class="detail-label">Ngày quyết định tăng</span><span class="detail-value">@Fmt(p.NgayQuyetDinhTang)</span></div>
                 </div>
             </div>
         </div>

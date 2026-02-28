@@ -143,6 +143,7 @@ namespace LANHossting.Application.Services.Buoy
                 // Vị trí
                 ViTriPhaoBHHienTaiId = p.ViTriPhaoBHHienTaiId,
                 ViTriHienTai = viTri?.MaPhaoBH,
+                TuyenLuongId = viTri?.TuyenLuongId,
                 TuyenLuong = viTri?.TuyenLuong?.TenTuyen,
                 ToaDoThietKe = viTri?.ToaDoThietKe,
 

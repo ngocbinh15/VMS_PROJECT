@@ -220,6 +220,59 @@ namespace LANHossting.Controllers
             return Json(list);
         }
 
+        /// <summary>
+        /// GET: /Phao/GetDropdownData — trả JSON tất cả dropdown cho edit modal (AJAX)
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetDropdownData()
+        {
+            var tuyenLuong = await _context.DmTuyenLuong
+                .AsNoTracking().Where(t => t.TrangThai == "Hoạt động").OrderBy(t => t.ThuTuHienThi)
+                .Select(t => new { value = t.Id, text = t.TenTuyen + " (" + t.MaTuyen + ")" }).ToListAsync();
+
+            var tramQuanLy = await _context.DmTramQuanLy
+                .AsNoTracking().Where(t => t.TrangThai == "Hoạt động").OrderBy(t => t.ThuTuHienThi)
+                .Select(t => new { value = t.Id, text = t.TenTram }).ToListAsync();
+
+            var tinhThanhPho = await _context.DmTinhThanhPho
+                .AsNoTracking().Where(t => t.TrangThai == "Hoạt động").OrderBy(t => t.ThuTuHienThi)
+                .Select(t => new { value = t.Id, text = t.TenTinh }).ToListAsync();
+
+            var donVi = await _context.DmDonVi
+                .AsNoTracking().Where(d => d.TrangThai == "Hoạt động").OrderBy(d => d.ThuTuHienThi)
+                .Select(d => new { value = d.Id, text = d.TenDonVi }).ToListAsync();
+
+            var viTri = await _context.DmViTriPhaoBH
+                .AsNoTracking().Where(v => v.TrangThai == "Hoạt động")
+                .Include(v => v.TuyenLuong)
+                .OrderBy(v => v.TuyenLuong!.ThuTuHienThi).ThenBy(v => v.ThuTuHienThi)
+                .Select(v => new { value = v.Id, text = v.MaPhaoBH, tuyenLuongId = v.TuyenLuongId, v.ToaDoThietKe })
+                .ToListAsync();
+
+            return Json(new { tuyenLuong, tramQuanLy, tinhThanhPho, donVi, viTri });
+        }
+
+        /// <summary>
+        /// GET: /Phao/CheckViTriTrung?viTriId=X&excludePhaoId=Y — kiểm tra vị trí đã có phao khác chưa
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> CheckViTriTrung(int viTriId, int excludePhaoId)
+        {
+            var phaoTrung = await _context.Phao
+                .AsNoTracking()
+                .Where(p => p.ViTriPhaoBHHienTaiId == viTriId && p.Id != excludePhaoId)
+                .Select(p => new { p.Id, p.MaPhaoDayDu, p.KyHieuTaiSan, p.TenPhao })
+                .FirstOrDefaultAsync();
+
+            if (phaoTrung != null)
+            {
+                var ten = phaoTrung.TenPhao ?? phaoTrung.MaPhaoDayDu;
+                return Json(new { trung = true, tenPhao = ten, maPhao = phaoTrung.MaPhaoDayDu });
+            }
+
+            return Json(new { trung = false });
+        }
+
         #region Private Helpers
 
         private PhaoEditDto MapChiTietToEditDto(PhaoChiTietDto ct)
