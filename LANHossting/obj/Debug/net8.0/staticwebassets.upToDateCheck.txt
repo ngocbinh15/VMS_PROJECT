@@ -1,5 +1,6 @@
 wwwroot\css\admin\dashboard.css
 wwwroot\css\kho\dashboard.css
+wwwroot\css\phao.css
 wwwroot\css\site.css
 wwwroot\favicon.ico
 wwwroot\image_2.png
@@ -9,6 +10,8 @@ wwwroot\js\admin\dashboard.ui.js
 wwwroot\js\kho\dashboard.api.js
 wwwroot\js\kho\dashboard.events.js
 wwwroot\js\kho\dashboard.ui.js
+wwwroot\js\phao\dashboard.js
+wwwroot\js\phao\edit.js
 wwwroot\js\site.js
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map

@@ -1,0 +1,454 @@
+/* ═══════════════════════════════════════════════════════════
+   PHAO MODULE — Consolidated Styles
+   Extracted from Dashboard, Edit, ChiTiet, DieuPhoi, LichSu
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Shared: page layout ── */
+.page-header {
+  margin-bottom: 24px;
+}
+
+.page-header h4 {
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.page-header .breadcrumb {
+  font-size: .82rem;
+}
+
+/* ── Shared: form controls ── */
+.form-label {
+  font-weight: 600;
+  color: #475569;
+  font-size: .82rem;
+  margin-bottom: 4px;
+}
+
+.form-control,
+.form-select {
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  font-size: .88rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
+}
+
+/* ── Shared: badge-status ── */
+.badge-status {
+  padding: 6px 10px;
+  border-radius: 30px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.badge-active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-maint {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.badge-thu-hoi {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badge-cho-thue {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.badge-mat-dau {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ── Shared: coord readonly ── */
+.coord-readonly {
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DASHBOARD
+   ═══════════════════════════════════════════════════════════ */
+.stat-card {
+  background: white;
+  border-radius: var(--border-radius);
+  border: none;
+  padding: 20px;
+  box-shadow: var(--card-shadow);
+  transition: 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+  width: 45px;
+  height: 45px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.table-card {
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
+  border: none;
+  overflow: hidden;
+}
+
+.table-custom thead th {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.table-custom td {
+  padding: 16px;
+  vertical-align: middle;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.table-custom tr:hover td {
+  background-color: #f8fafc;
+}
+
+.btn-modern {
+  border-radius: 10px;
+  font-weight: 600;
+  padding: 10px 20px;
+  transition: 0.2s;
+  border: none;
+}
+
+.search-input {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px 16px 10px 40px;
+  width: 100%;
+  transition: 0.2s;
+}
+
+.search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+  outline: none;
+}
+
+/* ── Dashboard: action buttons ── */
+.action-btn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: #64748b;
+  transition: 0.2s;
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.action-btn:hover {
+  background: #f1f5f9;
+  color: var(--primary);
+  transform: scale(1.1);
+}
+
+.action-btn-edit:hover {
+  color: var(--warning);
+}
+
+.action-btn-delete:hover {
+  color: var(--danger);
+  background: #fef2f2;
+}
+
+/* ── Dashboard: animations ── */
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Dashboard: modals (detail + edit) ── */
+#phaoDetailModal .modal-content,
+#phaoEditModal .modal-content {
+  min-height: 620px;
+  max-height: 85vh;
+}
+
+#phaoDetailModal .modal-body,
+#phaoEditModal .modal-body {
+  overflow-y: auto;
+  min-height: 460px;
+}
+
+#phaoDetailModal .tab-content,
+#phaoEditModal .tab-content {
+  min-height: 380px;
+}
+
+/* ── Dashboard: detail modal readability ── */
+.detail-section-title {
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #475569;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  margin-top: 8px;
+}
+
+.detail-section-title i {
+  margin-right: 6px;
+  color: var(--primary);
+}
+
+.detail-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 2px;
+  letter-spacing: 0.3px;
+}
+
+.detail-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  min-height: 24px;
+}
+
+.detail-value.text-primary {
+  color: var(--primary) !important;
+}
+
+.detail-pair {
+  margin-bottom: 14px;
+}
+
+/* ── Dashboard: edit coord display ── */
+.coord-display {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+/* ── Dashboard: toast container ── */
+.toast-container {
+  position: fixed;
+  top: 90px;
+  right: 20px;
+  z-index: 9999;
+}
+
+/* ── Dashboard: blue enterprise theme for modals ── */
+#phaoEditModal .modal-title {
+  color: #0d6efd !important;
+}
+
+#phaoEditModal .nav-link.active {
+  color: #0d6efd !important;
+  border-bottom-color: #0d6efd !important;
+}
+
+#phaoEditModal .nav-link:hover {
+  color: #0d6efd;
+}
+
+#phaoEditModal .detail-section-title i {
+  color: #0d6efd;
+}
+
+#phaoDetailModal .modal-title {
+  color: #0d6efd !important;
+}
+
+#phaoDetailModal .nav-link.active {
+  color: #0d6efd !important;
+  border-bottom-color: #0d6efd !important;
+}
+
+#phaoDetailModal .nav-link:hover {
+  color: #0d6efd;
+}
+
+#phaoDetailModal .detail-section-title i {
+  color: #0d6efd;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EDIT PAGE
+   ═══════════════════════════════════════════════════════════ */
+.edit-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+  border: none;
+  margin-bottom: 24px;
+}
+
+.edit-card .card-header {
+  background: transparent;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 16px 24px;
+  font-weight: 700;
+  font-size: .95rem;
+  color: #1e293b;
+}
+
+.edit-card .card-header i {
+  margin-right: 8px;
+}
+
+.edit-card .card-body {
+  padding: 20px 24px;
+}
+
+.section-blue .card-header {
+  color: var(--primary, #2563eb);
+}
+
+.section-green .card-header {
+  color: #059669;
+}
+
+.section-orange .card-header {
+  color: #d97706;
+}
+
+.section-purple .card-header {
+  color: #7c3aed;
+}
+
+.section-red .card-header {
+  color: #dc2626;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CHI TIẾT PAGE
+   ═══════════════════════════════════════════════════════════ */
+.detail-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+  border: none;
+  margin-bottom: 24px;
+}
+
+.detail-card .card-header {
+  background: transparent;
+  border-bottom: 2px solid #e2e8f0;
+  padding: 16px 24px;
+  font-weight: 800;
+  font-size: .82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #0d6efd;
+}
+
+.detail-card .card-header i {
+  margin-right: 8px;
+  color: #0d6efd;
+}
+
+.detail-card .card-body {
+  padding: 20px 24px;
+}
+
+.detail-row {
+  display: flex;
+  padding: 8px 0;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+/* ChiTiet overrides for detail-label (wider, different in list context) */
+.detail-card .detail-label {
+  width: 240px;
+  min-width: 240px;
+  font-size: .82rem;
+}
+
+.detail-card .detail-value {
+  flex: 1;
+  font-size: .95rem;
+}
+
+.coord-display-inline {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #475569;
+  font-size: .88rem;
+  display: inline-block;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PLACEHOLDER PAGES (DieuPhoi, LichSu)
+   ═══════════════════════════════════════════════════════════ */
+.coming-soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  text-align: center;
+}
+
+.coming-icon {
+  font-size: 4rem;
+  color: #4361ee;
+  margin-bottom: 1rem;
+}
