@@ -33,7 +33,7 @@ namespace LANHossting.Application.Services.Buoy
                 SoPhaoTrenLuong = trenLuong,
                 SoPhaoDuPhong = duPhong,
                 SoPhaoSuCo = suCo,
-                SoPhaoBaoTri = tongSo - trenLuong - duPhong - suCo
+                SoPhaoBaoTri = Math.Max(0, tongSo - trenLuong - duPhong - suCo)
             };
         }
 
@@ -68,7 +68,6 @@ namespace LANHossting.Application.Services.Buoy
             foreach (var p in phaoList)
             {
                 var viTri = p.ViTriPhaoBHHienTai;
-                var ngaySuaChua = await _phaoRepo.GetNgaySuaChuaGanNhatAsync(p.Id);
 
                 result.Add(new PhaoListItemDto
                 {
@@ -84,7 +83,7 @@ namespace LANHossting.Application.Services.Buoy
                     TuyenLuong = viTri?.TuyenLuong?.TenTuyen,
                     ToaDo = viTri?.ToaDoThietKe,
                     NgaySuDung = p.NgayTao,
-                    NgaySuaChuaGanNhat = ngaySuaChua,
+                    NgaySuaChuaGanNhat = p.ThoiDiemSuaChuaGanNhat, // Read directly from Phao entity
                     TrangThaiHienThiClass = MapTrangThaiCssClass(p.TrangThaiHienTai)
                 });
             }
@@ -355,7 +354,7 @@ namespace LANHossting.Application.Services.Buoy
                 TrangThaiHoatDongPhao.TrenLuong => "TRÊN LUỒNG",
                 TrangThaiHoatDongPhao.ThuHoi    => "THU HỒI",
                 TrangThaiHoatDongPhao.ChoThue   => "CHO THUÊ",
-                TrangThaiHoatDongPhao.SuaChua   => "SẬA CHẮA",
+                TrangThaiHoatDongPhao.SuaChua   => "SỬA CHỮA",
                 TrangThaiHoatDongPhao.MatDau    => "MẤT DẤU",
                 _                              => trangThai.ToUpper()
             };
@@ -367,8 +366,10 @@ namespace LANHossting.Application.Services.Buoy
             return mapped switch
             {
                 TrangThaiHoatDongPhao.TrenLuong => "badge-active",
+                TrangThaiHoatDongPhao.ThuHoi    => "badge-thu-hoi",
+                TrangThaiHoatDongPhao.ChoThue   => "badge-cho-thue",
                 TrangThaiHoatDongPhao.SuaChua   => "badge-maint",
-                TrangThaiHoatDongPhao.MatDau    => "bg-danger-subtle text-danger",
+                TrangThaiHoatDongPhao.MatDau    => "badge-mat-dau",
                 _                              => "bg-secondary-subtle text-secondary"
             };
         }

@@ -5,6 +5,7 @@
 }
 
 @section Styles {
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 <style>
     .edit-card {
         background: #fff;
@@ -34,7 +35,7 @@
     .section-purple .card-header { color: #7c3aed; }
     .section-red .card-header { color: #dc2626; }
     .coord-readonly { background: #f1f5f9; color: #475569; font-weight: 600; }
-</style>
+</link>
 }
 
 <div class="container-fluid py-4">
@@ -331,6 +332,7 @@
 </div>
 
 @section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
     // ── Constants ──────────────────────────────────────────────────────────────
     var TREN_LUONG = 'Trên luồng';
@@ -425,5 +427,15 @@
             setTuyenViTriEnabled(false);
         }
     })();
+
+    // ── Flatpickr (dd/MM/yyyy) ──────────────────────────────────────────────
+    document.querySelectorAll('input[type="date"]').forEach(function(el) {
+        flatpickr(el, {
+            dateFormat: 'Y-m-d',
+            altInput: true,
+            altFormat: 'd/m/Y',
+            allowInput: true
+        });
+    });
 </script>
 }

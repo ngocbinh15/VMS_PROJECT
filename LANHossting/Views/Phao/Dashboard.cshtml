@@ -5,6 +5,7 @@
 }
 
 @section Styles {
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 <style>
         .stat-card {
             background: white;
@@ -81,8 +82,11 @@
             font-weight: 700;
             letter-spacing: 0.5px;
         }
-        .badge-active { background: #dcfce7; color: #166534; }
-        .badge-maint { background: #fef9c3; color: #854d0e; }
+        .badge-active   { background: #dcfce7; color: #166534; }
+        .badge-maint   { background: #fef9c3; color: #854d0e; }
+        .badge-thu-hoi { background: #dbeafe; color: #1e40af; }
+        .badge-cho-thue{ background: #ede9fe; color: #5b21b6; }
+        .badge-mat-dau { background: #fee2e2; color: #991b1b; }
         .action-btn {
             width: 32px;
             height: 32px;
@@ -232,7 +236,7 @@
                     <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-wrench-adjustable"></i></div>
                     <div>
                         <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.65rem;">Bảo Trì / Sự Cố</h6>
-                        <h4 class="fw-bold mb-0" id="statBaoTri">@(Model.ThongKe.SoPhaoBaoTri + Model.ThongKe.SoPhaoSuCo)</h4>
+                        <h4 class="fw-bold mb-0" id="statBaoTri">@Model.ThongKe.SoPhaoSuCo</h4>
                     </div>
                 </div>
             </div>
@@ -782,6 +786,7 @@
 
     <!-- ═══════════════════ SCRIPTS ═══════════════════ -->
     @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         // ══════════════════════════════════════════════
         // URLs
@@ -795,6 +800,8 @@
             viTriByTuyen: '@Url.Action("GetViTriByTuyenLuong", "Phao")',
             checkViTriTrung: '@Url.Action("CheckViTriTrung", "Phao")'
         };
+        // Flatpickr instances for date inputs in edit modal
+        const fpDate = {};
 
         // ══════════════════════════════════════════════
         // UTILITY
@@ -895,7 +902,7 @@
                     : '<span class="text-muted small">--</span>';
 
                 const dk = p.duongKinhPhao != null ? parseFloat(p.duongKinhPhao).toFixed(2) : '--';
-                const ngaySC = p.ngaySuaChuaGanNhat ? new Date(p.ngaySuaChuaGanNhat).toLocaleDateString('vi-VN') : '--';
+                const ngaySC = p.ngaySuaChuaGanNhat ? new Date(p.ngaySuaChuaGanNhat).toLocaleDateString('vi-VN') : 'Chưa sửa chữa';
 
                 // Escape single quotes for onclick
                 const kyHieuSafe = (p.kyHieuTaiSan || '--').replace(/'/g, "\\'");
@@ -924,7 +931,7 @@
         function updateStats(tk) {
             document.getElementById('statTongSo').textContent = tk.tongSoPhao;
             document.getElementById('statTrenLuong').textContent = tk.soPhaoTrenLuong;
-            document.getElementById('statBaoTri').textContent = (tk.soPhaoBaoTri || 0) + (tk.soPhaoSuCo || 0);
+            document.getElementById('statBaoTri').textContent = tk.soPhaoSuCo || 0;
         }
 
         // Debounced search
@@ -1170,8 +1177,8 @@
                     document.getElementById('edMauSac').value = data.mauSac || '';
                     // v1.1 – Thông tin chung mở rộng
                     document.getElementById('edThoiGianSD').value = data.thoiGianSuDung ?? '';
-                    document.getElementById('edThoiDiemThayTha').value = fmtDateInput(data.thoiDiemThayTha);
-                    document.getElementById('edSuaChuaGanNhat').value = fmtDateInput(data.thoiDiemSuaChuaGanNhat);
+                    fpDate['edThoiDiemThayTha'].setDate(data.thoiDiemThayTha ? new Date(data.thoiDiemThayTha) : null, false);
+                    fpDate['edSuaChuaGanNhat'].setDate(data.thoiDiemSuaChuaGanNhat ? new Date(data.thoiDiemSuaChuaGanNhat) : null, false);
                     document.getElementById('edDienTich').value = data.dienTich ?? '';
 
                     // ── Trạng thái hoạt động ──
@@ -1221,26 +1228,26 @@
 
                     document.getElementById('edXichPhao_DK').value = data.xichPhao_DuongKinh ?? '';
                     document.getElementById('edXichPhao_CD').value = data.xichPhao_ChieuDai ?? '';
-                    document.getElementById('edXichPhao_SD').value = fmtDateInput(data.xichPhao_ThoiDiemSuDung);
+                    fpDate['edXichPhao_SD'].setDate(data.xichPhao_ThoiDiemSuDung ? new Date(data.xichPhao_ThoiDiemSuDung) : null, false);
                     document.getElementById('edXichRua_DK').value = data.xichRua_DuongKinh ?? '';
                     document.getElementById('edXichRua_CD').value = data.xichRua_ChieuDai ?? '';
-                    document.getElementById('edXichRua_SD').value = fmtDateInput(data.xichRua_ThoiDiemSuDung);
+                    fpDate['edXichRua_SD'].setDate(data.xichRua_ThoiDiemSuDung ? new Date(data.xichRua_ThoiDiemSuDung) : null, false);
                     document.getElementById('edRua_TL').value = data.rua_TrongLuong ?? '';
-                    document.getElementById('edRua_SD').value = fmtDateInput(data.rua_ThoiDiemSuDung);
+                    fpDate['edRua_SD'].setDate(data.rua_ThoiDiemSuDung ? new Date(data.rua_ThoiDiemSuDung) : null, false);
 
                     document.getElementById('edDen_CL').value = data.den_ChungLoai || '';
                     document.getElementById('edDen_AIS').value = data.den_KetNoiAIS === true ? 'true' : data.den_KetNoiAIS === false ? 'false' : '';
                     document.getElementById('edDen_AS').value = data.den_DacTinhAnhSang || '';
                     document.getElementById('edDen_CX').value = data.den_ChieuXaTamSang ?? '';
                     document.getElementById('edDen_NL').value = data.den_NguonCapNangLuong || '';
-                    document.getElementById('edDen_SD').value = fmtDateInput(data.den_ThoiDiemSuDung);
-                    document.getElementById('edDen_SC').value = fmtDateInput(data.den_ThoiDiemSuaChua);
+                    fpDate['edDen_SD'].setDate(data.den_ThoiDiemSuDung ? new Date(data.den_ThoiDiemSuDung) : null, false);
+                    fpDate['edDen_SC'].setDate(data.den_ThoiDiemSuaChua ? new Date(data.den_ThoiDiemSuaChua) : null, false);
                     // v1.1 – Đèn mở rộng
                     document.getElementById('edDen_CCTSHD').value = data.den_ChieuCaoTamSangHaiDo ?? '';
                     document.getElementById('edDen_SQDT').value = data.den_SoQuyetDinhTang || '';
                     // v1.1 – Quản lý (text inputs)
                     document.getElementById('edSoQDTang').value = data.soQuyetDinhTang || '';
-                    document.getElementById('edNgayQDTang').value = fmtDateInput(data.ngayQuyetDinhTang);
+                    fpDate['edNgayQDTang'].setDate(data.ngayQuyetDinhTang ? new Date(data.ngayQuyetDinhTang) : null, false);
 
                     // ── Tab height sync ──
                     syncTabHeight();
@@ -1368,5 +1375,16 @@
                     showToast('Lỗi kết nối server', 'error');
                 });
         }
+
+        // ── Flatpickr init (dd/MM/yyyy for all modal date inputs) ──────────────
+        ['edThoiDiemThayTha','edSuaChuaGanNhat','edXichPhao_SD','edXichRua_SD',
+         'edRua_SD','edDen_SD','edDen_SC','edNgayQDTang'].forEach(function(id) {
+            fpDate[id] = flatpickr(document.getElementById(id), {
+                dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'd/m/Y',
+                allowInput: true
+            });
+        });
     </script>
     }

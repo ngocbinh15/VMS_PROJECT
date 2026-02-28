@@ -25,39 +25,25 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
 
         public async Task<int> CountTrenLuongAsync()
         {
-            // Hỗ trợ cả giá trị cũ (TREN_LUONG) và mới ("Trên luồng")
-            return await _context.Set<LichSuHoatDongPhao>()
-                .Where(ls => (ls.LoaiTrangThai == "TREN_LUONG" || ls.LoaiTrangThai == "Trên luồng")
-                          && ls.NgayKetThuc == null)
-                .Select(ls => ls.PhaoId)
-                .Distinct()
-                .CountAsync();
+            // Đọc trực tiếp từ Phao.TrangThaiHienTai — luôn phản ánh trạng thái hiện tại
+            return await _context.Set<Phao>()
+                .CountAsync(p => p.TrangThaiHienTai == "Trên luồng" || p.TrangThaiHienTai == "TREN_LUONG");
         }
 
         public async Task<int> CountDuPhongAsync()
         {
-            // Hỗ trợ cả giá trị cũ và mới
-            return await _context.Set<LichSuHoatDongPhao>()
-                .Where(ls =>
-                    (ls.LoaiTrangThai == "TREN_BAI"   || ls.LoaiTrangThai == "THU_HOI" ||
-                     ls.LoaiTrangThai == "Thu hồi"    || ls.LoaiTrangThai == "Cho thuê")
-                    && ls.NgayKetThuc == null)
-                .Select(ls => ls.PhaoId)
-                .Distinct()
-                .CountAsync();
+            // Đọc trực tiếp từ Phao.TrangThaiHienTai
+            return await _context.Set<Phao>()
+                .CountAsync(p => p.TrangThaiHienTai == "Thu hồi"  || p.TrangThaiHienTai == "Cho thuê" ||
+                                 p.TrangThaiHienTai == "THU_HOI"  || p.TrangThaiHienTai == "TREN_BAI");
         }
 
         public async Task<int> CountSuCoAsync()
         {
-            // Hỗ trợ cả giá trị cũ và mới
-            return await _context.Set<LichSuHoatDongPhao>()
-                .Where(ls => (ls.LoaiTrangThai == "SU_CO"    ||
-                              ls.LoaiTrangThai == "Sửa chữa" ||
-                              ls.LoaiTrangThai == "Mất dấu")
-                          && ls.NgayKetThuc == null)
-                .Select(ls => ls.PhaoId)
-                .Distinct()
-                .CountAsync();
+            // Đọc trực tiếp từ Phao.TrangThaiHienTai
+            return await _context.Set<Phao>()
+                .CountAsync(p => p.TrangThaiHienTai == "Sửa chữa" || p.TrangThaiHienTai == "Mất dấu" ||
+                                 p.TrangThaiHienTai == "SU_CO");
         }
 
         public async Task<List<Phao>> GetAllWithCurrentStatusAsync()
