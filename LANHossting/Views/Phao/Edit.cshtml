@@ -120,6 +120,23 @@
                                 <label class="form-label">Chiều cao toàn bộ (m)</label>
                                 <input asp-for="Phao.ChieuCaoToanBo" class="form-control" type="number" step="0.01" />
                             </div>
+                            <!-- Trạng thái hoạt động — đặt đây để nằm trước tuyến/vị trí -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-primary">Trạng thái hoạt động <span class="text-danger">*</span></label>
+                                <select asp-for="Phao.TrangThaiHoatDong" class="form-select" id="ddlTrangThaiHoatDong">
+                                    <option value="">— Chọn trạng thái —</option>
+                                    <option value="Trên luồng">Trên luồng</option>
+                                    <option value="Thu hồi">Thu hồi</option>
+                                    <option value="Cho thuê">Cho thuê</option>
+                                    <option value="Sửa chữa">Sửa chữa</option>
+                                    <option value="Mất dấu">Mất dấu</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Tình trạng (tự động)</label>
+                                <input type="text" id="txtTinhTrangDisplay" class="form-control coord-readonly" readonly
+                                       placeholder="Suy ra từ trạng thái hoạt động" />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -206,26 +223,34 @@
                                     <option value="">— Chọn đơn vị —</option>
                                 </select>
                             </div>
-                            <div class="col-md-12">
-                                <label class="form-label">Vị trí phao báo hiệu</label>
-                                <select asp-for="Phao.ViTriPhaoBHHienTaiId" asp-items="Model.DanhSachViTri" class="form-select" id="ddlViTriPhao">
+                            <!-- Tuyến luồng (enable chỉ khi "Trên luồng") -->
+                            <div class="col-md-6" id="grpTuyenLuong">
+                                <label class="form-label">Tuyến luồng <span class="text-danger" id="lblTuyenRequired">*</span></label>
+                                <select asp-for="Phao.TuyenLuongId" asp-items="Model.DanhSachTuyenLuong" class="form-select" id="ddlTuyenLuong" disabled>
+                                    <option value="">— Chọn tuyến —</option>
+                                </select>
+                            </div>
+
+                            <!-- Vị trí phao (lọc theo tuyến, enable chỉ khi "Trên luồng") -->
+                            <div class="col-md-6" id="grpViTri">
+                                <label class="form-label">Vị trí phao báo hiệu <span class="text-danger" id="lblViTriRequired">*</span></label>
+                                <select asp-for="Phao.ViTriPhaoBHHienTaiId" class="form-select" id="ddlViTriPhao" disabled>
                                     <option value="">— Chọn vị trí —</option>
                                 </select>
                             </div>
+
                             <div class="col-md-12">
                                 <label class="form-label">Tọa độ thiết kế (readonly)</label>
                                 <input type="text" id="txtToaDoThietKe" class="form-control coord-readonly" readonly
                                        value="" placeholder="Chọn vị trí để hiển thị tọa độ" />
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Tình trạng</label>
-                                <select asp-for="Phao.TrangThaiHienTai" class="form-select">
-                                    <option value="Trên bãi">Trên bãi</option>
-                                    <option value="Trên luồng">Trên luồng</option>
-                                    <option value="Thu hồi">Thu hồi</option>
-                                    <option value="Sự cố">Sự cố</option>
-                                </select>
+
+                            <!-- Ghi chú lịch sử (tuỳ chọn) -->
+                            <div class="col-md-12">
+                                <label class="form-label">Ghi chú lịch sử hoạt động</label>
+                                <input asp-for="Phao.GhiChuLichSu" class="form-control" placeholder="Ghi chú khi có thay đổi (không bắt buộc)" />
                             </div>
+
                             <div class="col-md-6">
                                 <label class="form-label">Diện tích (m²)</label>
                                 <input asp-for="Phao.DienTich" class="form-control" type="number" step="0.01" />
@@ -307,28 +332,98 @@
 
 @section Scripts {
 <script>
-    // Khi chọn Vị trí phao → tự động hiển thị tọa độ (readonly)
-    document.getElementById('ddlViTriPhao').addEventListener('change', function () {
-        var viTriId = this.value;
-        var txtToaDo = document.getElementById('txtToaDoThietKe');
-        if (!viTriId) {
+    // ── Constants ──────────────────────────────────────────────────────────────
+    var TREN_LUONG = 'Trên luồng';
+
+    // ── Elements ───────────────────────────────────────────────────────────────
+    var ddlTrangThai = document.getElementById('ddlTrangThaiHoatDong');
+    var ddlTuyen     = document.getElementById('ddlTuyenLuong');
+    var ddlViTri     = document.getElementById('ddlViTriPhao');
+    var txtToaDo     = document.getElementById('txtToaDoThietKe');
+    var txtTinhTrang = document.getElementById('txtTinhTrangDisplay');
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+    function setTuyenViTriEnabled(enabled) {
+        ddlTuyen.disabled = !enabled;
+        ddlViTri.disabled = !enabled;
+        document.getElementById('lblTuyenRequired').style.display  = enabled ? '' : 'none';
+        document.getElementById('lblViTriRequired').style.display  = enabled ? '' : 'none';
+        if (!enabled) {
+            ddlTuyen.value = '';
+            ddlViTri.innerHTML = '<option value="">— Chọn vị trí —</option>';
+            txtToaDo.value = '';
+        }
+    }
+
+    function inferTinhTrang(trangThaiHoatDong) {
+        return trangThaiHoatDong === TREN_LUONG ? 'Có sử dụng' : 'Không sử dụng';
+    }
+
+    // ── Load ViTri by Tuyến (AJAX) ─────────────────────────────────────────────
+    function loadViTriByTuyen(tuyenId, selectedViTriId) {
+        if (!tuyenId) {
+            ddlViTri.innerHTML = '<option value="">— Chọn vị trí —</option>';
             txtToaDo.value = '';
             return;
         }
-        fetch('@Url.Action("GetViTriInfo", "Phao")/' + viTriId)
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                txtToaDo.value = data.toaDoThietKe || '—';
-            })
-            .catch(function () {
-                txtToaDo.value = 'Không lấy được tọa độ';
+        fetch('@Url.Action("GetViTriByTuyenLuong", "Phao")/' + tuyenId)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var html = '<option value="">— Chọn vị trí —</option>';
+                data.forEach(function(v) {
+                    var sel = (selectedViTriId && v.id == selectedViTriId) ? ' selected' : '';
+                    html += '<option value="' + v.id + '"' + sel + '>' + v.maPhaoBH + '</option>';
+                });
+                ddlViTri.innerHTML = html;
+                // trigger tọa độ nếu có giá trị được chọn
+                if (ddlViTri.value) ddlViTri.dispatchEvent(new Event('change'));
             });
+    }
+
+    // ── Load tọa độ khi chọn ViTri ─────────────────────────────────────────────
+    ddlViTri.addEventListener('change', function() {
+        var viTriId = this.value;
+        if (!viTriId) { txtToaDo.value = ''; return; }
+        fetch('@Url.Action("GetViTriInfo", "Phao")/' + viTriId)
+            .then(function(r) { return r.json(); })
+            .then(function(d) { txtToaDo.value = d.toaDoThietKe || '—'; })
+            .catch(function() { txtToaDo.value = 'Không lấy được tọa độ'; });
     });
 
-    // Load tọa độ ban đầu nếu đã chọn vị trí
-    (function () {
-        var ddl = document.getElementById('ddlViTriPhao');
-        if (ddl.value) { ddl.dispatchEvent(new Event('change')); }
+    // ── Khi TrangThaiHoatDong thay đổi ─────────────────────────────────────────
+    ddlTrangThai.addEventListener('change', function() {
+        var val = this.value;
+        txtTinhTrang.value = inferTinhTrang(val);
+        if (val === TREN_LUONG) {
+            setTuyenViTriEnabled(true);
+        } else {
+            setTuyenViTriEnabled(false);
+            // Clear hidden fields so server receives null
+            ddlTuyen.value = '';
+        }
+    });
+
+    // ── Khi TuyenLuong thay đổi ────────────────────────────────────────────────
+    ddlTuyen.addEventListener('change', function() {
+        loadViTriByTuyen(this.value, null);
+    });
+
+    // ── Khởi tạo trạng thái ban đầu ────────────────────────────────────────────
+    (function init() {
+        var currentTrangThai = ddlTrangThai.value;
+        txtTinhTrang.value = inferTinhTrang(currentTrangThai);
+
+        if (currentTrangThai === TREN_LUONG) {
+            setTuyenViTriEnabled(true);
+            var currentTuyen  = '@(Model.Phao.TuyenLuongId?.ToString() ?? "")';
+            var currentViTri  = '@(Model.Phao.ViTriPhaoBHHienTaiId?.ToString() ?? "")';
+            if (currentTuyen) {
+                ddlTuyen.value = currentTuyen;
+                loadViTriByTuyen(currentTuyen, currentViTri ? parseInt(currentViTri) : null);
+            }
+        } else {
+            setTuyenViTriEnabled(false);
+        }
     })();
 </script>
 }

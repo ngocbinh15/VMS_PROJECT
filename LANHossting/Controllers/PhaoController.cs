@@ -6,6 +6,7 @@ using LANHossting.Application.Interfaces.Buoy;
 using LANHossting.Application.DTOs.Buoy;
 using LANHossting.ViewModels.Buoy;
 using LANHossting.Data;
+using LANHossting.Domain.Enums;
 
 namespace LANHossting.Controllers
 {
@@ -125,6 +126,11 @@ namespace LANHossting.Controllers
                 return View(viewModel);
             }
 
+            // Gọn NguoiCapNhat từ session trước khi gọi service
+            viewModel.Phao.NguoiCapNhat = HttpContext.Session.GetString("Username")
+                                        ?? HttpContext.Session.GetString("HoTen")
+                                        ?? "system";
+
             var (success, error) = await _phaoService.CapNhatPhaoAsync(viewModel.Phao);
             if (!success)
             {
@@ -155,6 +161,10 @@ namespace LANHossting.Controllers
                     .ToList();
                 return Json(new { success = false, error = string.Join("; ", errors) });
             }
+
+            dto.NguoiCapNhat = HttpContext.Session.GetString("Username")
+                             ?? HttpContext.Session.GetString("HoTen")
+                             ?? "system";
 
             var (success, error) = await _phaoService.CapNhatPhaoAsync(dto);
             return Json(new { success, error });
@@ -293,6 +303,9 @@ namespace LANHossting.Controllers
                 ThoiDiemThayTha = ct.ThoiDiemThayTha,
                 ThoiDiemSuaChuaGanNhat = ct.ThoiDiemSuaChuaGanNhat,
                 TrangThaiHienTai = ct.TrangThaiHienTai,
+                TrangThaiHoatDong = ct.TrangThaiHoatDong
+                    ?? TrangThaiHoatDongPhao.ThuHoi,
+                TuyenLuongId = ct.TuyenLuongId,
                 ViTriPhaoBHHienTaiId = ct.ViTriPhaoBHHienTaiId,
                 XichPhao_DuongKinh = ct.XichPhao_DuongKinh,
                 XichPhao_ChieuDai = ct.XichPhao_ChieuDai,

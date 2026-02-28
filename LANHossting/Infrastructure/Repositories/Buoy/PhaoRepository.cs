@@ -25,9 +25,10 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
 
         public async Task<int> CountTrenLuongAsync()
         {
-            // Phao đang trên luồng = có LichSuHoatDongPhao với LoaiTrangThai = TREN_LUONG và NgayKetThuc IS NULL
+            // Hỗ trợ cả giá trị cũ (TREN_LUONG) và mới ("Trên luồng")
             return await _context.Set<LichSuHoatDongPhao>()
-                .Where(ls => ls.LoaiTrangThai == "TREN_LUONG" && ls.NgayKetThuc == null)
+                .Where(ls => (ls.LoaiTrangThai == "TREN_LUONG" || ls.LoaiTrangThai == "Trên luồng")
+                          && ls.NgayKetThuc == null)
                 .Select(ls => ls.PhaoId)
                 .Distinct()
                 .CountAsync();
@@ -35,10 +36,11 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
 
         public async Task<int> CountDuPhongAsync()
         {
-            // Phao dự phòng: LoaiTrangThai = TREN_BAI hoặc THU_HOI và NgayKetThuc IS NULL
+            // Hỗ trợ cả giá trị cũ và mới
             return await _context.Set<LichSuHoatDongPhao>()
                 .Where(ls =>
-                    (ls.LoaiTrangThai == "TREN_BAI" || ls.LoaiTrangThai == "THU_HOI")
+                    (ls.LoaiTrangThai == "TREN_BAI"   || ls.LoaiTrangThai == "THU_HOI" ||
+                     ls.LoaiTrangThai == "Thu hồi"    || ls.LoaiTrangThai == "Cho thuê")
                     && ls.NgayKetThuc == null)
                 .Select(ls => ls.PhaoId)
                 .Distinct()
@@ -47,8 +49,12 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
 
         public async Task<int> CountSuCoAsync()
         {
+            // Hỗ trợ cả giá trị cũ và mới
             return await _context.Set<LichSuHoatDongPhao>()
-                .Where(ls => ls.LoaiTrangThai == "SU_CO" && ls.NgayKetThuc == null)
+                .Where(ls => (ls.LoaiTrangThai == "SU_CO"    ||
+                              ls.LoaiTrangThai == "Sửa chữa" ||
+                              ls.LoaiTrangThai == "Mất dấu")
+                          && ls.NgayKetThuc == null)
                 .Select(ls => ls.PhaoId)
                 .Distinct()
                 .CountAsync();
@@ -135,6 +141,19 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
+        }
+
+        public async Task AddLichSuHoatDongAsync(LichSuHoatDongPhao record)
+        {
+            await _context.Set<LichSuHoatDongPhao>().AddAsync(record);
+        }
+
+        public async Task<DmViTriPhaoBH?> GetViTriByIdAsync(int id)
+        {
+            return await _context.Set<DmViTriPhaoBH>()
+                .Include(v => v.TuyenLuong)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(v => v.Id == id);
         }
     }
 }

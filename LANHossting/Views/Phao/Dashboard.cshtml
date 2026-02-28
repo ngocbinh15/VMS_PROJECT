@@ -535,9 +535,20 @@
                                         <input type="number" class="form-control form-control-sm" id="edSoPhao">
                                     </div>
                                     <div class="col-md-3">
+                                        <label class="form-label small fw-bold">Trạng thái hoạt động <span class="text-danger">*</span></label>
+                                        <select class="form-select form-select-sm" id="edTrangThai">
+                                            <option value="">— Chọn trạng thái —</option>
+                                            <option value="Trên luồng">Trên luồng</option>
+                                            <option value="Thu hồi">Thu hồi</option>
+                                            <option value="Cho thuê">Cho thuê</option>
+                                            <option value="Sửa chữa">Sửa chữa</option>
+                                            <option value="Mất dấu">Mất dấu</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
                                         <label class="form-label small fw-bold">Tuyến luồng</label>
-                                        <select class="form-select form-select-sm" id="edTuyenLuong">
-                                            <option value="">-- Chọn tuyến luồng --</option>
+                                        <select class="form-select form-select-sm" id="edTuyenLuong" disabled>
+                                            <option value="">—— Chọn tuyến luồng ——</option>
                                         </select>
                                     </div>
                                 </div>
@@ -1001,6 +1012,40 @@
         // ══════════════════════════════════════════════
         // EDIT MODAL
         // ══════════════════════════════════════════════
+        // ── Toggle Tuyến/ViTri enable/disable theo TrangThaiHoatDong ──
+        function applyTrangThaiLogic(val) {
+            const isTrenLuong = val === 'Trên luồng';
+            const ddlTuyen = document.getElementById('edTuyenLuong');
+            const ddlViTri = document.getElementById('edViTri');
+            ddlTuyen.disabled = !isTrenLuong;
+            if (!isTrenLuong) {
+                ddlTuyen.value = '';
+                ddlViTri.innerHTML = '<option value="">—— Chọn tuyến luồng trước ——</option>';
+                ddlViTri.disabled = true;
+                document.getElementById('edViDo').textContent = '--';
+                document.getElementById('edKinhDo').textContent = '--';
+                document.getElementById('edViTriWarning').classList.add('d-none');
+                document.getElementById('btnSaveEdit').disabled = false;
+            }
+        }
+
+        // ── Toggle Tuyến/ViTri theo TrangThaiHoatDong ──
+        function applyTrangThaiLogic(val) {
+            const isTrenLuong = val === 'Trên luồng';
+            const ddlTuyen = document.getElementById('edTuyenLuong');
+            const ddlViTri = document.getElementById('edViTri');
+            ddlTuyen.disabled = !isTrenLuong;
+            if (!isTrenLuong) {
+                ddlTuyen.value = '';
+                ddlViTri.innerHTML = '<option value="">-- Chọn tuyến luồng trước --</option>';
+                ddlViTri.disabled = true;
+                document.getElementById('edViDo').textContent = '--';
+                document.getElementById('edKinhDo').textContent = '--';
+                document.getElementById('edViTriWarning').classList.add('d-none');
+                document.getElementById('btnSaveEdit').disabled = false;
+            }
+        }
+
         // ── Cascade: load ViTri by TuyenLuong ──
         let _viTriByTuyenCache = {};
         async function loadViTriByTuyen(tuyenLuongId) {
@@ -1129,8 +1174,18 @@
                     document.getElementById('edSuaChuaGanNhat').value = fmtDateInput(data.thoiDiemSuaChuaGanNhat);
                     document.getElementById('edDienTich').value = data.dienTich ?? '';
 
+                    // ── Trạng thái hoạt động ──
+                    const trangThaiVal = data.trangThaiHoatDong || '';
+                    document.getElementById('edTrangThai').value = trangThaiVal;
+                    applyTrangThaiLogic(trangThaiVal);
+                    document.getElementById('edTrangThai').onchange = function () {
+                        applyTrangThaiLogic(this.value);
+                    };
+
                     // ── Tuyến luồng dropdown ──
                     populateSelect('edTuyenLuong', dd.tuyenLuong, data.tuyenLuongId);
+                    // Re-apply disabled state after populate
+                    document.getElementById('edTuyenLuong').disabled = trangThaiVal !== 'Trên luồng';
                     document.getElementById('edTuyenLuong').onchange = async function () {
                         await loadViTriByTuyen(this.value);
                         updateEditCoords();
@@ -1139,7 +1194,7 @@
                     };
 
                     // ── Cascade: load ViTri for current TuyenLuong ──
-                    if (data.tuyenLuongId) {
+                    if (trangThaiVal === 'Trên luồng' && data.tuyenLuongId) {
                         const items = await loadViTriByTuyen(data.tuyenLuongId);
                         populateViTriSelect(items, data.viTriPhaoBHHienTaiId);
                     }
@@ -1203,6 +1258,13 @@
                 return;
             }
 
+            const trangThaiHoatDong = getVal('edTrangThai').trim();
+            if (!trangThaiHoatDong) {
+                showToast('Vui lòng chọn trạng thái hoạt động', 'error');
+                return;
+            }
+            const isTrenLuong = trangThaiHoatDong === 'Trên luồng';
+
             const btn = document.getElementById('btnSaveEdit');
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang lưu...';
@@ -1224,7 +1286,8 @@
                 thoiDiemThayTha: getVal('edThoiDiemThayTha') || null,
                 thoiDiemSuaChuaGanNhat: getVal('edSuaChuaGanNhat') || null,
                 dienTich: getNumVal('edDienTich'),
-                viTriPhaoBHHienTaiId: getIntVal('edViTri'),
+                trangThaiHoatDong: trangThaiHoatDong,
+                viTriPhaoBHHienTaiId: isTrenLuong ? getIntVal('edViTri') : null,
                 xichPhao_DuongKinh: getNumVal('edXichPhao_DK'),
                 xichPhao_ChieuDai: getNumVal('edXichPhao_CD'),
                 xichPhao_ThoiDiemSuDung: getVal('edXichPhao_SD') || null,

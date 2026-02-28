@@ -106,6 +106,9 @@ namespace LANHossting.Application.DTOs.Buoy
 
         // Trạng thái
         public string? TrangThaiHienTai { get; set; }
+
+        /// <summary>Trạng thái hoạt động: Thu hồi | Cho thuê | Sửa chữa | Trên luồng | Mất dấu</summary>
+        public string? TrangThaiHoatDong { get; set; }
     }
 
     /// <summary>
@@ -146,6 +149,13 @@ namespace LANHossting.Application.DTOs.Buoy
         [System.ComponentModel.DataAnnotations.MaxLength(255)]
         public string? TrangThaiHienTai { get; set; }
 
+        /// <summary>Trạng thái hoạt động: Thu hồi | Cho thuê | Sửa chữa | Trên luồng | Mất dấu</summary>
+        [System.ComponentModel.DataAnnotations.MaxLength(50)]
+        public string? TrangThaiHoatDong { get; set; }
+
+        /// <summary>Tuyến luồng (chỉ khi TrangThaiHoatDong = Trên luồng)</summary>
+        public int? TuyenLuongId { get; set; }
+
         public int? ViTriPhaoBHHienTaiId { get; set; }
 
         // Xích phao
@@ -184,6 +194,13 @@ namespace LANHossting.Application.DTOs.Buoy
         public DateTime? Den_ThoiDiemSuDung { get; set; }
         public DateTime? Den_ThoiDiemSuaChua { get; set; }
         public string? Den_SoQuyetDinhTang { get; set; }
+
+        /// <summary>Người cập nhật (lấy từ Session)</summary>
+        [System.ComponentModel.DataAnnotations.MaxLength(100)]
+        public string? NguoiCapNhat { get; set; }
+
+        /// <summary>Ghi chú cho bản ghi lịch sử hoạt động (tùy chọn)</summary>
+        public string? GhiChuLichSu { get; set; }
     }
 
     /// <summary>

@@ -62,5 +62,14 @@ namespace LANHossting.Application.Interfaces.Buoy
         /// Lưu thay đổi EF context
         /// </summary>
         Task SaveChangesAsync();
+        /// <summary>
+        /// Thêm bản ghi mới vào LichSuHoatDongPhao
+        /// </summary>
+        Task AddLichSuHoatDongAsync(LichSuHoatDongPhao record);
+
+        /// <summary>
+        /// Lấy thông tin DmViTriPhaoBH kèm TuyenLuong (dùng cho snapshot lịch sử)
+        /// </summary>
+        Task<DmViTriPhaoBH?> GetViTriByIdAsync(int id);
     }
 }

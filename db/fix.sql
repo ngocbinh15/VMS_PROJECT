@@ -10,4 +10,4 @@ SET DonGia =
 FROM VatLieu v
 JOIN NhomVatLieu n ON v.NhomVatLieuId = n.Id;
 
-SELECT * FROM VatLieu
+SELECT * FROM LichSuHoatDongPhao

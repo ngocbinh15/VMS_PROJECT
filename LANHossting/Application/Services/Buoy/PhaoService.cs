@@ -1,5 +1,7 @@
 using LANHossting.Application.DTOs.Buoy;
 using LANHossting.Application.Interfaces.Buoy;
+using LANHossting.Domain.Entities.Buoy;
+using LANHossting.Domain.Enums;
 
 namespace LANHossting.Application.Services.Buoy
 {
@@ -164,6 +166,7 @@ namespace LANHossting.Application.Services.Buoy
                 Den_SoQuyetDinhTang = p.Den_SoQuyetDinhTang,
 
                 TrangThaiHienTai = p.TrangThaiHienTai,
+                TrangThaiHoatDong = MapToTrangThaiHoatDong(p.TrangThaiHienTai),
             };
         }
 
@@ -188,6 +191,19 @@ namespace LANHossting.Application.Services.Buoy
                 if (phao == null)
                     return (false, "Không tìm thấy phao với Id = " + dto.Id);
 
+                // ── Bắt snapshot GIÁ TRỊ CŨ trước khi thay đổi ──
+                var oldTrangThaiHoatDong = MapToTrangThaiHoatDong(phao.TrangThaiHienTai);
+                var oldViTriId = phao.ViTriPhaoBHHienTaiId;
+
+                // ── Xử lý TrangThaiHoatDong & quy tắc nghiệp vụ ──
+                var newTrangThaiHoatDong = dto.TrangThaiHoatDong ?? TrangThaiHoatDongPhao.ThuHoi;
+                var requireViTri = TrangThaiHoatDongPhao.RequireViTri(newTrangThaiHoatDong);
+
+                int? newViTriId = requireViTri ? dto.ViTriPhaoBHHienTaiId : null;
+
+                // TinhTrang suy ra từ TrangThaiHoatDong
+                var tinhTrang = TrangThaiHoatDongPhao.InferTinhTrang(newTrangThaiHoatDong);
+
                 // Map DTO → Entity (MaLoaiPhao is computed, skip it)
                 phao.KyHieuTaiSan = dto.KyHieuTaiSan;
                 phao.MaPhaoDayDu = dto.MaPhaoDayDu;
@@ -198,8 +214,9 @@ namespace LANHossting.Application.Services.Buoy
                 phao.HinhDang = dto.HinhDang;
                 phao.VatLieu = dto.VatLieu;
                 phao.MauSac = dto.MauSac;
-                phao.TrangThaiHienTai = dto.TrangThaiHienTai;
-                phao.ViTriPhaoBHHienTaiId = dto.ViTriPhaoBHHienTaiId;
+                // Lưu TrangThaiHoatDong vào TrangThaiHienTai; TinhTrang được hiển thị từ logic
+                phao.TrangThaiHienTai = newTrangThaiHoatDong;
+                phao.ViTriPhaoBHHienTaiId = newViTriId;
 
                 // Thời gian v1.1
                 phao.ThoiGianSuDung = dto.ThoiGianSuDung;
@@ -244,6 +261,42 @@ namespace LANHossting.Application.Services.Buoy
 
                 // Audit
                 phao.NgayCapNhat = DateTime.Now;
+                phao.NguoiCapNhat = dto.NguoiCapNhat;
+
+                // ── GHI LỊCH SỬ nếu phát hiện thay đổi hoạt động ──
+                bool changed = oldTrangThaiHoatDong != newTrangThaiHoatDong
+                            || oldViTriId != newViTriId;
+
+                if (changed)
+                {
+                    // Lấy snapshot vị trí mới
+                    string? snapshotMaPhaoBH = null;
+                    string? snapshotMaTuyen = null;
+
+                    if (newViTriId.HasValue)
+                    {
+                        var viTriInfo = await _phaoRepo.GetViTriByIdAsync(newViTriId.Value);
+                        snapshotMaPhaoBH = viTriInfo?.MaPhaoBH;
+                        snapshotMaTuyen = viTriInfo?.TuyenLuong?.MaTuyen;
+                    }
+
+                    var lichSu = new LichSuHoatDongPhao
+                    {
+                        PhaoId = phao.Id,
+                        Nam = DateTime.Now.Year,
+                        NgayBatDau = DateTime.Today,
+                        LoaiTrangThai = newTrangThaiHoatDong,
+                        MoTaTrangThai = tinhTrang,
+                        ViTriPhaoBHId = newViTriId,
+                        MaPhaoBH = snapshotMaPhaoBH,
+                        MaTuyenLuong = snapshotMaTuyen,
+                        GhiChu = dto.GhiChuLichSu,
+                        NgayTao = DateTime.Now,
+                        NguoiTao = dto.NguoiCapNhat
+                    };
+
+                    await _phaoRepo.AddLichSuHoatDongAsync(lichSu);
+                }
 
                 await _phaoRepo.SaveChangesAsync();
                 return (true, null);
@@ -272,38 +325,52 @@ namespace LANHossting.Application.Services.Buoy
 
         #region Private Helpers
 
+        /// <summary>
+        /// Map giá trị TrangThaiHienTai (cũ hoặc mới) sang TrangThaiHoatDong chuẩn.
+        /// </summary>
+        private static string MapToTrangThaiHoatDong(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return TrangThaiHoatDongPhao.ThuHoi;
+
+            // Nếu đã là giá trị mới (5 lựa chọn)
+            if (TrangThaiHoatDongPhao.TatCa.Contains(value)) return value;
+
+            // Backward compat: map giá trị cũ
+            var lower = value.ToLower();
+            if (lower.Contains("trên luồng")) return TrangThaiHoatDongPhao.TrenLuong;
+            if (lower.Contains("thu hồi") || lower.Contains("trên bãi")) return TrangThaiHoatDongPhao.ThuHoi;
+            if (lower.Contains("sựa chữa") || lower.Contains("sỳa chữa") || lower.Contains("sự cố")) return TrangThaiHoatDongPhao.SuaChua;
+
+            return TrangThaiHoatDongPhao.ThuHoi; // mặc định
+        }
+
         private static string MapTrangThaiHienThi(string? trangThai)
         {
             if (string.IsNullOrEmpty(trangThai))
                 return "Không xác định";
 
-            var lower = trangThai.ToLower();
-            if (lower.Contains("trên bãi") || lower.Contains("thu hồi"))
-                return "KHÔNG SỬ DỤNG";
-            if (lower.Contains("sự cố"))
-                return "SỰ CỐ";
-
-            // Nếu có mã vị trí (ví dụ: "4A"-QN) → đang hoạt động trên luồng
-            if (trangThai.Contains('"') || trangThai.Contains('-'))
-                return "HOẠT ĐỘNG";
-
-            return trangThai.ToUpper();
+            var mapped = MapToTrangThaiHoatDong(trangThai);
+            return mapped switch
+            {
+                TrangThaiHoatDongPhao.TrenLuong => "TRÊN LUỒNG",
+                TrangThaiHoatDongPhao.ThuHoi    => "THU HỒI",
+                TrangThaiHoatDongPhao.ChoThue   => "CHO THUÊ",
+                TrangThaiHoatDongPhao.SuaChua   => "SẬA CHẮA",
+                TrangThaiHoatDongPhao.MatDau    => "MẤT DẤU",
+                _                              => trangThai.ToUpper()
+            };
         }
 
         private static string MapTrangThaiCssClass(string? trangThai)
         {
-            if (string.IsNullOrEmpty(trangThai))
-                return "bg-secondary-subtle text-secondary";
-
-            var lower = trangThai.ToLower();
-            if (lower.Contains("trên bãi") || lower.Contains("thu hồi"))
-                return "bg-secondary-subtle text-secondary";
-            if (lower.Contains("sự cố"))
-                return "bg-danger-subtle text-danger";
-            if (trangThai.Contains('"') || trangThai.Contains('-'))
-                return "badge-active";
-
-            return "badge-maint";
+            var mapped = MapToTrangThaiHoatDong(trangThai);
+            return mapped switch
+            {
+                TrangThaiHoatDongPhao.TrenLuong => "badge-active",
+                TrangThaiHoatDongPhao.SuaChua   => "badge-maint",
+                TrangThaiHoatDongPhao.MatDau    => "bg-danger-subtle text-danger",
+                _                              => "bg-secondary-subtle text-secondary"
+            };
         }
 
         #endregion
