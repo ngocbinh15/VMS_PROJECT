@@ -190,12 +190,32 @@ namespace LANHossting.Controllers
         }
 
         /// <summary>
-        /// GET: /Phao/LichSu
+        /// GET: /Phao/LichSu — trang vòng đời phao (Flow Diagram)
         /// </summary>
-        public IActionResult LichSu()
+        public async Task<IActionResult> LichSu()
         {
             ViewBag.FullName = HttpContext.Session.GetString("HoTen");
+
+            // Lấy danh sách tuyến luồng cho dropdown filter
+            var tuyenLuong = await _context.DmTuyenLuong
+                .AsNoTracking()
+                .Where(t => t.TrangThai == "Hoạt động")
+                .OrderBy(t => t.ThuTuHienThi)
+                .Select(t => new { t.Id, t.MaTuyen, t.TenTuyen })
+                .ToListAsync();
+
+            ViewBag.DanhSachTuyenLuong = tuyenLuong;
             return View();
+        }
+
+        /// <summary>
+        /// GET: /Phao/GetVongDoiJson?tuyenLuongId=X — dữ liệu vòng đời phao (JSON) cho flow diagram
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetVongDoiJson(int? tuyenLuongId)
+        {
+            var result = await _phaoService.GetVongDoiPhaoAsync(tuyenLuongId);
+            return Json(result);
         }
 
         /// <summary>

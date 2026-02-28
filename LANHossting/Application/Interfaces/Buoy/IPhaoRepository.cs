@@ -71,5 +71,11 @@ namespace LANHossting.Application.Interfaces.Buoy
         /// Lấy thông tin DmViTriPhaoBH kèm TuyenLuong (dùng cho snapshot lịch sử)
         /// </summary>
         Task<DmViTriPhaoBH?> GetViTriByIdAsync(int id);
+
+        /// <summary>
+        /// Lấy toàn bộ LichSuHoatDongPhao theo tuyến luồng (hoặc tất cả nếu null)
+        /// Kèm navigation ViTriPhaoBH → TuyenLuong và Phao
+        /// </summary>
+        Task<List<LichSuHoatDongPhao>> GetLichSuHoatDongByTuyenAsync(int? tuyenLuongId);
     }
 }

@@ -12,6 +12,7 @@ wwwroot\js\kho\dashboard.events.js
 wwwroot\js\kho\dashboard.ui.js
 wwwroot\js\phao\dashboard.js
 wwwroot\js\phao\edit.js
+wwwroot\js\phao\vongdoi.js
 wwwroot\js\site.js
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map

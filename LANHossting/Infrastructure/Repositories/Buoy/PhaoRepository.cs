@@ -141,5 +141,26 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
                 .AsNoTracking()
                 .FirstOrDefaultAsync(v => v.Id == id);
         }
+
+        public async Task<List<LichSuHoatDongPhao>> GetLichSuHoatDongByTuyenAsync(int? tuyenLuongId)
+        {
+            var query = _context.Set<LichSuHoatDongPhao>()
+                .Include(ls => ls.Phao)
+                .Include(ls => ls.ViTriPhaoBH)
+                    .ThenInclude(v => v!.TuyenLuong)
+                .AsNoTracking();
+
+            if (tuyenLuongId.HasValue)
+            {
+                query = query.Where(ls =>
+                    ls.ViTriPhaoBH != null && ls.ViTriPhaoBH.TuyenLuongId == tuyenLuongId.Value);
+            }
+
+            return await query
+                .OrderBy(ls => ls.PhaoId)
+                .ThenBy(ls => ls.Nam)
+                .ThenBy(ls => ls.NgayBatDau)
+                .ToListAsync();
+        }
     }
 }

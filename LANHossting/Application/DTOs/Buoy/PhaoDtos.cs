@@ -214,4 +214,61 @@ namespace LANHossting.Application.DTOs.Buoy
         public int SoViTri { get; set; }
         public int SoPhaoTrenLuong { get; set; }
     }
+
+    // ══════════════════════════════════════════════════════════
+    //  VÒNG ĐỜI PHAO — DTOs for Flow Diagram
+    // ══════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Một bước (step) trong vòng đời phao — khớp cấu trúc FE: { yr, pos, sl, type, note }
+    /// </summary>
+    public class VongDoiStepDto
+    {
+        /// <summary>Năm (INT)</summary>
+        public int Yr { get; set; }
+
+        /// <summary>Vị trí phao BH (e.g. "0"-QN)</summary>
+        public string Pos { get; set; } = string.Empty;
+
+        /// <summary>L = Trên luồng, R = Thu hồi về</summary>
+        public string Sl { get; set; } = "L";
+
+        /// <summary>Loại trạng thái FE: active, recalled, kho, incident, maintenance, transfer</summary>
+        public string Type { get; set; } = "active";
+
+        /// <summary>Ghi chú (tùy chọn)</summary>
+        public string? Note { get; set; }
+    }
+
+    /// <summary>
+    /// Một phao với toàn bộ lịch sử vòng đời — khớp cấu trúc FE: { id, steps[] }
+    /// </summary>
+    public class VongDoiBuoyDto
+    {
+        /// <summary>Mã phao đầy đủ (e.g. T26.016.12)</summary>
+        public string Id { get; set; } = string.Empty;
+
+        /// <summary>Danh sách bước theo thời gian</summary>
+        public List<VongDoiStepDto> Steps { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Response trả về cho API vòng đời phao — gồm metadata + danh sách phao
+    /// </summary>
+    public class VongDoiResponseDto
+    {
+        /// <summary>Danh sách năm (trục X)</summary>
+        public List<int> Years { get; set; } = new();
+
+        /// <summary>Danh sách vị trí (trục Y, e.g. ["\"0\"-QN", ...])</summary>
+        public List<string> Positions { get; set; } = new();
+
+        /// <summary>Danh sách phao kèm lịch sử steps</summary>
+        public List<VongDoiBuoyDto> Buoys { get; set; } = new();
+
+        /// <summary>Tuyến luồng đang xem</summary>
+        public string? TuyenLuongTen { get; set; }
+
+        public string? TuyenLuongMa { get; set; }
+    }
 }

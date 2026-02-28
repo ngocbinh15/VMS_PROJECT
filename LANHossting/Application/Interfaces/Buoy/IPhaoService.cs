@@ -37,5 +37,10 @@ namespace LANHossting.Application.Interfaces.Buoy
         /// Xóa phao theo Id (cascade xóa bản ghi liên quan)
         /// </summary>
         Task<(bool Success, string? Error)> XoaPhaoAsync(int id);
+
+        /// <summary>
+        /// Lấy dữ liệu vòng đời phao cho Flow Diagram (theo tuyến luồng)
+        /// </summary>
+        Task<VongDoiResponseDto> GetVongDoiPhaoAsync(int? tuyenLuongId);
     }
 }

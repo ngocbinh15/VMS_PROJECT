@@ -322,7 +322,115 @@ namespace LANHossting.Application.Services.Buoy
             }
         }
 
+        public async Task<VongDoiResponseDto> GetVongDoiPhaoAsync(int? tuyenLuongId)
+        {
+            var records = await _phaoRepo.GetLichSuHoatDongByTuyenAsync(tuyenLuongId);
+
+            // Lấy thông tin tuyến luồng
+            string? tuyenTen = null;
+            string? tuyenMa = null;
+            if (tuyenLuongId.HasValue)
+            {
+                var tuyenList = await _tuyenLuongRepo.GetAllActiveAsync();
+                var tuyen = tuyenList.FirstOrDefault(t => t.Id == tuyenLuongId.Value);
+                tuyenTen = tuyen?.TenTuyen;
+                tuyenMa = tuyen?.MaTuyen;
+            }
+
+            // Group theo PhaoId → tạo từng VongDoiBuoyDto
+            var grouped = records
+                .GroupBy(r => r.PhaoId)
+                .ToList();
+
+            var buoys = new List<VongDoiBuoyDto>();
+            var allYears = new HashSet<int>();
+            var allPositions = new HashSet<string>();
+
+            foreach (var group in grouped)
+            {
+                var phao = group.First().Phao;
+                var maPhao = phao?.MaPhaoDayDu ?? $"Phao-{group.Key}";
+
+                var steps = new List<VongDoiStepDto>();
+                foreach (var rec in group.OrderBy(r => r.Nam).ThenBy(r => r.NgayBatDau))
+                {
+                    // Xác định vị trí hiển thị
+                    var pos = rec.MaPhaoBH ?? rec.ViTriPhaoBH?.MaPhaoBH ?? "N/A";
+
+                    // Map LoaiTrangThai DB → FE type + side
+                    var (feType, side) = MapLoaiTrangThaiToFe(rec.LoaiTrangThai);
+
+                    steps.Add(new VongDoiStepDto
+                    {
+                        Yr = rec.Nam,
+                        Pos = pos,
+                        Sl = side,
+                        Type = feType,
+                        Note = rec.GhiChu ?? rec.MoTaTrangThai
+                    });
+
+                    allYears.Add(rec.Nam);
+                    if (pos != "N/A") allPositions.Add(pos);
+                }
+
+                if (steps.Count > 0)
+                {
+                    buoys.Add(new VongDoiBuoyDto
+                    {
+                        Id = maPhao,
+                        Steps = steps
+                    });
+                }
+            }
+
+            // Tạo danh sách years sorted
+            var years = allYears.OrderBy(y => y).ToList();
+            if (years.Count == 0)
+            {
+                var currentYear = DateTime.Now.Year;
+                years = Enumerable.Range(currentYear - 5, 6).ToList();
+            }
+
+            // Tạo danh sách positions sorted
+            var positions = allPositions.OrderBy(p => p).ToList();
+
+            return new VongDoiResponseDto
+            {
+                Years = years,
+                Positions = positions,
+                Buoys = buoys,
+                TuyenLuongTen = tuyenTen,
+                TuyenLuongMa = tuyenMa
+            };
+        }
+
         #region Private Helpers
+
+        /// <summary>
+        /// Map LoaiTrangThai (DB) → FE type string + side (L/R)
+        /// DB values: TREN_LUONG, THU_HOI, TREN_BAI, CHO_THUE, XIN_THANH_LY, SU_CO, BAO_TRI, DU_PHONG
+        /// FE types: active, recalled, kho, incident, maintenance, transfer
+        /// </summary>
+        private static (string feType, string side) MapLoaiTrangThaiToFe(string? loaiTrangThai)
+        {
+            if (string.IsNullOrWhiteSpace(loaiTrangThai))
+                return ("active", "L");
+
+            var upper = loaiTrangThai.Trim().ToUpper();
+
+            // Also handle the TrangThaiHoatDongPhao enum-style values
+            return upper switch
+            {
+                "TREN_LUONG" or "Trên luồng" => ("active", "L"),
+                "THU_HOI" or "Thu hồi" => ("recalled", "R"),
+                "TREN_BAI" or "Trên bãi" or "DU_PHONG" => ("kho", "R"),
+                "SU_CO" or "Sự cố" or "SUA_CHUA" or "Sửa chữa" or "MAT_DAU" or "Mất dấu" => ("incident", "L"),
+                "BAO_TRI" or "Bảo trì" => ("maintenance", "L"),
+                "CHO_THUE" or "Cho thuê" => ("transfer", "L"),
+                "XIN_THANH_LY" or "Xin thanh lý" => ("recalled", "R"),
+                _ => ("active", "L")
+            };
+        }
 
         /// <summary>
         /// Map giá trị TrangThaiHienTai (cũ hoặc mới) sang TrangThaiHoatDong chuẩn.
