@@ -352,13 +352,45 @@ namespace LANHossting.Application.Services.Buoy
                 var maPhao = phao?.MaPhaoDayDu ?? $"Phao-{group.Key}";
 
                 var steps = new List<VongDoiStepDto>();
-                foreach (var rec in group.OrderBy(r => r.Nam).ThenBy(r => r.NgayBatDau))
+
+                // Dedup: cùng năm + cùng phao + cùng vị trí → chỉ lấy bản ghi mới nhất (NgayBatDau lớn nhất)
+                var dedupedRecords = group
+                    .GroupBy(r => new
+                    {
+                        r.Nam,
+                        Pos = r.MaPhaoBH ?? r.ViTriPhaoBH?.MaPhaoBH ?? "N/A"
+                    })
+                    .Select(g => g.OrderByDescending(r => r.NgayBatDau).First())
+                    .OrderBy(r => r.NgayBatDau);
+
+                // Lưu vị trí thực cuối cùng để kế thừa cho bản ghi Thu hồi / Trên bãi
+                // (những bản ghi này không có ViTriPhaoBH → pos = "N/A" → không render được)
+                var lastKnownPos = "N/A";
+
+                foreach (var rec in dedupedRecords)
                 {
                     // Xác định vị trí hiển thị
                     var pos = rec.MaPhaoBH ?? rec.ViTriPhaoBH?.MaPhaoBH ?? "N/A";
 
                     // Map LoaiTrangThai DB → FE type + side
                     var (feType, side) = MapLoaiTrangThaiToFe(rec.LoaiTrangThai);
+
+                    if (pos != "N/A")
+                    {
+                        // Cập nhật vị trí thực khi có bản ghi trên luồng
+                        lastKnownPos = pos;
+                    }
+                    else if (lastKnownPos != "N/A")
+                    {
+                        // Thu hồi / Trên bãi không có vị trí riêng → hiện trên hàng vị trí cuối cùng
+                        // Cột "Thu hồi về" (sl='R') trong cùng năm sẽ hiển thị trạng thái này
+                        pos = lastKnownPos;
+                    }
+                    else
+                    {
+                        // Chưa có vị trí nào trước đó → bỏ qua bản ghi này
+                        continue;
+                    }
 
                     steps.Add(new VongDoiStepDto
                     {

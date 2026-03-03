@@ -152,8 +152,18 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
 
             if (tuyenLuongId.HasValue)
             {
-                query = query.Where(ls =>
-                    ls.ViTriPhaoBH != null && ls.ViTriPhaoBH.TuyenLuongId == tuyenLuongId.Value);
+                // Lấy danh sách PhaoId đã từng hoạt động trên tuyến luồng này
+                // (dựa vào các bản ghi có ViTriPhaoBH thuộc tuyến đó)
+                var phaoIdsInTuyen = await _context.Set<LichSuHoatDongPhao>()
+                    .AsNoTracking()
+                    .Where(ls => ls.ViTriPhaoBH != null
+                              && ls.ViTriPhaoBH.TuyenLuongId == tuyenLuongId.Value)
+                    .Select(ls => ls.PhaoId)
+                    .Distinct()
+                    .ToListAsync();
+
+                // Lấy TOÀN BỘ lịch sử của các phao đó (bao gồm cả Thu hồi, Trên bãi...)
+                query = query.Where(ls => phaoIdsInTuyen.Contains(ls.PhaoId));
             }
 
             return await query
