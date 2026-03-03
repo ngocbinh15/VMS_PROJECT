@@ -238,6 +238,9 @@ namespace LANHossting.Application.DTOs.Buoy
 
         /// <summary>Ghi chú (tùy chọn)</summary>
         public string? Note { get; set; }
+
+        /// <summary>Ngày bắt đầu (dd/MM/yyyy) — dùng để FE sắp xếp & hiển thị lịch sử trong modal</summary>
+        public string? Date { get; set; }
     }
 
     /// <summary>

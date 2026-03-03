@@ -353,21 +353,16 @@ namespace LANHossting.Application.Services.Buoy
 
                 var steps = new List<VongDoiStepDto>();
 
-                // Dedup: cùng năm + cùng phao + cùng vị trí → chỉ lấy bản ghi mới nhất (NgayBatDau lớn nhất)
-                var dedupedRecords = group
-                    .GroupBy(r => new
-                    {
-                        r.Nam,
-                        Pos = r.MaPhaoBH ?? r.ViTriPhaoBH?.MaPhaoBH ?? "N/A"
-                    })
-                    .Select(g => g.OrderByDescending(r => r.NgayBatDau).First())
-                    .OrderBy(r => r.NgayBatDau);
+                // Gửi TOÀN BỘ bản ghi (sắp xếp theo NgayBatDau ASC).
+                // FE sẽ dedup: mỗi (năm + vị trí) chỉ render event mới nhất,
+                // nhưng lưu toàn bộ để hiển thị đầy đủ lịch sử khi double click.
+                var allRecords = group.OrderBy(r => r.NgayBatDau);
 
                 // Lưu vị trí thực cuối cùng để kế thừa cho bản ghi Thu hồi / Trên bãi
                 // (những bản ghi này không có ViTriPhaoBH → pos = "N/A" → không render được)
                 var lastKnownPos = "N/A";
 
-                foreach (var rec in dedupedRecords)
+                foreach (var rec in allRecords)
                 {
                     // Xác định vị trí hiển thị
                     var pos = rec.MaPhaoBH ?? rec.ViTriPhaoBH?.MaPhaoBH ?? "N/A";
@@ -398,7 +393,8 @@ namespace LANHossting.Application.Services.Buoy
                         Pos = pos,
                         Sl = side,
                         Type = feType,
-                        Note = rec.GhiChu ?? rec.MoTaTrangThai
+                        Note = rec.GhiChu ?? rec.MoTaTrangThai,
+                        Date = rec.NgayBatDau.ToString("dd/MM/yyyy")
                     });
 
                     allYears.Add(rec.Nam);
@@ -448,20 +444,37 @@ namespace LANHossting.Application.Services.Buoy
             if (string.IsNullOrWhiteSpace(loaiTrangThai))
                 return ("active", "L");
 
-            var upper = loaiTrangThai.Trim().ToUpper();
+            var val = loaiTrangThai.Trim();
 
-            // Also handle the TrangThaiHoatDongPhao enum-style values
-            return upper switch
-            {
-                "TREN_LUONG" or "Trên luồng" => ("active", "L"),
-                "THU_HOI" or "Thu hồi" => ("recalled", "R"),
-                "TREN_BAI" or "Trên bãi" or "DU_PHONG" => ("kho", "R"),
-                "SU_CO" or "Sự cố" or "SUA_CHUA" or "Sửa chữa" or "MAT_DAU" or "Mất dấu" => ("incident", "L"),
-                "BAO_TRI" or "Bảo trì" => ("maintenance", "L"),
-                "CHO_THUE" or "Cho thuê" => ("transfer", "L"),
-                "XIN_THANH_LY" or "Xin thanh lý" => ("recalled", "R"),
-                _ => ("active", "L")
-            };
+            // Case-insensitive comparison — DO NOT use ToUpper() because
+            // Vietnamese diacritics (ồ, ề, …) break enum-style matching.
+            static bool Eq(string a, string b) =>
+                string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+
+            if (Eq(val, "TREN_LUONG") || Eq(val, "Trên luồng"))
+                return ("active", "L");
+
+            if (Eq(val, "THU_HOI") || Eq(val, "Thu hồi"))
+                return ("recalled", "R");
+
+            if (Eq(val, "TREN_BAI") || Eq(val, "Trên bãi") || Eq(val, "DU_PHONG"))
+                return ("kho", "R");
+
+            if (Eq(val, "SU_CO") || Eq(val, "Sự cố") ||
+                Eq(val, "SUA_CHUA") || Eq(val, "Sửa chữa") ||
+                Eq(val, "MAT_DAU") || Eq(val, "Mất dấu"))
+                return ("incident", "L");
+
+            if (Eq(val, "BAO_TRI") || Eq(val, "Bảo trì"))
+                return ("maintenance", "L");
+
+            if (Eq(val, "CHO_THUE") || Eq(val, "Cho thuê"))
+                return ("transfer", "L");
+
+            if (Eq(val, "XIN_THANH_LY") || Eq(val, "Xin thanh lý"))
+                return ("recalled", "R");
+
+            return ("active", "L");
         }
 
         /// <summary>

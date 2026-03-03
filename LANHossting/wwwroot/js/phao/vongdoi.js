@@ -20,6 +20,15 @@
  *  - Result: arrows touch the exact bounding-box edge facing the incoming curve.
  *    No pixel offsets, no hardcoded edges, correct at every zoom / scroll / resize.
  *  - Debug mode: red dot at source, blue dot at destination (toggle via DEBUG_DOTS).
+ *
+ * v4.1 — CROSS-ROUTE RECALL FIX:
+ *  - nodeMap key now includes pos: buoyId|yr|sl|pos so same-year same-sl nodes at
+ *    different positions (intra-year position change) are distinct.
+ *  - Backwards horizontal arc (ci2 < ci1): Thu hồi R-col → new-route deploy L-col
+ *    within the same year.  Old hDir=-1 pushed both control points into the narrow
+ *    inter-column gap → near-vertical ambiguous line.
+ *    New behaviour: both CPs are pushed to the RIGHT of the timeline, forming a
+ *    clear C-arc that reads "buoy exited rightward then re-entered at new position".
  */
 (function () {
     'use strict';
@@ -118,11 +127,42 @@
                 YEARS = data.years || [];
                 POSITIONS = data.positions || [];
                 BUOYS = (data.buoys || []).map(function (b) {
+                    // Parse ALL steps from API (backend sends full history, sorted by NgayBatDau ASC)
+                    var allSteps = (b.steps || []).map(function (s) {
+                        return {
+                            yr: s.yr,
+                            pos: s.pos,
+                            sl: s.sl || 'L',
+                            type: s.type || 'active',
+                            note: s.note || '',
+                            date: s.date || ''
+                        };
+                    });
+
+                    // ── DATA PIPELINE: dedup ───────────────────────────────────────
+                    // Rule: 1 year + 1 position + 1 buoy = 1 node
+                    // Group by (yr, pos), keep LAST event (most recent since backend sorts ASC).
+                    // The last event's sl/type/note become the render attributes.
+                    var latestMap = {};  // key: "yr|pos" → step
+                    allSteps.forEach(function (s) {
+                        latestMap[s.yr + '|' + s.pos] = s;  // overwrites with later event
+                    });
+                    var steps = [];
+                    // Preserve chronological order
+                    var seen = {};
+                    allSteps.forEach(function (s) {
+                        var k = s.yr + '|' + s.pos;
+                        if (latestMap[k] === s && !seen[k]) {
+                            seen[k] = true;
+                            steps.push(s);
+                        }
+                    });
+                    // ── END dedup ──────────────────────────────────────────────
+
                     return {
                         id: b.id,
-                        steps: (b.steps || []).map(function (s) {
-                            return { yr: s.yr, pos: s.pos, sl: s.sl || 'L', type: s.type || 'active', note: s.note || '' };
-                        })
+                        steps: steps,       // deduped — used for rendering & arrows
+                        allSteps: allSteps  // full — used for double-click modal
                     };
                 });
                 computeColumns();
@@ -342,18 +382,21 @@
     function buildNodeMap() {
         nodeMap = {};
         document.querySelectorAll('.fd-node').forEach(function (el) {
-            if (el.dataset.buoy && el.dataset.yr && el.dataset.sl) {
-                nodeMap[el.dataset.buoy + '|' + el.dataset.yr + '|' + el.dataset.sl] = el;
+            if (el.dataset.buoy && el.dataset.yr && el.dataset.sl && el.dataset.pos) {
+                // Key includes pos so same-year same-sl nodes at different positions are distinct
+                nodeMap[el.dataset.buoy + '|' + el.dataset.yr + '|' + el.dataset.sl + '|' + el.dataset.pos] = el;
             }
         });
     }
 
     /**
      * Returns bounding rect of the actual .fd-node element in canvas content-space.
+     * Key: buoyId + yr + sl + pos — includes pos so same-year same-sl nodes at
+     * different positions (e.g. position change within one year) are distinguished.
      * @returns {{x:number, y:number, w:number, h:number, cx:number, cy:number}|null}
      */
-    function getNodeRect(buoyId, yr, sl) {
-        var node  = nodeMap[buoyId + '|' + yr + '|' + sl];
+    function getNodeRect(buoyId, yr, sl, pos) {
+        var node  = nodeMap[buoyId + '|' + yr + '|' + sl + '|' + pos];
         var inner = document.getElementById('fdInner');
         if (!node || !inner) return null;
         if (node.style.display === 'none') return null;
@@ -430,8 +473,8 @@
                 var s2 = buoy.steps[si + 1];
 
                 // ── Step 1: get exact node rects ──────────────────────
-                var r1 = getNodeRect(buoy.id, s1.yr, s1.sl);
-                var r2 = getNodeRect(buoy.id, s2.yr, s2.sl);
+                var r1 = getNodeRect(buoy.id, s1.yr, s1.sl, s1.pos);
+                var r2 = getNodeRect(buoy.id, s2.yr, s2.sl, s2.pos);
                 if (!r1 || !r2) continue;
 
                 // Centres in content-space
@@ -451,11 +494,27 @@
 
                 if (isHoriz) {
                     var hArc = Math.max(Math.abs(dx) * 0.45, 32);
-                    var hDir = (ci2 > ci1) ? 1 : -1;
-                    cp1x = c1x + hDir * hArc + offset;
-                    cp1y = c1y + offset * 0.3;
-                    cp2x = c2x - hDir * hArc + offset;
-                    cp2y = c2y + offset * 0.3;
+                    if (ci2 < ci1) {
+                        // ── Backward: Thu hồi R-col → redeploy L-col (same year) ──
+                        // hDir=-1 would squash both CPs into the tiny inter-column gap,
+                        // making the curve look like a near-vertical line with no clear
+                        // direction. Instead, push both CPs to the RIGHT of the R column
+                        // so the bezier forms a C-arc:  source →(right)→ right-pad
+                        // →(left+up/down)→ dest.  Visually: buoy exits rightward (recall
+                        // / off-route), then curves back to the new-route position.
+                        var rightPad = Math.abs(c1x - c2x) + 80 + Math.abs(offset) * 3;
+                        var rightAnchor = Math.max(c1x, c2x) + rightPad;
+                        cp1x = rightAnchor + offset;
+                        cp1y = c1y + offset * 0.3;
+                        cp2x = rightAnchor + offset;
+                        cp2y = c2y + offset * 0.3;
+                    } else {
+                        // Normal forward arc (ci2 > ci1: going right in time)
+                        cp1x = c1x + hArc + offset;
+                        cp1y = c1y + offset * 0.3;
+                        cp2x = c2x - hArc + offset;
+                        cp2y = c2y + offset * 0.3;
+                    }
                 } else {
                     var vArc = Math.max(Math.abs(dy) * 0.45, 32);
                     var vDir = (pi2 > pi1) ? 1 : -1;
@@ -552,19 +611,61 @@
     }
 
     // showNodeModal: populate and open the detail Bootstrap modal.
+    // Shows the latest event at the top, plus full timeline of ALL events
+    // in that year at that position for this buoy.
     function showNodeModal(el) {
-        var bi   = parseInt(el.dataset.bi);
-        var bc   = BUOY_COLORS[bi % BUOY_COLORS.length];
-        var type = el.dataset.type;
-        var t    = TYPES[type] || TYPES.active;
+        var bi      = parseInt(el.dataset.bi);
+        var bc      = BUOY_COLORS[bi % BUOY_COLORS.length];
+        var type    = el.dataset.type;
+        var t       = TYPES[type] || TYPES.active;
+        var buoyId  = el.dataset.buoy;
+        var yr      = parseInt(el.dataset.yr);
+        var pos     = el.dataset.pos;
+
         document.getElementById('fdNodeDot').style.background = bc;
-        document.getElementById('fdNodeTitle').textContent = 'Chi tiết · ' + el.dataset.pos + ' / ' + el.dataset.yr;
-        document.getElementById('fdNodeId').textContent    = el.dataset.buoy;
-        document.getElementById('fdNodePos').textContent   = el.dataset.pos;
-        document.getElementById('fdNodeYear').textContent  = el.dataset.yr;
+        document.getElementById('fdNodeTitle').textContent = 'Chi tiết · ' + pos + ' / ' + yr;
+        document.getElementById('fdNodeId').textContent    = buoyId;
+        document.getElementById('fdNodePos').textContent   = pos;
+        document.getElementById('fdNodeYear').textContent  = yr;
         document.getElementById('fdNodeNote').textContent  = el.dataset.note || '(không có ghi chú)';
         var s = document.getElementById('fdNodeStatus');
         s.textContent = t.label; s.style.background = t.bg; s.style.color = t.text;
+
+        // Build full event history for this (buoy, year, position)
+        var histEl = document.getElementById('fdNodeHistory');
+        if (histEl) {
+            var buoy = BUOYS.find(function (b) { return b.id === buoyId; });
+            var events = buoy ? buoy.allSteps.filter(function (st) {
+                return st.yr === yr && st.pos === pos;
+            }) : [];
+
+            if (events.length <= 1) {
+                histEl.style.display = 'none';
+            } else {
+                histEl.style.display = '';
+                var html = '<div class="tl-label mb-1">LỊCH SỬ TRONG NĂM ' + yr + '</div>';
+                html += '<div class="list-group list-group-flush" style="font-size:.85rem;">';
+                // Show most recent first
+                for (var i = events.length - 1; i >= 0; i--) {
+                    var ev = events[i];
+                    var evT = TYPES[ev.type] || TYPES.active;
+                    var dateStr = ev.date || '';
+                    var isLatest = (i === events.length - 1);
+                    html += '<div class="list-group-item px-0 py-1 border-0 d-flex align-items-center gap-2' +
+                        (isLatest ? ' fw-bold' : ' text-muted') + '">';
+                    html += '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' +
+                        evT.bg + ';border:1px solid ' + evT.text + ';"></span>';
+                    html += '<span>' + dateStr + '</span>';
+                    html += '<span style="padding:1px 8px;border-radius:12px;font-size:.75rem;background:' +
+                        evT.bg + ';color:' + evT.text + ';">' + evT.label + '</span>';
+                    if (ev.note) html += '<span class="text-secondary" style="font-size:.78rem;">' + escHtml(ev.note) + '</span>';
+                    html += '</div>';
+                }
+                html += '</div>';
+                histEl.innerHTML = html;
+            }
+        }
+
         new bootstrap.Modal(document.getElementById('fdNodeModal')).show();
     }
 
