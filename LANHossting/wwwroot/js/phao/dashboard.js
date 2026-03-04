@@ -219,102 +219,8 @@ function viewPhaoDetail(id) {
 // ══════════════════════════════════════════════
 // EDIT MODAL
 // ══════════════════════════════════════════════
-// ── Toggle Tuyến/ViTri enable/disable theo TrangThaiHoatDong ──
-function applyTrangThaiLogic(val) {
-    var isTrenLuong = val === 'Trên luồng';
-    var ddlTuyen = document.getElementById('edTuyenLuong');
-    var ddlViTri = document.getElementById('edViTri');
-    ddlTuyen.disabled = !isTrenLuong;
-    if (!isTrenLuong) {
-        ddlTuyen.value = '';
-        ddlViTri.innerHTML = '<option value="">-- Chọn tuyến luồng trước --</option>';
-        ddlViTri.disabled = true;
-        document.getElementById('edViDo').textContent = '--';
-        document.getElementById('edKinhDo').textContent = '--';
-        document.getElementById('edViTriWarning').classList.add('d-none');
-        document.getElementById('btnSaveEdit').disabled = false;
-    }
-}
-
-// ── Cascade: load ViTri by TuyenLuong ──
-var _viTriByTuyenCache = {};
-function loadViTriByTuyen(tuyenLuongId) {
-    var selViTri = document.getElementById('edViTri');
-    var warn = document.getElementById('edViTriWarning');
-    warn.classList.add('d-none');
-    if (!tuyenLuongId) {
-        selViTri.innerHTML = '<option value="">-- Chọn tuyến luồng trước --</option>';
-        selViTri.disabled = true;
-        updateEditCoords();
-        return Promise.resolve([]);
-    }
-    if (_viTriByTuyenCache[tuyenLuongId]) {
-        var cached = _viTriByTuyenCache[tuyenLuongId];
-        populateViTriSelect(cached, null);
-        selViTri.disabled = false;
-        return Promise.resolve(cached);
-    }
-    return fetch(URLS.viTriByTuyen + '?tuyenLuongId=' + tuyenLuongId)
-        .then(function(resp) { return resp.json(); })
-        .then(function(items) {
-            _viTriByTuyenCache[tuyenLuongId] = items;
-            populateViTriSelect(items, null);
-            selViTri.disabled = false;
-            return items;
-        });
-}
-
-function populateViTriSelect(items, selectedVal) {
-    var sel = document.getElementById('edViTri');
-    sel.innerHTML = '<option value="">-- Chọn vị trí --</option>';
-    items.forEach(function(it) {
-        var opt = document.createElement('option');
-        opt.value = it.id;
-        opt.textContent = it.maPhaoBH;
-        opt.dataset.toaDo = it.toaDoThietKe || '';
-        sel.appendChild(opt);
-    });
-    if (selectedVal != null) sel.value = selectedVal;
-}
-
-function updateEditCoords() {
-    var sel = document.getElementById('edViTri');
-    var selOpt = sel.options[sel.selectedIndex];
-    var toaDo = selOpt && selOpt.dataset.toaDo ? selOpt.dataset.toaDo : null;
-    if (toaDo) {
-        var c = splitCoords(toaDo);
-        document.getElementById('edViDo').textContent = c.viDo;
-        document.getElementById('edKinhDo').textContent = c.kinhDo;
-    } else {
-        document.getElementById('edViDo').textContent = '--';
-        document.getElementById('edKinhDo').textContent = '--';
-    }
-}
-
-// ── Duplicate ViTri check ──
-function checkViTriDuplicate() {
-    var viTriId = getIntVal('edViTri');
-    var phaoId = parseInt(getVal('editId'));
-    var warn = document.getElementById('edViTriWarning');
-    var btn = document.getElementById('btnSaveEdit');
-    warn.classList.add('d-none');
-
-    if (!viTriId) { btn.disabled = false; return Promise.resolve(); }
-
-    return fetch(URLS.checkViTriTrung + '?viTriId=' + viTriId + '&excludePhaoId=' + phaoId)
-        .then(function(resp) { return resp.json(); })
-        .then(function(result) {
-            if (result.trung) {
-                document.getElementById('edViTriWarningText').textContent =
-                    'Vị trí này đang được sử dụng bởi phao: ' + (result.tenPhao || result.maPhao);
-                warn.classList.remove('d-none');
-                btn.disabled = true;
-            } else {
-                btn.disabled = false;
-            }
-        })
-        .catch(function() { btn.disabled = false; });
-}
+// Trạng thái vận hành (trạng thái, tuyến, vị trí) được quản lý qua Điều Phối.
+// Modal này chỉ cho chỉnh sửa thông tin kỹ thuật / định danh.
 
 // ── Tab height sync ──
 function syncTabHeight() {
@@ -332,9 +238,7 @@ function openEditModal(id) {
     var modal = new bootstrap.Modal(document.getElementById('phaoEditModal'));
     document.getElementById('editLoading').classList.remove('d-none');
     document.getElementById('editContent').classList.add('d-none');
-    document.getElementById('edViTriWarning').classList.add('d-none');
     document.getElementById('btnSaveEdit').disabled = false;
-    _viTriByTuyenCache = {};
 
     // Reset to first tab
     var firstTab = document.querySelector('#phaoEditModal .nav-link');
@@ -370,52 +274,13 @@ function openEditModal(id) {
         fpDate['edSuaChuaGanNhat'].setDate(data.thoiDiemSuaChuaGanNhat ? new Date(data.thoiDiemSuaChuaGanNhat) : null, false);
         document.getElementById('edDienTich').value = data.dienTich != null ? data.dienTich : '';
 
-        // ── Trạng thái hoạt động ──
-        var trangThaiVal = data.trangThaiHoatDong || '';
-        document.getElementById('edTrangThai').value = trangThaiVal;
-        applyTrangThaiLogic(trangThaiVal);
-        document.getElementById('edTrangThai').onchange = function () {
-            applyTrangThaiLogic(this.value);
-        };
-
-        // ── Tuyến luồng dropdown ──
-        populateSelect('edTuyenLuong', dd.tuyenLuong, data.tuyenLuongId);
-        // Re-apply disabled state after populate
-        document.getElementById('edTuyenLuong').disabled = trangThaiVal !== 'Trên luồng';
-        document.getElementById('edTuyenLuong').onchange = function () {
-            loadViTriByTuyen(this.value).then(function() {
-                updateEditCoords();
-                document.getElementById('edViTriWarning').classList.add('d-none');
-                document.getElementById('btnSaveEdit').disabled = false;
-            });
-        };
-
-        // ── Cascade: load ViTri for current TuyenLuong ──
-        var viTriPromise;
-        if (trangThaiVal === 'Trên luồng' && data.tuyenLuongId) {
-            viTriPromise = loadViTriByTuyen(data.tuyenLuongId).then(function(items) {
-                populateViTriSelect(items, data.viTriPhaoBHHienTaiId);
-            });
-        } else {
-            viTriPromise = Promise.resolve();
-        }
-
-        viTriPromise.then(function() {
-            // Show coords
-            if (data.toaDoThietKe) {
-                var c = splitCoords(data.toaDoThietKe);
-                document.getElementById('edViDo').textContent = c.viDo;
-                document.getElementById('edKinhDo').textContent = c.kinhDo;
-            } else {
-                updateEditCoords();
-            }
-        });
-
-        // ── ViTri change: coords + duplicate check ──
-        document.getElementById('edViTri').onchange = function () {
-            updateEditCoords();
-            checkViTriDuplicate();
-        };
+        // Vận hành — readonly (thay đổi qua Điều Phối)
+        document.getElementById('edTrangThaiRO').value = data.trangThaiHienTai || data.trangThaiHoatDong || '--';
+        document.getElementById('edTuyenLuongRO').value = data.tuyenLuong || '--';
+        document.getElementById('edViTriRO').value = data.viTriHienTai || '--';
+        var coords = splitCoords(data.toaDoThietKe);
+        document.getElementById('edViDoRO').value = coords.viDo;
+        document.getElementById('edKinhDoRO').value = coords.kinhDo;
 
         // Populate dropdowns: Quản lý
         populateSelect('edTramQL', dd.tramQuanLy, data.tramQuanLyId);
@@ -462,13 +327,6 @@ function saveEdit() {
         return;
     }
 
-    var trangThaiHoatDong = getVal('edTrangThai').trim();
-    if (!trangThaiHoatDong) {
-        showToast('Vui lòng chọn trạng thái hoạt động', 'error');
-        return;
-    }
-    var isTrenLuong = trangThaiHoatDong === 'Trên luồng';
-
     var btn = document.getElementById('btnSaveEdit');
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang lưu...';
@@ -490,8 +348,7 @@ function saveEdit() {
         thoiDiemThayTha: getVal('edThoiDiemThayTha') || null,
         thoiDiemSuaChuaGanNhat: getVal('edSuaChuaGanNhat') || null,
         dienTich: getNumVal('edDienTich'),
-        trangThaiHoatDong: trangThaiHoatDong,
-        viTriPhaoBHHienTaiId: isTrenLuong ? getIntVal('edViTri') : null,
+        // Trạng thái / Tuyến / Vị trí: KHÔNG gửi — xử lý qua Điều Phối
         xichPhao_DuongKinh: getNumVal('edXichPhao_DK'),
         xichPhao_ChieuDai: getNumVal('edXichPhao_CD'),
         xichPhao_ThoiDiemSuDung: getVal('edXichPhao_SD') || null,
@@ -574,12 +431,24 @@ function executeDelete() {
 }
 
 // ── Flatpickr init (dd/MM/yyyy for all modal date inputs) ──────────────
-['edThoiDiemThayTha','edSuaChuaGanNhat','edXichPhao_SD','edXichRua_SD',
- 'edRua_SD','edDen_SD','edDen_SC','edNgayQDTang'].forEach(function(id) {
-    fpDate[id] = flatpickr(document.getElementById(id), {
-        dateFormat: 'Y-m-d',
-        altInput: true,
-        altFormat: 'd/m/Y',
-        allowInput: true
+if (typeof flatpickr !== 'undefined') {
+    ['edThoiDiemThayTha','edSuaChuaGanNhat','edXichPhao_SD','edXichRua_SD',
+     'edRua_SD','edDen_SD','edDen_SC','edNgayQDTang'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) {
+            fpDate[id] = flatpickr(el, {
+                dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'd/m/Y',
+                allowInput: true
+            });
+        }
     });
-});
+} else {
+    console.error('[Dashboard] flatpickr not loaded — date inputs will use native HTML date type');
+    ['edThoiDiemThayTha','edSuaChuaGanNhat','edXichPhao_SD','edXichRua_SD',
+     'edRua_SD','edDen_SD','edDen_SC','edNgayQDTang'].forEach(function(id) {
+        // Create a stub so fpDate[id].setDate() won't crash openEditModal
+        fpDate[id] = { setDate: function() {} };
+    });
+}

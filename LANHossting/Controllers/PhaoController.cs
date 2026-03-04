@@ -183,10 +183,71 @@ namespace LANHossting.Controllers
         /// <summary>
         /// GET: /Phao/DieuPhoi
         /// </summary>
-        public IActionResult DieuPhoi()
+        public async Task<IActionResult> DieuPhoi(string? search, int? tuyenLuongId)
         {
             ViewBag.FullName = HttpContext.Session.GetString("HoTen");
+
+            var danhSach = await _phaoService.GetDanhSachDieuPhoiAsync(search, tuyenLuongId);
+            var tuyenLuong = await _context.DmTuyenLuong
+                .AsNoTracking()
+                .Where(t => t.TrangThai == "Hoạt động")
+                .OrderBy(t => t.ThuTuHienThi)
+                .Select(t => new { t.Id, t.MaTuyen, t.TenTuyen })
+                .ToListAsync();
+
+            ViewBag.DanhSachPhao = danhSach;
+            ViewBag.DanhSachTuyenLuong = tuyenLuong;
+            ViewBag.SearchTerm = search;
+            ViewBag.SelectedTuyenLuongId = tuyenLuongId;
             return View();
+        }
+
+        /// <summary>
+        /// POST: /Phao/DieuPhoi — thực hiện điều phối hàng loạt (AJAX JSON)
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> DieuPhoi([FromBody] DieuPhoiRequestDto request)
+        {
+            if (request == null || request.Items == null || request.Items.Count == 0)
+                return Json(new { success = false, error = "Không có dữ liệu điều phối." });
+
+            // Fallback: nếu không chọn thời gian → lấy DateTime.Now
+            if (!request.NgayThucHien.HasValue)
+                request.NgayThucHien = DateTime.Now;
+
+            // Validate bắt buộc từng item
+            foreach (var item in request.Items)
+            {
+                if (string.IsNullOrWhiteSpace(item.LoaiTrangThai))
+                    return Json(new { success = false, error = $"Phao #{item.PhaoId}: chưa chọn loại trạng thái." });
+                if (string.IsNullOrWhiteSpace(item.GhiChu))
+                    return Json(new { success = false, error = $"Phao #{item.PhaoId}: chưa chọn ghi chú." });
+                // Nếu Trên luồng → bắt buộc tuyến + vị trí
+                if (item.LoaiTrangThai == TrangThaiHoatDongPhao.TrenLuong)
+                {
+                    if (!item.TuyenLuongId.HasValue)
+                        return Json(new { success = false, error = $"Phao #{item.PhaoId}: trạng thái 'Trên luồng' phải chọn tuyến luồng." });
+                    if (!item.ViTriPhaoBHId.HasValue)
+                        return Json(new { success = false, error = $"Phao #{item.PhaoId}: trạng thái 'Trên luồng' phải chọn vị trí phao BH." });
+                }
+            }
+
+            request.NguoiThucHien = HttpContext.Session.GetString("Username")
+                                  ?? HttpContext.Session.GetString("HoTen")
+                                  ?? "system";
+
+            var (success, error, count) = await _phaoService.DieuPhoiPhaoAsync(request);
+            return Json(new { success, error, count });
+        }
+
+        /// <summary>
+        /// GET: /Phao/DanhSachDieuPhoi — trả JSON danh sách phao cho bảng điều phối (AJAX)
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> DanhSachDieuPhoi(string? search, int? tuyenLuongId)
+        {
+            var danhSach = await _phaoService.GetDanhSachDieuPhoiAsync(search, tuyenLuongId);
+            return Json(new { items = danhSach });
         }
 
         /// <summary>
@@ -323,10 +384,6 @@ namespace LANHossting.Controllers
                 ThoiDiemThayTha = ct.ThoiDiemThayTha,
                 ThoiDiemSuaChuaGanNhat = ct.ThoiDiemSuaChuaGanNhat,
                 TrangThaiHienTai = ct.TrangThaiHienTai,
-                TrangThaiHoatDong = ct.TrangThaiHoatDong
-                    ?? TrangThaiHoatDongPhao.ThuHoi,
-                TuyenLuongId = ct.TuyenLuongId,
-                ViTriPhaoBHHienTaiId = ct.ViTriPhaoBHHienTaiId,
                 XichPhao_DuongKinh = ct.XichPhao_DuongKinh,
                 XichPhao_ChieuDai = ct.XichPhao_ChieuDai,
                 XichPhao_ThoiDiemSuDung = ct.XichPhao_ThoiDiemSuDung,

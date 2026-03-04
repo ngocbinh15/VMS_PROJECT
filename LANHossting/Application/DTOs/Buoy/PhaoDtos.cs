@@ -149,15 +149,6 @@ namespace LANHossting.Application.DTOs.Buoy
         [System.ComponentModel.DataAnnotations.MaxLength(255)]
         public string? TrangThaiHienTai { get; set; }
 
-        /// <summary>Trạng thái hoạt động: Thu hồi | Cho thuê | Sửa chữa | Trên luồng | Mất dấu</summary>
-        [System.ComponentModel.DataAnnotations.MaxLength(50)]
-        public string? TrangThaiHoatDong { get; set; }
-
-        /// <summary>Tuyến luồng (chỉ khi TrangThaiHoatDong = Trên luồng)</summary>
-        public int? TuyenLuongId { get; set; }
-
-        public int? ViTriPhaoBHHienTaiId { get; set; }
-
         // Xích phao
         public decimal? XichPhao_DuongKinh { get; set; }
         public decimal? XichPhao_ChieuDai { get; set; }
@@ -198,9 +189,6 @@ namespace LANHossting.Application.DTOs.Buoy
         /// <summary>Người cập nhật (lấy từ Session)</summary>
         [System.ComponentModel.DataAnnotations.MaxLength(100)]
         public string? NguoiCapNhat { get; set; }
-
-        /// <summary>Ghi chú cho bản ghi lịch sử hoạt động (tùy chọn)</summary>
-        public string? GhiChuLichSu { get; set; }
     }
 
     /// <summary>
@@ -213,6 +201,65 @@ namespace LANHossting.Application.DTOs.Buoy
         public string TenTuyen { get; set; } = string.Empty;
         public int SoViTri { get; set; }
         public int SoPhaoTrenLuong { get; set; }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  ĐIỀU PHỐI PHAO — DTOs for Dispatch
+    // ══════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// DTO cho request điều phối 1 phao (từ form submit)
+    /// </summary>
+    public class DieuPhoiItemDto
+    {
+        public int PhaoId { get; set; }
+
+        /// <summary>Loại trạng thái: Trên luồng | Thu hồi | Cho thuê | Sửa chữa | Mất dấu</summary>
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Chưa chọn loại trạng thái")]
+        [System.ComponentModel.DataAnnotations.MaxLength(50)]
+        public string LoaiTrangThai { get; set; } = string.Empty;
+
+        /// <summary>Ghi chú nghiệp vụ — phải chọn từ danh sách</summary>
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Chưa chọn ghi chú")]
+        [System.ComponentModel.DataAnnotations.MaxLength(255)]
+        public string GhiChu { get; set; } = string.Empty;
+
+        /// <summary>Địa điểm (chỉ enable khi Thu hồi)</summary>
+        [System.ComponentModel.DataAnnotations.MaxLength(255)]
+        public string? DiaDiem { get; set; }
+
+        /// <summary>Tuyến luồng đích (khi chuyển vị trí / lên luồng)</summary>
+        public int? TuyenLuongId { get; set; }
+
+        /// <summary>Vị trí phao BH đích (khi chuyển vị trí / lên luồng)</summary>
+        public int? ViTriPhaoBHId { get; set; }
+    }
+
+    /// <summary>
+    /// DTO cho request điều phối hàng loạt
+    /// </summary>
+    public class DieuPhoiRequestDto
+    {
+        public List<DieuPhoiItemDto> Items { get; set; } = new();
+        public string? NguoiThucHien { get; set; }
+
+        /// <summary>Ngày/giờ thực hiện sự kiện — nếu không chọn, backend tự lấy DateTime.Now</summary>
+        public DateTime? NgayThucHien { get; set; }
+    }
+
+    /// <summary>
+    /// DTO hiển thị 1 phao trong bảng điều phối
+    /// </summary>
+    public class DieuPhoiPhaoRowDto
+    {
+        public int Id { get; set; }
+        public string MaPhaoDayDu { get; set; } = string.Empty;
+        public string? TenPhao { get; set; }
+        public string? TrangThaiHienTai { get; set; }
+        public string? ViTriHienTai { get; set; }
+        public string? TuyenLuong { get; set; }
+        public int? TuyenLuongId { get; set; }
+        public int? ViTriPhaoBHHienTaiId { get; set; }
     }
 
     // ══════════════════════════════════════════════════════════

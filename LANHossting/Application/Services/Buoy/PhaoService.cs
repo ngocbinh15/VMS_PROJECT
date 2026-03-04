@@ -190,20 +190,10 @@ namespace LANHossting.Application.Services.Buoy
                 if (phao == null)
                     return (false, "Không tìm thấy phao với Id = " + dto.Id);
 
-                // ── Bắt snapshot GIÁ TRỊ CŨ trước khi thay đổi ──
-                var oldTrangThaiHoatDong = MapToTrangThaiHoatDong(phao.TrangThaiHienTai);
-                var oldViTriId = phao.ViTriPhaoBHHienTaiId;
+                // ── Chỉ cập nhật thông tin kỹ thuật, KHÔNG thay đổi trạng thái vận hành ──
+                // Trạng thái hoạt động + Tuyến luồng + Vị trí chỉ được thay đổi qua Điều Phối
 
-                // ── Xử lý TrangThaiHoatDong & quy tắc nghiệp vụ ──
-                var newTrangThaiHoatDong = dto.TrangThaiHoatDong ?? TrangThaiHoatDongPhao.ThuHoi;
-                var requireViTri = TrangThaiHoatDongPhao.RequireViTri(newTrangThaiHoatDong);
-
-                int? newViTriId = requireViTri ? dto.ViTriPhaoBHHienTaiId : null;
-
-                // TinhTrang suy ra từ TrangThaiHoatDong
-                var tinhTrang = TrangThaiHoatDongPhao.InferTinhTrang(newTrangThaiHoatDong);
-
-                // Map DTO → Entity (MaLoaiPhao is computed, skip it)
+                // Map DTO → Entity (thong tin ky thuat)
                 phao.KyHieuTaiSan = dto.KyHieuTaiSan;
                 phao.MaPhaoDayDu = dto.MaPhaoDayDu;
                 phao.TenPhao = dto.TenPhao;
@@ -213,9 +203,6 @@ namespace LANHossting.Application.Services.Buoy
                 phao.HinhDang = dto.HinhDang;
                 phao.VatLieu = dto.VatLieu;
                 phao.MauSac = dto.MauSac;
-                // Lưu TrangThaiHoatDong vào TrangThaiHienTai; TinhTrang được hiển thị từ logic
-                phao.TrangThaiHienTai = newTrangThaiHoatDong;
-                phao.ViTriPhaoBHHienTaiId = newViTriId;
 
                 // Thời gian v1.1
                 phao.ThoiGianSuDung = dto.ThoiGianSuDung;
@@ -262,41 +249,6 @@ namespace LANHossting.Application.Services.Buoy
                 phao.NgayCapNhat = DateTime.Now;
                 phao.NguoiCapNhat = dto.NguoiCapNhat;
 
-                // ── GHI LỊCH SỬ nếu phát hiện thay đổi hoạt động ──
-                bool changed = oldTrangThaiHoatDong != newTrangThaiHoatDong
-                            || oldViTriId != newViTriId;
-
-                if (changed)
-                {
-                    // Lấy snapshot vị trí mới
-                    string? snapshotMaPhaoBH = null;
-                    string? snapshotMaTuyen = null;
-
-                    if (newViTriId.HasValue)
-                    {
-                        var viTriInfo = await _phaoRepo.GetViTriByIdAsync(newViTriId.Value);
-                        snapshotMaPhaoBH = viTriInfo?.MaPhaoBH;
-                        snapshotMaTuyen = viTriInfo?.TuyenLuong?.MaTuyen;
-                    }
-
-                    var lichSu = new LichSuHoatDongPhao
-                    {
-                        PhaoId = phao.Id,
-                        Nam = DateTime.Now.Year,
-                        NgayBatDau = DateTime.Today,
-                        LoaiTrangThai = newTrangThaiHoatDong,
-                        MoTaTrangThai = tinhTrang,
-                        ViTriPhaoBHId = newViTriId,
-                        MaPhaoBH = snapshotMaPhaoBH,
-                        MaTuyenLuong = snapshotMaTuyen,
-                        GhiChu = dto.GhiChuLichSu,
-                        NgayTao = DateTime.Now,
-                        NguoiTao = dto.NguoiCapNhat
-                    };
-
-                    await _phaoRepo.AddLichSuHoatDongAsync(lichSu);
-                }
-
                 await _phaoRepo.SaveChangesAsync();
                 return (true, null);
             }
@@ -319,6 +271,116 @@ namespace LANHossting.Application.Services.Buoy
             catch (Exception ex)
             {
                 return (false, "Lỗi xóa phao: " + ex.Message);
+            }
+        }
+
+        public async Task<List<DieuPhoiPhaoRowDto>> GetDanhSachDieuPhoiAsync(string? search, int? tuyenLuongId)
+        {
+            var allPhao = await _phaoRepo.GetAllWithCurrentStatusAsync();
+
+            var query = allPhao.AsEnumerable();
+
+            if (tuyenLuongId.HasValue)
+                query = query.Where(p => p.ViTriPhaoBHHienTai?.TuyenLuongId == tuyenLuongId.Value);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim().ToLower();
+                query = query.Where(p =>
+                    (p.MaPhaoDayDu?.ToLower().Contains(s) ?? false) ||
+                    (p.TenPhao?.ToLower().Contains(s) ?? false) ||
+                    (p.KyHieuTaiSan?.ToLower().Contains(s) ?? false));
+            }
+
+            return query.Select(p => new DieuPhoiPhaoRowDto
+            {
+                Id = p.Id,
+                MaPhaoDayDu = p.MaPhaoDayDu,
+                TenPhao = p.TenPhao,
+                TrangThaiHienTai = MapToTrangThaiHoatDong(p.TrangThaiHienTai),
+                ViTriHienTai = p.ViTriPhaoBHHienTai?.MaPhaoBH,
+                TuyenLuong = p.ViTriPhaoBHHienTai?.TuyenLuong?.TenTuyen,
+                TuyenLuongId = p.ViTriPhaoBHHienTai?.TuyenLuongId,
+                ViTriPhaoBHHienTaiId = p.ViTriPhaoBHHienTaiId
+            }).ToList();
+        }
+
+        public async Task<(bool Success, string? Error, int Count)> DieuPhoiPhaoAsync(DieuPhoiRequestDto request)
+        {
+            try
+            {
+                if (request.Items == null || request.Items.Count == 0)
+                    return (false, "Không có phao nào được điều phối.", 0);
+
+                if (!request.NgayThucHien.HasValue)
+                    request.NgayThucHien = DateTime.Now;
+
+                var ngaySuKien = request.NgayThucHien.Value;
+
+                int count = 0;
+                foreach (var item in request.Items)
+                {
+                    var phao = await _phaoRepo.GetByIdForEditAsync(item.PhaoId);
+                    if (phao == null) continue;
+
+                    var newTrangThai = item.LoaiTrangThai;
+                    var requireViTri = TrangThaiHoatDongPhao.RequireViTri(newTrangThai);
+
+                    // Validate: Trên luồng phải có tuyến + vị trí
+                    if (requireViTri)
+                    {
+                        if (!item.TuyenLuongId.HasValue)
+                            return (false, $"Phao {phao.MaPhaoDayDu}: trạng thái 'Trên luồng' phải chọn tuyến luồng.", 0);
+                        if (!item.ViTriPhaoBHId.HasValue)
+                            return (false, $"Phao {phao.MaPhaoDayDu}: trạng thái 'Trên luồng' phải chọn vị trí phao BH.", 0);
+                    }
+
+                    int? newViTriId = requireViTri ? item.ViTriPhaoBHId : null;
+                    var tinhTrang = TrangThaiHoatDongPhao.InferTinhTrang(newTrangThai);
+
+                    // Snapshot vị trí mới
+                    string? snapshotMaPhaoBH = null;
+                    string? snapshotMaTuyen = null;
+                    if (newViTriId.HasValue)
+                    {
+                        var viTriInfo = await _phaoRepo.GetViTriByIdAsync(newViTriId.Value);
+                        snapshotMaPhaoBH = viTriInfo?.MaPhaoBH;
+                        snapshotMaTuyen = viTriInfo?.TuyenLuong?.MaTuyen;
+                    }
+
+                    // Cập nhật phao master — trạng thái hiện tại
+                    phao.TrangThaiHienTai = newTrangThai;
+                    phao.ViTriPhaoBHHienTaiId = newViTriId;
+                    phao.NgayCapNhat = DateTime.Now;
+                    phao.NguoiCapNhat = request.NguoiThucHien;
+
+                    // Tạo bản ghi lịch sử mới — KHÔNG ghi đè, LUÔN INSERT
+                    var lichSu = new LichSuHoatDongPhao
+                    {
+                        PhaoId = phao.Id,
+                        Nam = ngaySuKien.Year,
+                        NgayBatDau = ngaySuKien,
+                        LoaiTrangThai = newTrangThai,
+                        MoTaTrangThai = tinhTrang,
+                        ViTriPhaoBHId = newViTriId,
+                        MaPhaoBH = snapshotMaPhaoBH,
+                        MaTuyenLuong = snapshotMaTuyen,
+                        DiaDiem = item.DiaDiem,
+                        GhiChu = item.GhiChu,
+                        NgayTao = DateTime.Now,
+                        NguoiTao = request.NguoiThucHien
+                    };
+
+                    await _phaoRepo.AddLichSuHoatDongAsync(lichSu);
+                    count++;
+                }
+
+                await _phaoRepo.SaveChangesAsync();
+                return (true, null, count);
+            }
+            catch (Exception ex)
+            {
+                return (false, "Lỗi điều phối: " + ex.Message, 0);
             }
         }
 

@@ -11,7 +11,9 @@ wwwroot\js\kho\dashboard.api.js
 wwwroot\js\kho\dashboard.events.js
 wwwroot\js\kho\dashboard.ui.js
 wwwroot\js\phao\dashboard.js
+wwwroot\js\phao\dieuphoi.js
 wwwroot\js\phao\edit.js
+wwwroot\js\phao\vongdoi.js
 wwwroot\js\site.js
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map
@@ -70,4 +72,3 @@ wwwroot\lib\jquery\dist\jquery.js
 wwwroot\lib\jquery\dist\jquery.min.js
 wwwroot\lib\jquery\dist\jquery.min.map
 wwwroot\lib\jquery\LICENSE.txt
-wwwroot\js\phao\vongdoi.js

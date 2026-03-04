@@ -470,12 +470,34 @@
 /* Header */
 .fd-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 20px 28px 14px;
+  align-items: center;
+  padding: 12px 24px;
   background: #fff;
   border-bottom: 1px solid #e2e8f0;
   flex-shrink: 0;
+  min-height: 56px;
+}
+
+.fd-back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 1rem;
+  flex-shrink: 0;
+  text-decoration: none;
+  transition: background .15s, border-color .15s, color .15s;
+}
+
+.fd-back-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #1e293b;
 }
 
 /* Toolbar */

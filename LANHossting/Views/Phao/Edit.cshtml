@@ -92,23 +92,6 @@
                                 <label class="form-label">Chiều cao toàn bộ (m)</label>
                                 <input asp-for="Phao.ChieuCaoToanBo" class="form-control" type="number" step="0.01" />
                             </div>
-                            <!-- Trạng thái hoạt động — đặt đây để nằm trước tuyến/vị trí -->
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold text-primary">Trạng thái hoạt động <span class="text-danger">*</span></label>
-                                <select asp-for="Phao.TrangThaiHoatDong" class="form-select" id="ddlTrangThaiHoatDong">
-                                    <option value="">— Chọn trạng thái —</option>
-                                    <option value="Trên luồng">Trên luồng</option>
-                                    <option value="Thu hồi">Thu hồi</option>
-                                    <option value="Cho thuê">Cho thuê</option>
-                                    <option value="Sửa chữa">Sửa chữa</option>
-                                    <option value="Mất dấu">Mất dấu</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Tình trạng (tự động)</label>
-                                <input type="text" id="txtTinhTrangDisplay" class="form-control coord-readonly" readonly
-                                       placeholder="Suy ra từ trạng thái hoạt động" />
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -195,33 +178,6 @@
                                     <option value="">— Chọn đơn vị —</option>
                                 </select>
                             </div>
-                            <!-- Tuyến luồng (enable chỉ khi "Trên luồng") -->
-                            <div class="col-md-6" id="grpTuyenLuong">
-                                <label class="form-label">Tuyến luồng <span class="text-danger" id="lblTuyenRequired">*</span></label>
-                                <select asp-for="Phao.TuyenLuongId" asp-items="Model.DanhSachTuyenLuong" class="form-select" id="ddlTuyenLuong" disabled>
-                                    <option value="">— Chọn tuyến —</option>
-                                </select>
-                            </div>
-
-                            <!-- Vị trí phao (lọc theo tuyến, enable chỉ khi "Trên luồng") -->
-                            <div class="col-md-6" id="grpViTri">
-                                <label class="form-label">Vị trí phao báo hiệu <span class="text-danger" id="lblViTriRequired">*</span></label>
-                                <select asp-for="Phao.ViTriPhaoBHHienTaiId" class="form-select" id="ddlViTriPhao" disabled>
-                                    <option value="">— Chọn vị trí —</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-12">
-                                <label class="form-label">Tọa độ thiết kế (readonly)</label>
-                                <input type="text" id="txtToaDoThietKe" class="form-control coord-readonly" readonly
-                                       value="" placeholder="Chọn vị trí để hiển thị tọa độ" />
-                            </div>
-
-                            <!-- Ghi chú lịch sử (tuỳ chọn) -->
-                            <div class="col-md-12">
-                                <label class="form-label">Ghi chú lịch sử hoạt động</label>
-                                <input asp-for="Phao.GhiChuLichSu" class="form-control" placeholder="Ghi chú khi có thay đổi (không bắt buộc)" />
-                            </div>
 
                             <div class="col-md-6">
                                 <label class="form-label">Diện tích (m²)</label>
@@ -304,18 +260,5 @@
 
 @section Scripts {
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script>
-    // Razor-resolved config (cannot be in external .js file)
-    var EDIT_CONFIG = {
-        urls: {
-            viTriByTuyen: '@Url.Action("GetViTriByTuyenLuong", "Phao")',
-            viTriInfo:    '@Url.Action("GetViTriInfo", "Phao")'
-        },
-        model: {
-            currentTuyen: '@(Model.Phao.TuyenLuongId?.ToString() ?? "")',
-            currentViTri: '@(Model.Phao.ViTriPhaoBHHienTaiId?.ToString() ?? "")'
-        }
-    };
-</script>
 <script src="~/js/phao/edit.js"></script>
 }

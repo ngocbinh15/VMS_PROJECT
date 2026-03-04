@@ -1,20 +1,320 @@
 @{
     ViewData["Title"] = "Điều Phối Phao";
     Layout = "_MainLayout";
+
+    var danhSachPhao = ViewBag.DanhSachPhao as List<LANHossting.Application.DTOs.Buoy.DieuPhoiPhaoRowDto>
+                     ?? new List<LANHossting.Application.DTOs.Buoy.DieuPhoiPhaoRowDto>();
+    var dsTuyenLuong = ViewBag.DanhSachTuyenLuong as dynamic ?? new List<dynamic>();
+    var searchTerm = ViewBag.SearchTerm as string ?? "";
+    var selectedTuyenId = ViewBag.SelectedTuyenLuongId as int?;
 }
 
 @section Styles {
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 <link rel="stylesheet" href="~/css/phao.css" />
+<style>
+    /* ── DieuPhoi-specific ── */
+    .dp-page { background: #f8fafc; min-height: calc(100vh - 80px); }
+    .dp-header {
+        display: flex; align-items: center; padding: 12px 24px;
+        background: #fff; border-bottom: 1px solid #e2e8f0; gap: 12px;
+    }
+    .dp-back-btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 34px; height: 34px; border-radius: 8px;
+        border: 1.5px solid #e2e8f0; background: #f8fafc; color: #64748b;
+        font-size: 1rem; flex-shrink: 0; text-decoration: none;
+        transition: background .15s, border-color .15s, color .15s;
+    }
+    .dp-back-btn:hover { background: #f1f5f9; border-color: #cbd5e1; color: #1e293b; }
+
+    .dp-toolbar {
+        display: flex; justify-content: space-between; align-items: flex-end;
+        padding: 10px 24px; background: #fff; border-bottom: 1px solid #e2e8f0;
+        flex-wrap: wrap; gap: 12px;
+    }
+    .dp-toolbar .dp-label {
+        font-size: .68rem; font-weight: 700; letter-spacing: .06em;
+        color: #94a3b8; margin-bottom: 3px;
+    }
+    .dp-toolbar select, .dp-toolbar input[type="text"], .dp-toolbar input[type="date"] {
+        border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 6px 12px;
+        font-size: .84rem; background: #f8fafc; color: #334155; outline: none;
+    }
+    .dp-toolbar input[type="date"].is-invalid,
+    .dp-toolbar .flatpickr-input.is-invalid + .form-control {
+        border-color: #ef4444 !important;
+    }
+
+    .dp-body { padding: 16px 24px; }
+    .dp-card {
+        background: #fff; border-radius: 12px; border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 3px rgba(0,0,0,.04); overflow: hidden;
+    }
+    .dp-table-wrap { max-height: calc(100vh - 320px); overflow: auto; }
+    .dp-table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+    .dp-table thead th {
+        background: #f1f5f9; padding: 8px 10px; text-align: left;
+        font-weight: 700; font-size: .70rem; text-transform: uppercase;
+        letter-spacing: .05em; color: #64748b; border-bottom: 1px solid #e2e8f0;
+        position: sticky; top: 0; z-index: 2; white-space: nowrap;
+    }
+    .dp-table tbody td {
+        padding: 6px 10px; border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+    .dp-table tbody tr:hover { background: #f8fafc; }
+    .dp-table tbody tr.dp-changed { background: #eff6ff; }
+
+    .dp-select {
+        border: 1.5px solid #e2e8f0; border-radius: 6px; padding: 4px 6px;
+        font-size: .80rem; background: #fff; color: #334155; width: 100%;
+        outline: none; cursor: pointer; transition: border-color .15s;
+    }
+    .dp-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
+    .dp-select.is-invalid { border-color: #ef4444; }
+    .dp-select:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+
+    .dp-input {
+        border: 1.5px solid #e2e8f0; border-radius: 6px; padding: 4px 6px;
+        font-size: .80rem; background: #fff; color: #334155; width: 100%;
+        outline: none; transition: border-color .15s;
+    }
+    .dp-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
+    .dp-input:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+
+    .dp-badge {
+        display: inline-block; padding: 2px 10px; border-radius: 12px;
+        font-size: .73rem; font-weight: 600; white-space: nowrap;
+    }
+    .dp-badge-active { background: #dcfce7; color: #166534; }
+    .dp-badge-recalled { background: #fee2e2; color: #dc2626; }
+    .dp-badge-repair { background: #ffedd5; color: #c2410c; }
+    .dp-badge-rent { background: #ede9fe; color: #6d28d9; }
+    .dp-badge-lost { background: #fef9c3; color: #92400e; }
+
+    .dp-footer {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 12px 24px; background: #fff; border-top: 1px solid #e2e8f0;
+        position: sticky; bottom: 0;
+    }
+    .dp-btn-submit {
+        background: #1d4ed8; color: #fff; border: none; border-radius: 8px;
+        padding: 9px 24px; font-weight: 600; font-size: .88rem; cursor: pointer;
+        transition: background .15s;
+    }
+    .dp-btn-submit:hover { background: #1e40af; }
+    .dp-btn-submit:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    .dp-empty { text-align: center; padding: 48px 20px; color: #94a3b8; }
+    .dp-count { font-size: .82rem; color: #64748b; }
+
+    /* Date picker highlight */
+    .dp-date-group { position: relative; }
+    .dp-date-group .dp-date-required {
+        color: #ef4444; font-weight: 700; margin-left: 2px;
+    }
+
+    /* Conditional columns: Tuyến + Vị trí — hidden by default via class */
+    .dp-col-tuyen, .dp-col-vitri { display: none; }
+    .dp-row.dp-show-tuyen-vitri .dp-col-tuyen,
+    .dp-row.dp-show-tuyen-vitri .dp-col-vitri { display: table-cell; }
+    /* Always show th for Tuyến/Vị trí so table layout is correct */
+
+    .dp-toast {
+        position: fixed; top: 20px; right: 20px; z-index: 9999;
+        min-width: 280px; padding: 14px 20px; border-radius: 10px;
+        font-size: .88rem; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,.15);
+        transform: translateY(-20px); opacity: 0; transition: all .3s;
+    }
+    .dp-toast.show { transform: translateY(0); opacity: 1; }
+    .dp-toast-success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .dp-toast-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+</style>
 }
 
-    <div class="container">
-        <div class="coming-soon">
-            <div class="coming-icon"><i class="bi bi-geo-alt-fill"></i></div>
-            <h2 class="fw-bold mb-2">Điều Phối & Phân Luồng</h2>
-            <p class="text-muted mb-4">Chức năng điều phối phao theo tuyến luồng đang được phát triển.</p>
-            <a href="@Url.Action("Dashboard", "Phao")" class="btn btn-primary fw-semibold">
-                <i class="bi bi-arrow-left me-1"></i> Quay lại Dashboard
-            </a>
+<div class="dp-page">
+    <!-- Header -->
+    <div class="dp-header">
+        <a href="@Url.Action("Dashboard", "Phao")" class="dp-back-btn" title="Quay lại Dashboard">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h5 class="fw-bold mb-0 text-dark lh-1">Điều Phối Phao</h5>
+            <div class="text-muted" style="font-size:.78rem;margin-top:3px;">Thay đổi trạng thái và vị trí phao — Nơi duy nhất xử lý vận hành</div>
         </div>
     </div>
 
+    <!-- Toolbar -->
+    <div class="dp-toolbar">
+        <div class="d-flex align-items-end gap-3 flex-wrap">
+            <!-- Thời gian thực hiện sự kiện — nếu không chọn → mặc định DateTime.Now -->
+            <div class="dp-date-group">
+                <div class="dp-label">THỜI GIAN THỰC HIỆN <span class="dp-date-required">*</span></div>
+                <input type="text" id="dpNgayThucHien" class="dp-input" placeholder="Chọn ngày giờ…"
+                       style="width:210px; cursor:pointer;" readonly />
+            </div>
+            <div>
+                <div class="dp-label">LỌC THEO TUYẾN</div>
+                <select id="dpTuyenLuongFilter">
+                    <option value="">-- Tất cả --</option>
+                    @foreach (var tl in dsTuyenLuong)
+                    {
+                        <option value="@tl.Id" selected="@(selectedTuyenId.HasValue && selectedTuyenId.Value == (int)tl.Id)">
+                            @tl.TenTuyen (@tl.MaTuyen)
+                        </option>
+                    }
+                </select>
+            </div>
+            <div>
+                <div class="dp-label">TÌM PHAO</div>
+                <input type="text" id="dpSearchInput" placeholder="Nhập mã phao…" value="@searchTerm" />
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="dpRefreshBtn" style="border-radius:8px;padding:6px 14px;">
+                <i class="bi bi-arrow-clockwise me-1"></i>Làm mới
+            </button>
+        </div>
+        <div class="dp-count" id="dpCountInfo">
+            <strong>@danhSachPhao.Count</strong> phao
+        </div>
+    </div>
+
+    <!-- Table body -->
+    <div class="dp-body">
+        <div class="dp-card">
+            <div class="dp-table-wrap">
+                <table class="dp-table" id="dpTable">
+                    <thead>
+                        <tr>
+                            <th style="width:32px;">
+                                <input type="checkbox" id="dpCheckAll" title="Chọn tất cả" />
+                            </th>
+                            <th style="width:130px;">Mã phao</th>
+                            <th style="width:90px;">Trạng thái</th>
+                            <th style="width:100px;">Vị trí HT</th>
+                            <th style="min-width:140px;">Loại trạng thái <span class="text-danger">*</span></th>
+                            <th style="min-width:140px;">Tuyến luồng</th>
+                            <th style="min-width:140px;">Vị trí phao BH</th>
+                            <th style="min-width:200px;">Ghi chú <span class="text-danger">*</span></th>
+                            <th style="min-width:140px;">Địa điểm</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dpTableBody">
+                        @if (danhSachPhao.Count == 0)
+                        {
+                            <tr><td colspan="9" class="dp-empty"><i class="bi bi-inbox me-2"></i>Không có phao nào.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var p in danhSachPhao)
+                            {
+                                var badgeClass = p.TrangThaiHienTai switch
+                                {
+                                    "Trên luồng" => "dp-badge-active",
+                                    "Thu hồi" => "dp-badge-recalled",
+                                    "Sửa chữa" => "dp-badge-repair",
+                                    "Cho thuê" => "dp-badge-rent",
+                                    "Mất dấu" => "dp-badge-lost",
+                                    _ => "dp-badge-recalled"
+                                };
+                                <tr class="dp-row" data-phao-id="@p.Id" data-current-status="@p.TrangThaiHienTai"
+                                    data-current-vitri="@p.ViTriHienTai" data-current-tuyen-id="@p.TuyenLuongId"
+                                    data-current-vitri-id="@p.ViTriPhaoBHHienTaiId">
+                                    <td><input type="checkbox" class="dp-check" /></td>
+                                    <td>
+                                        <div class="fw-semibold text-dark" style="font-size:.82rem;">@p.MaPhaoDayDu</div>
+                                        @if (!string.IsNullOrEmpty(p.TenPhao))
+                                        {
+                                            <div class="text-muted" style="font-size:.72rem;">@p.TenPhao</div>
+                                        }
+                                    </td>
+                                    <td><span class="dp-badge @badgeClass">@p.TrangThaiHienTai</span></td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(p.ViTriHienTai))
+                                        {
+                                            <span style="font-size:.80rem;">@p.ViTriHienTai</span>
+                                            @if (!string.IsNullOrEmpty(p.TuyenLuong))
+                                            {
+                                                <div class="text-muted" style="font-size:.70rem;">@p.TuyenLuong</div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <select class="dp-select dp-loai-trang-thai">
+                                            <option value="">-- Chọn --</option>
+                                            <option value="Trên luồng">Trên luồng</option>
+                                            <option value="Thu hồi">Thu hồi</option>
+                                            <option value="Cho thuê">Cho thuê</option>
+                                            <option value="Sửa chữa">Sửa chữa</option>
+                                            <option value="Mất dấu">Mất dấu</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="dp-select dp-tuyen-luong" disabled>
+                                            <option value="">-- Chọn tuyến --</option>
+                                            @foreach (var tl in dsTuyenLuong)
+                                            {
+                                                <option value="@tl.Id">@tl.TenTuyen (@tl.MaTuyen)</option>
+                                            }
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="dp-select dp-vitri-phao" disabled>
+                                            <option value="">-- Chọn vị trí --</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="dp-select dp-ghi-chu">
+                                            <option value="">-- Chọn ghi chú --</option>
+                                            <option value="Từ bãi đưa xuống biển">Từ bãi đưa xuống biển</option>
+                                            <option value="Thu hồi đưa về bãi">Thu hồi đưa về bãi</option>
+                                            <option value="Phao xin thanh lý">Phao xin thanh lý</option>
+                                            <option value="Không có trên biển">Không có trên biển</option>
+                                            <option value="Phao từ biển đưa về bãi">Phao từ biển đưa về bãi</option>
+                                            <option value="Phao bị sự cố trôi không tìm được">Phao bị sự cố trôi không tìm được</option>
+                                            <option value="Đổi vị trí trên luồng hoặc không đổi">Đổi vị trí trên luồng hoặc không đổi</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="dp-input dp-dia-diem"
+                                               placeholder="Chỉ nhập khi Thu hồi" disabled />
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="dp-footer">
+        <div class="dp-count" id="dpSelectedCount">Đã chọn: <strong>0</strong> phao</div>
+        <button type="button" class="dp-btn-submit" id="dpSubmitBtn" disabled>
+            <i class="bi bi-send-fill me-1"></i>Thực hiện điều phối
+        </button>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="dp-toast" id="dpToast"></div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    // Config resolved by Razor (URLs for AJAX calls)
+    var DP_CONFIG = {
+        urls: {
+            viTriByTuyen: '@Url.Action("GetViTriByTuyenLuong", "Phao")',
+            viTriInfo:    '@Url.Action("GetViTriInfo", "Phao")',
+            submit:       '@Url.Action("DieuPhoi", "Phao")'
+        }
+    };
+</script>
+<script src="~/js/phao/dieuphoi.js?v=2.2"></script>
+}
