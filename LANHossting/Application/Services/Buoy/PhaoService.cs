@@ -333,6 +333,12 @@ namespace LANHossting.Application.Services.Buoy
                             return (false, $"Phao {phao.MaPhaoDayDu}: trạng thái 'Trên luồng' phải chọn tuyến luồng.", 0);
                         if (!item.ViTriPhaoBHId.HasValue)
                             return (false, $"Phao {phao.MaPhaoDayDu}: trạng thái 'Trên luồng' phải chọn vị trí phao BH.", 0);
+
+                        // Kiểm tra trùng vị trí: không cho 2 phao cùng vị trí trên cùng tuyến
+                        var maPhaoTrung = await _phaoRepo.CheckViTriTrungAsync(item.ViTriPhaoBHId.Value, item.PhaoId);
+
+                        if (maPhaoTrung != null)
+                            return (false, $"Vị trí này trên tuyến đã có phao '{maPhaoTrung}' đang hoạt động. Không thể đặt 2 phao cùng vị trí.", 0);
                     }
 
                     int? newViTriId = requireViTri ? item.ViTriPhaoBHId : null;

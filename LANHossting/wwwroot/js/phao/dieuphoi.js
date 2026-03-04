@@ -1,21 +1,21 @@
 /**
- * dieuphoi.js — Dispatch (Điều Phối) logic for Phao module v2.1
+ * dieuphoi.js — Dispatch (Điều Phối) logic for Phao module v3.0
  *
  * Requires DP_CONFIG defined inline (Razor) before this file:
- *   DP_CONFIG.urls.viTriByTuyen  — GET /Phao/GetViTriByTuyenLuong?tuyenLuongId={id}
- *   DP_CONFIG.urls.viTriInfo     — GET /Phao/GetViTriInfo/{id}
- *   DP_CONFIG.urls.submit        — POST /Phao/DieuPhoi
+ *   DP_CONFIG.urls.viTriByTuyen     — GET  /Phao/GetViTriByTuyenLuong?tuyenLuongId={id}
+ *   DP_CONFIG.urls.viTriInfo        — GET  /Phao/GetViTriInfo/{id}
+ *   DP_CONFIG.urls.submit           — POST /Phao/DieuPhoi
+ *   DP_CONFIG.urls.checkViTriTrung  — GET  /Phao/CheckViTriTrung?viTriId={id}&excludePhaoId={id}
  *
  * Features:
- *  1. Flatpickr date picker for NgàyThựcHiện (mandatory)
- *  2. Loại trạng thái → conditional fields:
- *     - "Trên luồng" → enable Tuyến luồng + Vị trí phao BH (cascading)
- *     - "Thu hồi" → enable Địa điểm
- *     - Others → disable both
- *  3. Cascading: Tuyến luồng → load Vị trí phao BH via AJAX
- *  4. Checkbox batch select + submit
- *  5. Full validation before POST
- *  6. AJAX submit with history record creation
+ *  1. Flatpickr date-time picker for NgàyThựcHiện
+ *  2. Loại trạng thái → conditional fields
+ *  3. Cascading: Tuyến luồng → Vị trí phao BH via AJAX
+ *  4. Duplicate position check on vị trí selection (AJAX)
+ *  5. Checkbox batch select + submit
+ *  6. Full validation before POST
+ *  7. Custom confirm modal (no native alert/confirm)
+ *  8. Toast notifications (success / error / warning)
  */
 (function () {
     'use strict';
@@ -23,7 +23,10 @@
     var TREN_LUONG = 'Trên luồng';
     var THU_HOI = 'Thu hồi';
     var isSubmitting = false;
-    var fpInstance = null; // flatpickr instance
+    var fpInstance = null;
+
+    /* ── modal promise resolver ── */
+    var _modalResolve = null;
 
     /* ── Init ── */
     document.addEventListener('DOMContentLoaded', function () {
@@ -32,17 +35,17 @@
         wireCheckboxEvents();
         wireFilterEvents();
         wireSubmitEvent();
+        wireModalEvents();
         updateSelectedCount();
     });
 
     /* ═══════════════════════════════════════════════════════
-     * 1. Date picker — Ngày thực hiện sự kiện (BẮT BUỘC)
+     * 1. Date picker — Ngày thực hiện sự kiện
      * ═══════════════════════════════════════════════════════ */
     function initDatePicker() {
         var el = document.getElementById('dpNgayThucHien');
         if (!el) return;
 
-        // Guard: flatpickr must be loaded from CDN
         if (typeof flatpickr === 'undefined') {
             console.error('[DieuPhoi] flatpickr not loaded — using native datetime-local fallback');
             el.type = 'datetime-local';
@@ -67,7 +70,6 @@
             }
         });
 
-        // Make alt input more obvious as a date-time picker
         if (fpInstance && fpInstance.altInput) {
             fpInstance.altInput.style.cursor = 'pointer';
             fpInstance.altInput.placeholder = 'Chọn ngày giờ…';
@@ -76,17 +78,14 @@
 
     function getSelectedDate() {
         var el = document.getElementById('dpNgayThucHien');
-        return el ? el.value : ''; // format: 'YYYY-MM-DD HH:mm' or '' if empty
+        return el ? el.value : '';
     }
 
-    /// Build an ISO datetime string. If user didn't pick, use current datetime.
     function getDateTimeForSubmit() {
         var raw = getSelectedDate();
         if (raw) {
-            // flatpickr returns 'YYYY-MM-DD HH:mm', convert to ISO for JSON
-            return raw.replace(' ', 'T') + ':00';  // e.g. '2026-03-05T14:30:00'
+            return raw.replace(' ', 'T') + ':00';
         }
-        // Fallback: current datetime
         return new Date().toISOString();
     }
 
@@ -111,14 +110,15 @@
         var ddlTuyen = row.querySelector('.dp-tuyen-luong');
         var ddlViTri = row.querySelector('.dp-vitri-phao');
         var txtDiaDiem = row.querySelector('.dp-dia-diem');
+        var warnDiv = row.querySelector('.dp-vitri-warn');
+
+        clearViTriWarning(ddlViTri, warnDiv);
 
         if (val === TREN_LUONG) {
-            // Enable Tuyến + Vị trí, disable Địa điểm
             if (ddlTuyen) {
                 ddlTuyen.disabled = false;
                 ddlTuyen.classList.remove('is-invalid');
             }
-            // Vị trí stays disabled until Tuyến is selected
             if (ddlViTri) {
                 ddlViTri.disabled = !ddlTuyen || !ddlTuyen.value;
                 ddlViTri.classList.remove('is-invalid');
@@ -127,10 +127,8 @@
                 txtDiaDiem.disabled = true;
                 txtDiaDiem.value = '';
             }
-            // Wire cascading tuyến → vị trí for this row
             wireTuyenCascade(row);
         } else if (val === THU_HOI) {
-            // Enable Địa điểm, disable Tuyến + Vị trí
             if (ddlTuyen) { ddlTuyen.disabled = true; ddlTuyen.value = ''; }
             if (ddlViTri) { ddlViTri.disabled = true; ddlViTri.innerHTML = '<option value="">-- Chọn vị trí --</option>'; }
             if (txtDiaDiem) {
@@ -138,7 +136,6 @@
                 txtDiaDiem.placeholder = 'Nơi thu hồi… (không bắt buộc)';
             }
         } else {
-            // Disable all conditional fields
             if (ddlTuyen) { ddlTuyen.disabled = true; ddlTuyen.value = ''; }
             if (ddlViTri) { ddlViTri.disabled = true; ddlViTri.innerHTML = '<option value="">-- Chọn vị trí --</option>'; }
             if (txtDiaDiem) { txtDiaDiem.disabled = true; txtDiaDiem.value = ''; }
@@ -147,13 +144,13 @@
 
     /* ═══════════════════════════════════════════════════════
      * 3. Cascading: Tuyến luồng → Vị trí phao BH
+     *    + duplicate position check on Vị trí change
      * ═══════════════════════════════════════════════════════ */
     function wireTuyenCascade(row) {
         var ddlTuyen = row.querySelector('.dp-tuyen-luong');
         var ddlViTri = row.querySelector('.dp-vitri-phao');
         if (!ddlTuyen || !ddlViTri) return;
 
-        // Avoid double-binding
         if (ddlTuyen._dpBound) return;
         ddlTuyen._dpBound = true;
 
@@ -161,6 +158,8 @@
             var tuyenId = ddlTuyen.value;
             ddlTuyen.classList.remove('is-invalid');
             ddlViTri.classList.remove('is-invalid');
+            var warnDiv = row.querySelector('.dp-vitri-warn');
+            clearViTriWarning(ddlViTri, warnDiv);
 
             if (!tuyenId) {
                 ddlViTri.disabled = true;
@@ -186,10 +185,59 @@
                     ddlViTri.disabled = true;
                 });
         });
+
+        // Wire vị trí change → duplicate check (only once per row)
+        if (!ddlViTri._dpBound) {
+            ddlViTri._dpBound = true;
+            ddlViTri.addEventListener('change', function () {
+                ddlViTri.classList.remove('is-invalid');
+                var warnDiv = row.querySelector('.dp-vitri-warn');
+                clearViTriWarning(ddlViTri, warnDiv);
+
+                var viTriId = ddlViTri.value;
+                var phaoId = parseInt(row.dataset.phaoId);
+                if (!viTriId) return;
+
+                checkDuplicatePosition(parseInt(viTriId), phaoId, ddlViTri, warnDiv);
+            });
+        }
     }
 
     /* ═══════════════════════════════════════════════════════
-     * 4. Checkbox select-all / individual
+     * 4. Duplicate position check — AJAX
+     * ═══════════════════════════════════════════════════════ */
+    function checkDuplicatePosition(viTriId, excludePhaoId, ddlViTri, warnDiv) {
+        if (!DP_CONFIG.urls.checkViTriTrung) return;
+
+        var url = DP_CONFIG.urls.checkViTriTrung
+            + '?viTriId=' + viTriId
+            + '&excludePhaoId=' + excludePhaoId;
+
+        fetch(url)
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.trung) {
+                    if (ddlViTri) ddlViTri.classList.add('dp-warn-border');
+                    if (warnDiv) {
+                        warnDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> '
+                            + 'Vị trí đã có phao <strong>' + escapeHtml(data.maPhao || data.tenPhao || '') + '</strong> đang hoạt động!';
+                        warnDiv.style.display = 'block';
+                    }
+                    showToast('Vị trí này đã có phao "' + (data.maPhao || data.tenPhao || '') + '" đang trên luồng!', 'warning');
+                }
+            })
+            .catch(function () {
+                // Silently fail — server-side will catch it
+            });
+    }
+
+    function clearViTriWarning(ddlViTri, warnDiv) {
+        if (ddlViTri) ddlViTri.classList.remove('dp-warn-border');
+        if (warnDiv) { warnDiv.style.display = 'none'; warnDiv.innerHTML = ''; }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     * 5. Checkbox select-all / individual
      * ═══════════════════════════════════════════════════════ */
     function wireCheckboxEvents() {
         var checkAll = document.getElementById('dpCheckAll');
@@ -224,7 +272,7 @@
     }
 
     /* ═══════════════════════════════════════════════════════
-     * 5. Filter / search
+     * 6. Filter / search
      * ═══════════════════════════════════════════════════════ */
     function wireFilterEvents() {
         var selTuyen = document.getElementById('dpTuyenLuongFilter');
@@ -249,7 +297,79 @@
     }
 
     /* ═══════════════════════════════════════════════════════
-     * 6. Submit dispatch — full validation + AJAX POST
+     * 7. Custom Confirm Modal — returns Promise<boolean>
+     * ═══════════════════════════════════════════════════════ */
+    function wireModalEvents() {
+        var overlay = document.getElementById('dpConfirmOverlay');
+        var btnOk = document.getElementById('dpModalOk');
+        var btnCancel = document.getElementById('dpModalCancel');
+
+        if (btnOk) btnOk.addEventListener('click', function () { resolveModal(true); });
+        if (btnCancel) btnCancel.addEventListener('click', function () { resolveModal(false); });
+
+        if (overlay) {
+            overlay.addEventListener('click', function (e) {
+                if (e.target === overlay) resolveModal(false);
+            });
+        }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && _modalResolve) resolveModal(false);
+        });
+    }
+
+    function resolveModal(result) {
+        var overlay = document.getElementById('dpConfirmOverlay');
+        if (overlay) overlay.classList.remove('show');
+        if (_modalResolve) {
+            var fn = _modalResolve;
+            _modalResolve = null;
+            fn(result);
+        }
+    }
+
+    /**
+     * Show a custom confirm modal.
+     * @param {string} title    — Modal title
+     * @param {string} bodyHtml — Body content (supports HTML)
+     * @param {object} [opts]   — { okText, cancelText, type: 'confirm'|'warning' }
+     * @returns {Promise<boolean>}
+     */
+    function showConfirmModal(title, bodyHtml, opts) {
+        opts = opts || {};
+        var overlay = document.getElementById('dpConfirmOverlay');
+        var elTitle = document.getElementById('dpModalTitle');
+        var elBody = document.getElementById('dpModalBody');
+        var elIcon = document.getElementById('dpModalIcon');
+        var btnOk = document.getElementById('dpModalOk');
+        var btnCancel = document.getElementById('dpModalCancel');
+
+        if (elTitle) elTitle.textContent = title;
+        if (elBody) elBody.innerHTML = bodyHtml;
+
+        var isWarning = opts.type === 'warning';
+        if (elIcon) {
+            elIcon.className = 'dp-modal-icon ' + (isWarning ? 'dp-modal-icon-warning' : 'dp-modal-icon-confirm');
+            elIcon.innerHTML = isWarning
+                ? '<i class="bi bi-exclamation-triangle-fill"></i>'
+                : '<i class="bi bi-question-circle-fill"></i>';
+        }
+
+        if (btnOk) {
+            btnOk.className = 'dp-modal-btn ' + (isWarning ? 'dp-modal-btn-warn' : 'dp-modal-btn-ok');
+            btnOk.textContent = opts.okText || 'Xác nhận';
+        }
+        if (btnCancel) btnCancel.textContent = opts.cancelText || 'Hủy';
+
+        if (overlay) overlay.classList.add('show');
+
+        return new Promise(function (resolve) {
+            _modalResolve = resolve;
+        });
+    }
+
+    /* ═══════════════════════════════════════════════════════
+     * 8. Submit dispatch — full validation + AJAX POST
      * ═══════════════════════════════════════════════════════ */
     function wireSubmitEvent() {
         var btn = document.getElementById('dpSubmitBtn');
@@ -258,13 +378,12 @@
         btn.addEventListener('click', function () {
             if (isSubmitting) return;
 
-            // ── Validate ngày ──  (không bắt buộc nữa — nếu bỏ trống sẽ lấy DateTime.Now)
             var ngay = getSelectedDate();
-            // Removed: hard-block when empty — now auto-fallback to DateTime.Now
 
             // ── Collect & validate rows ──
             var rows = [];
             var hasError = false;
+            var hasDuplicateWarning = false;
 
             document.querySelectorAll('.dp-check:checked').forEach(function (cb) {
                 var tr = cb.closest('.dp-row');
@@ -276,14 +395,13 @@
                 var diaDiem = tr.querySelector('.dp-dia-diem');
                 var ddlTuyen = tr.querySelector('.dp-tuyen-luong');
                 var ddlViTri = tr.querySelector('.dp-vitri-phao');
+                var warnDiv = tr.querySelector('.dp-vitri-warn');
 
-                // Validate Loại trạng thái
                 if (!loaiTrangThai || !loaiTrangThai.value) {
                     if (loaiTrangThai) loaiTrangThai.classList.add('is-invalid');
                     hasError = true;
                 }
 
-                // Validate Ghi chú
                 if (!ghiChu || !ghiChu.value) {
                     if (ghiChu) ghiChu.classList.add('is-invalid');
                     hasError = true;
@@ -291,7 +409,6 @@
 
                 var val = loaiTrangThai ? loaiTrangThai.value : '';
 
-                // Validate Tuyến + Vị trí khi "Trên luồng"
                 if (val === TREN_LUONG) {
                     if (!ddlTuyen || !ddlTuyen.value) {
                         if (ddlTuyen) ddlTuyen.classList.add('is-invalid');
@@ -301,6 +418,11 @@
                         if (ddlViTri) ddlViTri.classList.add('is-invalid');
                         hasError = true;
                     }
+                }
+
+                // Detect duplicate warning
+                if (warnDiv && warnDiv.style.display === 'block') {
+                    hasDuplicateWarning = true;
                 }
 
                 rows.push({
@@ -323,53 +445,73 @@
                 return;
             }
 
-            // ── Confirm ──
+            // ── Block if duplicate position ──
+            if (hasDuplicateWarning) {
+                showToast('Có phao bị trùng vị trí trên tuyến! Vui lòng chọn vị trí khác trước khi điều phối.', 'error');
+                return;
+            }
+
+            // ── Confirm via custom modal ──
             var submitDateTime = getDateTimeForSubmit();
             var displayTime = ngay ? formatDateTimeVN(ngay) : 'Thời gian hiện tại (tự động)';
-            var msg = 'Xác nhận điều phối ' + rows.length + ' phao?\n'
-                    + 'Thời gian sự kiện: ' + displayTime + '\n'
-                    + 'Mỗi phao sẽ tạo 1 bản ghi lịch sử hoạt động mới.';
-            if (!confirm(msg)) return;
+            var bodyHtml = '<div style="margin-bottom:8px;">'
+                + 'Bạn sắp điều phối <strong>' + rows.length + '</strong> phao.'
+                + '</div>'
+                + '<div style="margin-bottom:8px;">'
+                + '<span style="color:#64748b;">Thời gian sự kiện:</span> <strong>' + escapeHtml(displayTime) + '</strong>'
+                + '</div>'
+                + '<div style="font-size:.82rem;color:#94a3b8;">'
+                + 'Mỗi phao sẽ tạo 1 bản ghi lịch sử hoạt động mới. Hành động này không thể hoàn tác.'
+                + '</div>';
 
-            // ── POST ──
-            isSubmitting = true;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang xử lý…';
-
-            var payload = {
-                items: rows,
-                ngayThucHien: submitDateTime  // ISO datetime string e.g. '2026-03-05T14:30:00'
-            };
-
-            fetch(DP_CONFIG.urls.submit, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            .then(function (res) { return res.json(); })
-            .then(function (data) {
-                isSubmitting = false;
-                btn.innerHTML = '<i class="bi bi-send-fill me-1"></i>Thực hiện điều phối';
-
-                if (data.success) {
-                    showToast('Điều phối thành công ' + (data.count || rows.length) + ' phao! Lịch sử đã được ghi nhận.', 'success');
-                    setTimeout(function () { window.location.reload(); }, 1200);
-                } else {
-                    showToast(data.error || 'Có lỗi xảy ra.', 'error');
-                    btn.disabled = false;
-                }
-            })
-            .catch(function (err) {
-                isSubmitting = false;
-                btn.innerHTML = '<i class="bi bi-send-fill me-1"></i>Thực hiện điều phối';
-                btn.disabled = false;
-                showToast('Lỗi kết nối: ' + err.message, 'error');
+            showConfirmModal('Xác nhận điều phối', bodyHtml, {
+                okText: 'Thực hiện điều phối',
+                type: 'confirm'
+            }).then(function (confirmed) {
+                if (!confirmed) return;
+                doSubmit(btn, rows, submitDateTime);
             });
         });
     }
 
+    function doSubmit(btn, rows, submitDateTime) {
+        isSubmitting = true;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang xử lý…';
+
+        var payload = {
+            items: rows,
+            ngayThucHien: submitDateTime
+        };
+
+        fetch(DP_CONFIG.urls.submit, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+            isSubmitting = false;
+            btn.innerHTML = '<i class="bi bi-send-fill me-1"></i>Thực hiện điều phối';
+
+            if (data.success) {
+                showToast('Điều phối thành công ' + (data.count || rows.length) + ' phao! Lịch sử đã được ghi nhận.', 'success');
+                setTimeout(function () { window.location.reload(); }, 1200);
+            } else {
+                showToast(data.error || 'Có lỗi xảy ra.', 'error');
+                btn.disabled = false;
+            }
+        })
+        .catch(function (err) {
+            isSubmitting = false;
+            btn.innerHTML = '<i class="bi bi-send-fill me-1"></i>Thực hiện điều phối';
+            btn.disabled = false;
+            showToast('Lỗi kết nối: ' + err.message, 'error');
+        });
+    }
+
     /* ═══════════════════════════════════════════════════════
-     * 7. Helpers
+     * 9. Helpers
      * ═══════════════════════════════════════════════════════ */
     function formatDateVN(isoDate) {
         if (!isoDate) return '';
@@ -379,12 +521,18 @@
 
     function formatDateTimeVN(val) {
         if (!val) return '';
-        // val format: 'YYYY-MM-DD HH:mm'
         var split = val.split(' ');
         var datePart = split[0] || '';
         var timePart = split[1] || '';
         var parts = datePart.split('-');
         return parts[2] + '/' + parts[1] + '/' + parts[0] + (timePart ? ' ' + timePart : '');
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
     }
 
     function showToast(msg, type) {

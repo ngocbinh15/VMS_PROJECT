@@ -77,5 +77,11 @@ namespace LANHossting.Application.Interfaces.Buoy
         /// Kèm navigation ViTriPhaoBH → TuyenLuong và Phao
         /// </summary>
         Task<List<LichSuHoatDongPhao>> GetLichSuHoatDongByTuyenAsync(int? tuyenLuongId);
+
+        /// <summary>
+        /// Kiểm tra vị trí đã có phao khác đang "Trên luồng" chưa (trừ phao hiện tại).
+        /// Trả về MaPhaoDayDu của phao trùng, hoặc null nếu không trùng.
+        /// </summary>
+        Task<string?> CheckViTriTrungAsync(int viTriId, int excludePhaoId);
     }
 }

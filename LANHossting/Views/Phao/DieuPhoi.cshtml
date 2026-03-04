@@ -130,6 +130,54 @@
     .dp-toast.show { transform: translateY(0); opacity: 1; }
     .dp-toast-success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
     .dp-toast-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .dp-toast-warning { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+
+    /* ── Custom Confirm Modal ── */
+    .dp-overlay {
+        position: fixed; inset: 0; background: rgba(15,23,42,.45);
+        z-index: 10000; display: flex; align-items: center; justify-content: center;
+        opacity: 0; visibility: hidden; transition: opacity .2s, visibility .2s;
+    }
+    .dp-overlay.show { opacity: 1; visibility: visible; }
+    .dp-modal {
+        background: #fff; border-radius: 14px; width: 440px; max-width: 92vw;
+        box-shadow: 0 20px 60px rgba(0,0,0,.18); transform: translateY(20px) scale(.96);
+        transition: transform .25s; overflow: hidden;
+    }
+    .dp-overlay.show .dp-modal { transform: translateY(0) scale(1); }
+    .dp-modal-header {
+        padding: 16px 20px 12px; border-bottom: 1px solid #e2e8f0;
+        display: flex; align-items: center; gap: 10px;
+    }
+    .dp-modal-icon {
+        width: 36px; height: 36px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    }
+    .dp-modal-icon-confirm { background: #dbeafe; color: #1d4ed8; }
+    .dp-modal-icon-warning { background: #fef3c7; color: #d97706; }
+    .dp-modal-title { font-weight: 700; font-size: .95rem; color: #1e293b; }
+    .dp-modal-body { padding: 16px 20px; font-size: .86rem; color: #475569; line-height: 1.6; }
+    .dp-modal-footer {
+        padding: 12px 20px 16px; display: flex; justify-content: flex-end; gap: 8px;
+    }
+    .dp-modal-btn {
+        border: none; border-radius: 8px; padding: 8px 20px;
+        font-weight: 600; font-size: .84rem; cursor: pointer; transition: background .15s;
+    }
+    .dp-modal-btn-cancel { background: #f1f5f9; color: #64748b; }
+    .dp-modal-btn-cancel:hover { background: #e2e8f0; }
+    .dp-modal-btn-ok { background: #1d4ed8; color: #fff; }
+    .dp-modal-btn-ok:hover { background: #1e40af; }
+    .dp-modal-btn-warn { background: #d97706; color: #fff; }
+    .dp-modal-btn-warn:hover { background: #b45309; }
+
+    /* ── Duplicate position warning ── */
+    .dp-vitri-warn {
+        font-size: .72rem; color: #d97706; font-weight: 600;
+        margin-top: 3px; display: none; line-height: 1.3;
+    }
+    .dp-vitri-warn i { margin-right: 2px; }
+    .dp-select.dp-warn-border { border-color: #f59e0b !important; }
 </style>
 }
 
@@ -266,6 +314,7 @@
                                         <select class="dp-select dp-vitri-phao" disabled>
                                             <option value="">-- Chọn vị trí --</option>
                                         </select>
+                                        <div class="dp-vitri-warn"></div>
                                     </td>
                                     <td>
                                         <select class="dp-select dp-ghi-chu">
@@ -304,17 +353,33 @@
 <!-- Toast -->
 <div class="dp-toast" id="dpToast"></div>
 
+<!-- Custom Confirm Modal -->
+<div class="dp-overlay" id="dpConfirmOverlay">
+    <div class="dp-modal">
+        <div class="dp-modal-header">
+            <div class="dp-modal-icon" id="dpModalIcon"><i class="bi bi-question-circle"></i></div>
+            <div class="dp-modal-title" id="dpModalTitle">Xác nhận</div>
+        </div>
+        <div class="dp-modal-body" id="dpModalBody"></div>
+        <div class="dp-modal-footer">
+            <button class="dp-modal-btn dp-modal-btn-cancel" id="dpModalCancel">Hủy</button>
+            <button class="dp-modal-btn dp-modal-btn-ok" id="dpModalOk">Xác nhận</button>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
     // Config resolved by Razor (URLs for AJAX calls)
     var DP_CONFIG = {
         urls: {
-            viTriByTuyen: '@Url.Action("GetViTriByTuyenLuong", "Phao")',
-            viTriInfo:    '@Url.Action("GetViTriInfo", "Phao")',
-            submit:       '@Url.Action("DieuPhoi", "Phao")'
+            viTriByTuyen:     '@Url.Action("GetViTriByTuyenLuong", "Phao")',
+            viTriInfo:        '@Url.Action("GetViTriInfo", "Phao")',
+            submit:           '@Url.Action("DieuPhoi", "Phao")',
+            checkViTriTrung:  '@Url.Action("CheckViTriTrung", "Phao")'
         }
     };
 </script>
-<script src="~/js/phao/dieuphoi.js?v=2.2"></script>
+<script src="~/js/phao/dieuphoi.js?v=3.0"></script>
 }

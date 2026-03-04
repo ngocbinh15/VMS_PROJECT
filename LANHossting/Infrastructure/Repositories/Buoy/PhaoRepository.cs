@@ -172,5 +172,17 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
                 .ThenBy(ls => ls.NgayBatDau)
                 .ToListAsync();
         }
+
+        /// <inheritdoc />
+        public async Task<string?> CheckViTriTrungAsync(int viTriId, int excludePhaoId)
+        {
+            return await _context.Set<Phao>()
+                .AsNoTracking()
+                .Where(p => p.ViTriPhaoBHHienTaiId == viTriId
+                         && p.Id != excludePhaoId
+                         && p.TrangThaiHienTai == Domain.Enums.TrangThaiHoatDongPhao.TrenLuong)
+                .Select(p => p.MaPhaoDayDu)
+                .FirstOrDefaultAsync();
+        }
     }
 }

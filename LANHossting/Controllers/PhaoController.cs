@@ -344,14 +344,16 @@ namespace LANHossting.Controllers
         }
 
         /// <summary>
-        /// GET: /Phao/CheckViTriTrung?viTriId=X&excludePhaoId=Y — kiểm tra vị trí đã có phao khác chưa
+        /// GET: /Phao/CheckViTriTrung?viTriId=X&excludePhaoId=Y — kiểm tra vị trí đã có phao khác đang "Trên luồng" chưa
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> CheckViTriTrung(int viTriId, int excludePhaoId)
         {
             var phaoTrung = await _context.Phao
                 .AsNoTracking()
-                .Where(p => p.ViTriPhaoBHHienTaiId == viTriId && p.Id != excludePhaoId)
+                .Where(p => p.ViTriPhaoBHHienTaiId == viTriId
+                         && p.Id != excludePhaoId
+                         && p.TrangThaiHienTai == TrangThaiHoatDongPhao.TrenLuong)
                 .Select(p => new { p.Id, p.MaPhaoDayDu, p.KyHieuTaiSan, p.TenPhao })
                 .FirstOrDefaultAsync();
 
