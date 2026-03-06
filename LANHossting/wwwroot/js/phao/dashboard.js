@@ -455,10 +455,23 @@ function openCreateModal() {
 // ══════════════════════════════════════════════
 function savePhao() {
     clearFieldErrors();
+    hideFormAlert();
 
+    // 1) Ký hiệu tài sản bắt buộc
+    var kyHieu = getVal('edKyHieu').trim();
+    if (!kyHieu) {
+        showFieldError('edKyHieu', 'edKyHieuError', 'Ký hiệu tài sản không được để trống.');
+        return;
+    }
+
+    // 2) Mã phao bắt buộc
     var maPhao = getVal('edMaPhao').trim();
     if (!maPhao) {
-        showFieldError('edMaPhao', 'edMaPhaoError', 'Mã phao đầy đủ là bắt buộc.');
+        showFieldError('edMaPhao', 'edMaPhaoError', 'Mã phao không được để trống.');
+        return;
+    }
+    if (maPhao.indexOf('.') === -1) {
+        showFieldError('edMaPhao', 'edMaPhaoError', 'Mã phao phải chứa dấu chấm (.) để tách mã loại phao. Ví dụ: T26.064.17');
         return;
     }
 

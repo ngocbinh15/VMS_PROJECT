@@ -193,9 +193,21 @@ namespace LANHossting.Application.Services.Buoy
                 // ── Chỉ cập nhật thông tin kỹ thuật, KHÔNG thay đổi trạng thái vận hành ──
                 // Trạng thái hoạt động + Tuyến luồng + Vị trí chỉ được thay đổi qua Điều Phối
 
+                // Validate mã phao chứa dấu '.' (cần cho computed column MaLoaiPhao)
+                if (!dto.MaPhaoDayDu.Contains('.'))
+                    return (false, "Mã phao phải chứa dấu chấm (.) để tách mã loại phao. Ví dụ: T26.064.17");
+
+                // Kiểm tra trùng mã phao (trừ chính phao đang sửa)
+                if (await _phaoRepo.ExistsByMaPhaoAsync(dto.MaPhaoDayDu, dto.Id))
+                    return (false, "Mã phao này đã tồn tại trong hệ thống.");
+
                 // Kiểm tra trùng ký hiệu tài sản (trừ chính phao đang sửa)
                 if (!string.IsNullOrWhiteSpace(dto.KyHieuTaiSan) && await _phaoRepo.ExistsByKyHieuTaiSanAsync(dto.KyHieuTaiSan, dto.Id))
                     return (false, "Ký hiệu tài sản này đã tồn tại trong hệ thống.");
+
+                // Kiểm tra trùng tên phao (trừ chính phao đang sửa)
+                if (!string.IsNullOrWhiteSpace(dto.TenPhao) && await _phaoRepo.ExistsByTenPhaoAsync(dto.TenPhao, dto.Id))
+                    return (false, "Tên phao này đã tồn tại trong hệ thống.");
 
                 // Map DTO → Entity (thong tin ky thuat)
                 phao.KyHieuTaiSan = dto.KyHieuTaiSan;
@@ -256,9 +268,24 @@ namespace LANHossting.Application.Services.Buoy
                 await _phaoRepo.SaveChangesAsync();
                 return (true, null);
             }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
+            {
+                var inner = dbEx.InnerException?.Message ?? dbEx.Message;
+                if (inner.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase) ||
+                    inner.Contains("duplicate", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (inner.Contains("MaPhaoDayDu", StringComparison.OrdinalIgnoreCase))
+                        return (false, "Mã phao này đã tồn tại trong hệ thống.");
+                    if (inner.Contains("KyHieuTaiSan", StringComparison.OrdinalIgnoreCase))
+                        return (false, "Ký hiệu tài sản này đã tồn tại trong hệ thống.");
+                    return (false, "Dữ liệu bị trùng trong hệ thống. Vui lòng kiểm tra lại.");
+                }
+                return (false, "Lỗi lưu dữ liệu: " + inner);
+            }
             catch (Exception ex)
             {
-                return (false, "Lỗi cập nhật: " + ex.Message);
+                var msg = ex.InnerException?.Message ?? ex.Message;
+                return (false, "Lỗi cập nhật: " + msg);
             }
         }
 
@@ -274,7 +301,8 @@ namespace LANHossting.Application.Services.Buoy
             }
             catch (Exception ex)
             {
-                return (false, "Lỗi xóa phao: " + ex.Message);
+                var msg = ex.InnerException?.Message ?? ex.Message;
+                return (false, "Lỗi xóa phao: " + msg);
             }
         }
 
@@ -282,17 +310,29 @@ namespace LANHossting.Application.Services.Buoy
         {
             try
             {
-                // Kiểm tra trùng mã phao
+                // 1) Ký hiệu tài sản bắt buộc
+                if (string.IsNullOrWhiteSpace(dto.KyHieuTaiSan))
+                    return (false, "Ký hiệu tài sản không được để trống.");
+
+                // 2) Mã phao bắt buộc
+                if (string.IsNullOrWhiteSpace(dto.MaPhaoDayDu))
+                    return (false, "Mã phao không được để trống.");
+
+                // Validate mã phao chứa dấu '.' (cần cho computed column MaLoaiPhao)
+                if (!dto.MaPhaoDayDu.Contains('.'))
+                    return (false, "Mã phao phải chứa dấu chấm (.) để tách mã loại phao. Ví dụ: T26.064.17");
+
+                // 3) Kiểm tra trùng ký hiệu tài sản
+                if (await _phaoRepo.ExistsByKyHieuTaiSanAsync(dto.KyHieuTaiSan))
+                    return (false, "Ký hiệu tài sản này đã tồn tại trong hệ thống.");
+
+                // 4) Kiểm tra trùng mã phao
                 if (await _phaoRepo.ExistsByMaPhaoAsync(dto.MaPhaoDayDu))
                     return (false, "Mã phao này đã tồn tại trong hệ thống.");
 
                 // Kiểm tra trùng tên phao
                 if (!string.IsNullOrWhiteSpace(dto.TenPhao) && await _phaoRepo.ExistsByTenPhaoAsync(dto.TenPhao))
                     return (false, "Tên phao này đã tồn tại trong hệ thống.");
-
-                // Kiểm tra trùng ký hiệu tài sản
-                if (!string.IsNullOrWhiteSpace(dto.KyHieuTaiSan) && await _phaoRepo.ExistsByKyHieuTaiSanAsync(dto.KyHieuTaiSan))
-                    return (false, "Ký hiệu tài sản này đã tồn tại trong hệ thống.");
 
                 var phao = new Phao
                 {
@@ -343,9 +383,23 @@ namespace LANHossting.Application.Services.Buoy
                 await _phaoRepo.AddPhaoAsync(phao);
                 return (true, null);
             }
-            catch (Exception ex)
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
             {
-                return (false, "Lỗi thêm phao: " + ex.Message);
+                var inner = dbEx.InnerException?.Message ?? dbEx.Message;
+                if (inner.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase) ||
+                    inner.Contains("duplicate", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (inner.Contains("KyHieuTaiSan", StringComparison.OrdinalIgnoreCase))
+                        return (false, "Ký hiệu tài sản này đã tồn tại trong hệ thống.");
+                    if (inner.Contains("MaPhaoDayDu", StringComparison.OrdinalIgnoreCase))
+                        return (false, "Mã phao này đã tồn tại trong hệ thống.");
+                    return (false, "Dữ liệu bị trùng trong hệ thống. Vui lòng kiểm tra lại.");
+                }
+                return (false, "Không thể lưu dữ liệu. Vui lòng kiểm tra lại thông tin và thử lại.");
+            }
+            catch (Exception)
+            {
+                return (false, "Không thể lưu dữ liệu. Vui lòng thử lại sau.");
             }
         }
 

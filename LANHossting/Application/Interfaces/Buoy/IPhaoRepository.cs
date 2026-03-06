@@ -90,14 +90,14 @@ namespace LANHossting.Application.Interfaces.Buoy
         Task AddPhaoAsync(Phao phao);
 
         /// <summary>
-        /// Kiểm tra mã phao đã tồn tại chưa
+        /// Kiểm tra mã phao đã tồn tại chưa (trừ phao có Id = excludeId nếu có)
         /// </summary>
-        Task<bool> ExistsByMaPhaoAsync(string maPhaoDayDu);
+        Task<bool> ExistsByMaPhaoAsync(string maPhaoDayDu, int? excludeId = null);
 
         /// <summary>
-        /// Kiểm tra tên phao đã tồn tại chưa
+        /// Kiểm tra tên phao đã tồn tại chưa (trừ phao có Id = excludeId nếu có)
         /// </summary>
-        Task<bool> ExistsByTenPhaoAsync(string tenPhao);
+        Task<bool> ExistsByTenPhaoAsync(string tenPhao, int? excludeId = null);
 
         /// <summary>
         /// Kiểm tra ký hiệu tài sản đã tồn tại chưa (trừ phao có Id = excludeId nếu có)

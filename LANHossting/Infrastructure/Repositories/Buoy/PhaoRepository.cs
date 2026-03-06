@@ -214,17 +214,21 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
         }
 
         /// <inheritdoc />
-        public async Task<bool> ExistsByMaPhaoAsync(string maPhaoDayDu)
+        public async Task<bool> ExistsByMaPhaoAsync(string maPhaoDayDu, int? excludeId = null)
         {
-            return await _context.Set<Phao>()
-                .AnyAsync(p => p.MaPhaoDayDu == maPhaoDayDu);
+            var query = _context.Set<Phao>().Where(p => p.MaPhaoDayDu == maPhaoDayDu);
+            if (excludeId.HasValue)
+                query = query.Where(p => p.Id != excludeId.Value);
+            return await query.AnyAsync();
         }
 
         /// <inheritdoc />
-        public async Task<bool> ExistsByTenPhaoAsync(string tenPhao)
+        public async Task<bool> ExistsByTenPhaoAsync(string tenPhao, int? excludeId = null)
         {
-            return await _context.Set<Phao>()
-                .AnyAsync(p => p.TenPhao == tenPhao);
+            var query = _context.Set<Phao>().Where(p => p.TenPhao == tenPhao);
+            if (excludeId.HasValue)
+                query = query.Where(p => p.Id != excludeId.Value);
+            return await query.AnyAsync();
         }
 
         /// <inheritdoc />
