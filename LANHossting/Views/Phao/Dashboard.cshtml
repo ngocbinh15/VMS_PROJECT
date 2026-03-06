@@ -9,9 +9,6 @@
 <link rel="stylesheet" href="~/css/phao.css" />
 }
 
-    <!-- ═══════════════════ TOAST ═══════════════════ -->
-    <div class="toast-container" id="toastContainer"></div>
-
     <!-- ═══════════════════ MAIN CONTENT ═══════════════════ -->
     <div class="container-fluid px-4 pb-5">
 
@@ -22,6 +19,9 @@
                 <div class="text-muted small">Danh sách các phao báo hiệu hàng hải trong khu vực quản lý.</div>
             </div>
             <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary fw-bold text-white btn-modern" onclick="openCreateModal()">
+                    <i class="bi bi-plus-lg me-1"></i> Thêm phao mới
+                </button>
                 <a href="@Url.Action("LichSu", "Phao")" class="btn btn-light border fw-bold text-secondary btn-modern">
                     <i class="bi bi-clock-history me-1"></i> Vòng đời phao
                 </a>
@@ -321,7 +321,7 @@
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4">
                 <div class="modal-header pb-0 border-bottom-0">
-                    <h5 class="modal-title fw-bold text-primary"><i class="bi bi-pencil-square me-2"></i>Chỉnh Sửa Phao</h5>
+                    <h5 class="modal-title fw-bold text-primary" id="editModalTitle"><i class="bi bi-pencil-square me-2"></i>Chỉnh Sửa Phao</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body pt-2">
@@ -345,14 +345,17 @@
                                     <div class="col-md-4">
                                         <label class="form-label small fw-bold">Ký hiệu tài sản</label>
                                         <input type="text" class="form-control form-control-sm" id="edKyHieu" maxlength="50">
+                                        <div class="invalid-feedback" id="edKyHieuError"></div>
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label small fw-bold">Mã phao đầy đủ <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control form-control-sm" id="edMaPhao" maxlength="50" required>
+                                        <div class="invalid-feedback" id="edMaPhaoError"></div>
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label small fw-bold">Tên phao</label>
                                         <input type="text" class="form-control form-control-sm" id="edTenPhao" maxlength="255">
+                                        <div class="invalid-feedback" id="edTenPhaoError"></div>
                                     </div>
                                     <div class="col-md-3">
                                         <label class="form-label small fw-bold">Số phao hiện tại</label>
@@ -386,6 +389,7 @@
                                         <input type="number" step="0.01" class="form-control form-control-sm" id="edDienTich">
                                     </div>
                                 </div>
+                                <div id="editVanHanhSection">
                                 <div class="detail-section-title"><i class="bi bi-geo-alt-fill"></i>VẬN HÀNH <span class="badge bg-secondary bg-opacity-25 text-secondary ms-2" style="font-size:.65rem;vertical-align:middle;">Chỉ xem — thay đổi qua Điều Phối</span></div>
                                 <div class="row g-3">
                                     <div class="col-md-4">
@@ -408,6 +412,7 @@
                                         <label class="form-label small fw-bold">Kinh độ</label>
                                         <input type="text" class="form-control form-control-sm bg-light" id="edKinhDoRO" readonly disabled>
                                     </div>
+                                </div>
                                 </div>
                                 <div class="detail-section-title"><i class="bi bi-calendar-event"></i>THỜI GIAN</div>
                                 <div class="row g-3">
@@ -560,8 +565,9 @@
                     </div>
                 </div>
                 <div class="modal-footer border-top-0 pt-0">
+                    <div class="w-100 mb-2" id="editFormAlert" style="display:none;"></div>
                     <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary fw-bold text-white" id="btnSaveEdit" onclick="saveEdit()">
+                    <button type="button" class="btn btn-primary fw-bold text-white" id="btnSaveEdit" onclick="savePhao()">
                         <i class="bi bi-check-lg me-1"></i>Lưu thay đổi
                     </button>
                 </div>
@@ -578,6 +584,7 @@
                     <h6 class="fw-bold">Xác nhận xóa phao</h6>
                     <p class="text-muted small mb-0">Bạn có chắc chắn muốn xóa phao <strong id="deletePhaoName"></strong>?</p>
                     <p class="text-danger small">Thao tác này không thể hoàn tác.</p>
+                    <div id="deleteErrorAlert" class="alert alert-danger small py-1 px-2 mb-2" style="display:none;"></div>
                     <input type="hidden" id="deletePhaoId">
                 </div>
                 <div class="modal-footer border-top-0 justify-content-center pt-0">
@@ -598,10 +605,11 @@
             danhSach: '@Url.Action("DanhSach", "Phao")',
             chiTiet:  '@Url.Action("ChiTietJson", "Phao")',
             capNhat:  '@Url.Action("CapNhat", "Phao")',
+            themMoi:  '@Url.Action("ThemMoi", "Phao")',
             xoa:      '@Url.Action("Xoa", "Phao")',
             dropdownData: '@Url.Action("GetDropdownData", "Phao")'
         };
         const fpDate = {};
     </script>
-    <script src="~/js/phao/dashboard.js?v=2.2"></script>
+    <script src="~/js/phao/dashboard.js?v=5.0"></script>
     }

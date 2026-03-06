@@ -257,11 +257,8 @@
             </div>
             <div>
                 <div class="dp-label">TÌM PHAO</div>
-                <input type="text" id="dpSearchInput" placeholder="Nhập mã phao…" value="@searchTerm" />
+                <input type="text" id="dpSearchInput" placeholder="Nhập mã phao, ký hiệu tài sản, tên phao…" value="" />
             </div>
-            <button type="button" class="btn btn-sm btn-outline-secondary" id="dpRefreshBtn" style="border-radius:8px;padding:6px 14px;">
-                <i class="bi bi-arrow-clockwise me-1"></i>Làm mới
-            </button>
         </div>
         <div class="dp-count" id="dpCountInfo">
             <strong>@danhSachPhao.Count</strong> phao
@@ -308,7 +305,8 @@
                                 };
                                 <tr class="dp-row" data-phao-id="@p.Id" data-current-status="@p.TrangThaiHienTai"
                                     data-current-vitri="@p.ViTriHienTai" data-current-tuyen-id="@p.TuyenLuongId"
-                                    data-current-vitri-id="@p.ViTriPhaoBHHienTaiId">
+                                    data-current-vitri-id="@p.ViTriPhaoBHHienTaiId"
+                                    data-search="@p.MaPhaoDayDu @(p.KyHieuTaiSan ?? "") @(p.TenPhao ?? "")">
                                     <td><input type="checkbox" class="dp-check" /></td>
                                     <td>
                                         <div class="fw-semibold text-dark" style="font-size:.82rem;">@p.MaPhaoDayDu</div>
@@ -423,5 +421,5 @@
         selectedThoiGian: '@Html.Raw(thoiGian)'
     };
 </script>
-<script src="~/js/phao/dieuphoi.js?v=4.0"></script>
+<script src="~/js/phao/dieuphoi.js?v=5.2"></script>
 }

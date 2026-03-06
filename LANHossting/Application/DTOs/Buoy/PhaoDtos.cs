@@ -254,6 +254,7 @@ namespace LANHossting.Application.DTOs.Buoy
     {
         public int Id { get; set; }
         public string MaPhaoDayDu { get; set; } = string.Empty;
+        public string? KyHieuTaiSan { get; set; }
         public string? TenPhao { get; set; }
         public string? TrangThaiHienTai { get; set; }
         public string? ViTriHienTai { get; set; }

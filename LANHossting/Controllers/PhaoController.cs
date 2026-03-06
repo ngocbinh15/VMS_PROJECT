@@ -171,6 +171,29 @@ namespace LANHossting.Controllers
         }
 
         /// <summary>
+        /// POST: /Phao/ThemMoi — thêm phao mới (AJAX JSON)
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> ThemMoi([FromBody] PhaoEditDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return Json(new { success = false, error = string.Join("; ", errors) });
+            }
+
+            dto.NguoiCapNhat = HttpContext.Session.GetString("Username")
+                             ?? HttpContext.Session.GetString("HoTen")
+                             ?? "system";
+
+            var (success, error) = await _phaoService.ThemPhaoAsync(dto);
+            return Json(new { success, error });
+        }
+
+        /// <summary>
         /// POST: /Phao/Xoa/{id} — xóa phao (cascade xóa bản ghi liên quan)
         /// </summary>
         [HttpPost]

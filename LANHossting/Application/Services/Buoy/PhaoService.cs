@@ -193,6 +193,10 @@ namespace LANHossting.Application.Services.Buoy
                 // ── Chỉ cập nhật thông tin kỹ thuật, KHÔNG thay đổi trạng thái vận hành ──
                 // Trạng thái hoạt động + Tuyến luồng + Vị trí chỉ được thay đổi qua Điều Phối
 
+                // Kiểm tra trùng ký hiệu tài sản (trừ chính phao đang sửa)
+                if (!string.IsNullOrWhiteSpace(dto.KyHieuTaiSan) && await _phaoRepo.ExistsByKyHieuTaiSanAsync(dto.KyHieuTaiSan, dto.Id))
+                    return (false, "Ký hiệu tài sản này đã tồn tại trong hệ thống.");
+
                 // Map DTO → Entity (thong tin ky thuat)
                 phao.KyHieuTaiSan = dto.KyHieuTaiSan;
                 phao.MaPhaoDayDu = dto.MaPhaoDayDu;
@@ -274,6 +278,77 @@ namespace LANHossting.Application.Services.Buoy
             }
         }
 
+        public async Task<(bool Success, string? Error)> ThemPhaoAsync(PhaoEditDto dto)
+        {
+            try
+            {
+                // Kiểm tra trùng mã phao
+                if (await _phaoRepo.ExistsByMaPhaoAsync(dto.MaPhaoDayDu))
+                    return (false, "Mã phao này đã tồn tại trong hệ thống.");
+
+                // Kiểm tra trùng tên phao
+                if (!string.IsNullOrWhiteSpace(dto.TenPhao) && await _phaoRepo.ExistsByTenPhaoAsync(dto.TenPhao))
+                    return (false, "Tên phao này đã tồn tại trong hệ thống.");
+
+                // Kiểm tra trùng ký hiệu tài sản
+                if (!string.IsNullOrWhiteSpace(dto.KyHieuTaiSan) && await _phaoRepo.ExistsByKyHieuTaiSanAsync(dto.KyHieuTaiSan))
+                    return (false, "Ký hiệu tài sản này đã tồn tại trong hệ thống.");
+
+                var phao = new Phao
+                {
+                    MaPhaoDayDu = dto.MaPhaoDayDu,
+                    KyHieuTaiSan = dto.KyHieuTaiSan,
+                    TenPhao = dto.TenPhao,
+                    SoPhaoHienTai = dto.SoPhaoHienTai,
+                    DuongKinhPhao = dto.DuongKinhPhao,
+                    ChieuCaoToanBo = dto.ChieuCaoToanBo,
+                    HinhDang = dto.HinhDang,
+                    VatLieu = dto.VatLieu,
+                    MauSac = dto.MauSac,
+                    ThoiGianSuDung = dto.ThoiGianSuDung,
+                    ThoiDiemThayTha = dto.ThoiDiemThayTha,
+                    ThoiDiemSuaChuaGanNhat = dto.ThoiDiemSuaChuaGanNhat,
+                    XichPhao_DuongKinh = dto.XichPhao_DuongKinh,
+                    XichPhao_ChieuDai = dto.XichPhao_ChieuDai,
+                    XichPhao_ThoiDiemSuDung = dto.XichPhao_ThoiDiemSuDung,
+                    XichRua_DuongKinh = dto.XichRua_DuongKinh,
+                    XichRua_ChieuDai = dto.XichRua_ChieuDai,
+                    XichRua_ThoiDiemSuDung = dto.XichRua_ThoiDiemSuDung,
+                    Rua_TrongLuong = dto.Rua_TrongLuong,
+                    Rua_ThoiDiemSuDung = dto.Rua_ThoiDiemSuDung,
+                    TramQuanLyId = dto.TramQuanLyId,
+                    TinhThanhPhoId = dto.TinhThanhPhoId,
+                    DonViQuanLyId = dto.DonViQuanLyId,
+                    DonViVanHanhId = dto.DonViVanHanhId,
+                    SoQuyetDinhTang = dto.SoQuyetDinhTang,
+                    NgayQuyetDinhTang = dto.NgayQuyetDinhTang,
+                    DienTich = dto.DienTich,
+                    Den_ChungLoai = dto.Den_ChungLoai,
+                    Den_KetNoiAIS = dto.Den_KetNoiAIS,
+                    Den_DacTinhAnhSang = dto.Den_DacTinhAnhSang,
+                    Den_ChieuXaTamSang = dto.Den_ChieuXaTamSang,
+                    Den_ChieuCaoTamSangHaiDo = dto.Den_ChieuCaoTamSangHaiDo,
+                    Den_NguonCapNangLuong = dto.Den_NguonCapNangLuong,
+                    Den_ThoiDiemSuDung = dto.Den_ThoiDiemSuDung,
+                    Den_ThoiDiemSuaChua = dto.Den_ThoiDiemSuaChua,
+                    Den_SoQuyetDinhTang = dto.Den_SoQuyetDinhTang,
+                    // Trạng thái ban đầu: Thu hồi (chưa được điều phối ra luồng)
+                    TrangThaiHienTai = TrangThaiHoatDongPhao.ThuHoi,
+                    ViTriPhaoBHHienTaiId = null,
+                    // Audit
+                    NgayTao = DateTime.Now,
+                    NguoiTao = dto.NguoiCapNhat
+                };
+
+                await _phaoRepo.AddPhaoAsync(phao);
+                return (true, null);
+            }
+            catch (Exception ex)
+            {
+                return (false, "Lỗi thêm phao: " + ex.Message);
+            }
+        }
+
         public async Task<List<DieuPhoiPhaoRowDto>> GetDanhSachDieuPhoiAsync(string? search, int? tuyenLuongId, DateTime? thoiDiem = null)
         {
             var allPhao = await _phaoRepo.GetAllWithCurrentStatusAsync();
@@ -304,6 +379,7 @@ namespace LANHossting.Application.Services.Buoy
                 {
                     Id = p.Id,
                     MaPhaoDayDu = p.MaPhaoDayDu,
+                    KyHieuTaiSan = p.KyHieuTaiSan,
                     TenPhao = p.TenPhao,
                 };
 

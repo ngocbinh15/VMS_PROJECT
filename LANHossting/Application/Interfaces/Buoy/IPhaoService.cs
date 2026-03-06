@@ -54,5 +54,11 @@ namespace LANHossting.Application.Interfaces.Buoy
         /// Thực hiện điều phối phao (cập nhật trạng thái + ghi lịch sử)
         /// </summary>
         Task<(bool Success, string? Error, int Count)> DieuPhoiPhaoAsync(DieuPhoiRequestDto request);
+
+        /// <summary>
+        /// Thêm phao mới vào hệ thống. Kiểm tra trùng mã và tên phao.
+        /// Trạng thái ban đầu = Thu hồi.
+        /// </summary>
+        Task<(bool Success, string? Error)> ThemPhaoAsync(PhaoEditDto dto);
     }
 }

@@ -205,5 +205,35 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
                     .First())
                 .ToList();
         }
+
+        /// <inheritdoc />
+        public async Task AddPhaoAsync(Phao phao)
+        {
+            _context.Set<Phao>().Add(phao);
+            await _context.SaveChangesAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> ExistsByMaPhaoAsync(string maPhaoDayDu)
+        {
+            return await _context.Set<Phao>()
+                .AnyAsync(p => p.MaPhaoDayDu == maPhaoDayDu);
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> ExistsByTenPhaoAsync(string tenPhao)
+        {
+            return await _context.Set<Phao>()
+                .AnyAsync(p => p.TenPhao == tenPhao);
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> ExistsByKyHieuTaiSanAsync(string kyHieu, int? excludeId = null)
+        {
+            var query = _context.Set<Phao>().Where(p => p.KyHieuTaiSan == kyHieu);
+            if (excludeId.HasValue)
+                query = query.Where(p => p.Id != excludeId.Value);
+            return await query.AnyAsync();
+        }
     }
 }

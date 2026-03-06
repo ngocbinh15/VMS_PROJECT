@@ -27,6 +27,55 @@ function splitCoords(toaDo) {
     return { viDo: parts[0] || '--', kinhDo: parts[1] || '--' };
 }
 
+// ── Field error helpers ──
+function showFieldError(inputId, errorId, message) {
+    var input = document.getElementById(inputId);
+    var errDiv = document.getElementById(errorId);
+    if (input) input.classList.add('is-invalid');
+    if (errDiv) { errDiv.textContent = message; errDiv.style.display = 'block'; }
+}
+function clearFieldErrors() {
+    ['edKyHieu', 'edMaPhao', 'edTenPhao'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.remove('is-invalid');
+    });
+    ['edKyHieuError', 'edMaPhaoError', 'edTenPhaoError'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) { el.textContent = ''; el.style.display = 'none'; }
+    });
+    hideFormAlert();
+}
+function showFormAlert(msg, type) {
+    var el = document.getElementById('editFormAlert');
+    if (!el) return;
+    var cls = type === 'success' ? 'alert-success' : 'alert-danger';
+    var icon = type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill';
+    el.className = 'w-100 mb-2 alert ' + cls + ' small py-2 px-3 d-flex align-items-center';
+    el.innerHTML = '<i class="bi ' + icon + ' me-2"></i>' + msg;
+    el.style.display = 'flex';
+}
+function hideFormAlert() {
+    var el = document.getElementById('editFormAlert');
+    if (el) el.style.display = 'none';
+}
+
+// Auto-clear error on typing
+document.addEventListener('DOMContentLoaded', function () {
+    ['edKyHieu', 'edMaPhao', 'edTenPhao'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('input', function () {
+            var errId = id + (id === 'edKyHieu' ? 'Error' : (id === 'edMaPhao' ? 'Error' : 'Error'));
+            // Map: edKyHieu→edKyHieuError, edMaPhao→edMaPhaoError, edTenPhao→edTenPhaoError
+            var map = { edKyHieu: 'edKyHieuError', edMaPhao: 'edMaPhaoError', edTenPhao: 'edTenPhaoError' };
+            var inp = document.getElementById(id);
+            if (inp) inp.classList.remove('is-invalid');
+            var err = document.getElementById(map[id]);
+            if (err) { err.textContent = ''; err.style.display = 'none'; }
+            hideFormAlert();
+        });
+    });
+});
+
 // Dropdown cache
 var _dropdownCache = null;
 function loadDropdownData() {
@@ -45,19 +94,6 @@ function populateSelect(selectId, items, selectedVal) {
         sel.appendChild(opt);
     });
     if (selectedVal != null) sel.value = selectedVal;
-}
-
-function showToast(message, type) {
-    type = type || 'success';
-    var container = document.getElementById('toastContainer');
-    var icon = type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill';
-    var bg = type === 'success' ? 'bg-success' : 'bg-danger';
-    var html = '<div class="toast align-items-center text-white ' + bg + ' border-0 show" role="alert">' +
-        '<div class="d-flex"><div class="toast-body"><i class="bi ' + icon + ' me-2"></i>' + message + '</div>' +
-        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>';
-    container.insertAdjacentHTML('beforeend', html);
-    var toast = container.lastElementChild;
-    setTimeout(function() { toast.remove(); }, 4000);
 }
 
 // ══════════════════════════════════════════════
@@ -80,7 +116,6 @@ function reloadTable() {
         })
         .catch(function(err) {
             console.error('Filter error:', err);
-            showToast('Lỗi tải dữ liệu', 'error');
         });
 }
 
@@ -222,6 +257,9 @@ function viewPhaoDetail(id) {
 // Trạng thái vận hành (trạng thái, tuyến, vị trí) được quản lý qua Điều Phối.
 // Modal này chỉ cho chỉnh sửa thông tin kỹ thuật / định danh.
 
+// ── Track modal mode: 'edit' or 'create' ──
+var _modalMode = 'edit';
+
 // ── Tab height sync ──
 function syncTabHeight() {
     var general = document.getElementById('editTabGeneral');
@@ -235,10 +273,18 @@ function syncTabHeight() {
 }
 
 function openEditModal(id) {
+    _modalMode = 'edit';
+    clearFieldErrors();
     var modal = new bootstrap.Modal(document.getElementById('phaoEditModal'));
     document.getElementById('editLoading').classList.remove('d-none');
     document.getElementById('editContent').classList.add('d-none');
     document.getElementById('btnSaveEdit').disabled = false;
+    document.getElementById('editModalTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Chỉnh Sửa Phao';
+    document.getElementById('btnSaveEdit').innerHTML = '<i class="bi bi-check-lg me-1"></i>Lưu thay đổi';
+
+    // Show VẬN HÀNH section in edit mode
+    var vanHanhSection = document.getElementById('editVanHanhSection');
+    if (vanHanhSection) vanHanhSection.style.display = '';
 
     // Reset to first tab
     var firstTab = document.querySelector('#phaoEditModal .nav-link');
@@ -320,10 +366,99 @@ function openEditModal(id) {
     });
 }
 
-function saveEdit() {
+// ══════════════════════════════════════════════
+// CREATE MODAL (reuses edit modal with blank fields)
+// ══════════════════════════════════════════════
+function openCreateModal() {
+    _modalMode = 'create';
+    clearFieldErrors();
+    var modal = new bootstrap.Modal(document.getElementById('phaoEditModal'));
+    document.getElementById('editLoading').classList.remove('d-none');
+    document.getElementById('editContent').classList.add('d-none');
+    document.getElementById('btnSaveEdit').disabled = false;
+    document.getElementById('editModalTitle').innerHTML = '<i class="bi bi-plus-circle me-2"></i>Thêm Phao Mới';
+    document.getElementById('btnSaveEdit').innerHTML = '<i class="bi bi-plus-lg me-1"></i>Thêm phao';
+
+    // Reset to first tab
+    var firstTab = document.querySelector('#phaoEditModal .nav-link');
+    if (firstTab) bootstrap.Tab.getOrCreateInstance(firstTab).show();
+
+    modal.show();
+
+    // Load dropdown data then clear all fields
+    loadDropdownData()
+    .then(function(dd) {
+        document.getElementById('editLoading').classList.add('d-none');
+        document.getElementById('editContent').classList.remove('d-none');
+
+        // Clear all inputs
+        document.getElementById('editId').value = '0';
+        document.getElementById('edKyHieu').value = '';
+        document.getElementById('edMaPhao').value = '';
+        document.getElementById('edTenPhao').value = '';
+        document.getElementById('edSoPhao').value = '';
+        document.getElementById('edDuongKinh').value = '';
+        document.getElementById('edChieuCao').value = '';
+        document.getElementById('edHinhDang').value = '';
+        document.getElementById('edVatLieu').value = '';
+        document.getElementById('edMauSac').value = '';
+        document.getElementById('edThoiGianSD').value = '';
+        document.getElementById('edDienTich').value = '';
+        fpDate['edThoiDiemThayTha'].clear();
+        fpDate['edSuaChuaGanNhat'].clear();
+
+        // Hide VẬN HÀNH section in create mode (status is always Thu hồi)
+        var vanHanhSection = document.getElementById('editVanHanhSection');
+        if (vanHanhSection) vanHanhSection.style.display = 'none';
+
+        // Populate dropdowns (no preselected values)
+        populateSelect('edTramQL', dd.tramQuanLy, null);
+        populateSelect('edTinhTP', dd.tinhThanhPho, null);
+        populateSelect('edDVQL', dd.donVi, null);
+        populateSelect('edDVVH', dd.donVi, null);
+
+        // Xích / Rùa
+        document.getElementById('edXichPhao_DK').value = '';
+        document.getElementById('edXichPhao_CD').value = '';
+        fpDate['edXichPhao_SD'].clear();
+        document.getElementById('edXichRua_DK').value = '';
+        document.getElementById('edXichRua_CD').value = '';
+        fpDate['edXichRua_SD'].clear();
+        document.getElementById('edRua_TL').value = '';
+        fpDate['edRua_SD'].clear();
+
+        // Đèn
+        document.getElementById('edDen_CL').value = '';
+        document.getElementById('edDen_AIS').value = '';
+        document.getElementById('edDen_AS').value = '';
+        document.getElementById('edDen_CX').value = '';
+        document.getElementById('edDen_NL').value = '';
+        fpDate['edDen_SD'].clear();
+        fpDate['edDen_SC'].clear();
+        document.getElementById('edDen_CCTSHD').value = '';
+        document.getElementById('edDen_SQDT').value = '';
+
+        // Quản lý
+        document.getElementById('edSoQDTang').value = '';
+        fpDate['edNgayQDTang'].clear();
+
+        syncTabHeight();
+    })
+    .catch(function(err) {
+        document.getElementById('editLoading').innerHTML =
+            '<div class="text-danger"><i class="bi bi-exclamation-circle fs-1"></i><div class="mt-2">Không thể tải dữ liệu</div></div>';
+    });
+}
+
+// ══════════════════════════════════════════════
+// SAVE (create or edit based on _modalMode)
+// ══════════════════════════════════════════════
+function savePhao() {
+    clearFieldErrors();
+
     var maPhao = getVal('edMaPhao').trim();
     if (!maPhao) {
-        showToast('Mã phao đầy đủ là bắt buộc', 'error');
+        showFieldError('edMaPhao', 'edMaPhaoError', 'Mã phao đầy đủ là bắt buộc.');
         return;
     }
 
@@ -376,7 +511,14 @@ function saveEdit() {
         ngayQuyetDinhTang: getVal('edNgayQDTang') || null
     };
 
-    fetch(URLS.capNhat, {
+    var isCreate = (_modalMode === 'create');
+    var url = isCreate ? URLS.themMoi : URLS.capNhat;
+    var successMsg = isCreate ? 'Thêm phao mới thành công!' : 'Cập nhật phao thành công!';
+    var btnLabel = isCreate
+        ? '<i class="bi bi-plus-lg me-1"></i>Thêm phao'
+        : '<i class="bi bi-check-lg me-1"></i>Lưu thay đổi';
+
+    fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto)
@@ -384,20 +526,29 @@ function saveEdit() {
     .then(function(r) { return r.json(); })
     .then(function(data) {
         btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Lưu thay đổi';
+        btn.innerHTML = btnLabel;
 
         if (data.success) {
             bootstrap.Modal.getInstance(document.getElementById('phaoEditModal')).hide();
-            showToast('Cập nhật phao thành công!');
             reloadTable();
         } else {
-            showToast(data.error || 'Lỗi cập nhật', 'error');
+            var errMsg = data.error || 'Có lỗi xảy ra';
+            // Highlight the specific field that caused the error
+            if (errMsg.indexOf('Ký hiệu tài sản') !== -1) {
+                showFieldError('edKyHieu', 'edKyHieuError', errMsg);
+            } else if (errMsg.indexOf('Tên phao') !== -1) {
+                showFieldError('edTenPhao', 'edTenPhaoError', errMsg);
+            } else if (errMsg.indexOf('Mã phao') !== -1) {
+                showFieldError('edMaPhao', 'edMaPhaoError', errMsg);
+            } else {
+                showFormAlert(errMsg, 'error');
+            }
         }
     })
     .catch(function(err) {
         btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Lưu thay đổi';
-        showToast('Lỗi kết nối server', 'error');
+        btn.innerHTML = btnLabel;
+        showFormAlert('Lỗi kết nối server. Vui lòng thử lại.', 'error');
     });
 }
 
@@ -412,21 +563,27 @@ function confirmDelete(id, name) {
 
 function executeDelete() {
     var id = document.getElementById('deletePhaoId').value;
+    var errEl = document.getElementById('deleteErrorAlert');
+    if (errEl) errEl.style.display = 'none';
 
     fetch(URLS.xoa + '/' + id, { method: 'POST' })
         .then(function(r) { return r.json(); })
         .then(function(data) {
-            bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
             if (data.success) {
-                showToast('Đã xóa phao thành công!');
+                bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
                 reloadTable();
             } else {
-                showToast(data.error || 'Lỗi xóa phao', 'error');
+                if (errEl) {
+                    errEl.textContent = data.error || 'Lỗi xóa phao';
+                    errEl.style.display = 'block';
+                }
             }
         })
         .catch(function(err) {
-            bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
-            showToast('Lỗi kết nối server', 'error');
+            if (errEl) {
+                errEl.textContent = 'Lỗi kết nối server';
+                errEl.style.display = 'block';
+            }
         });
 }
 

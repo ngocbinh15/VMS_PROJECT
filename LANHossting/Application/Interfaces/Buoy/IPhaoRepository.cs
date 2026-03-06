@@ -85,6 +85,26 @@ namespace LANHossting.Application.Interfaces.Buoy
         Task<string?> CheckViTriTrungAsync(int viTriId, int excludePhaoId);
 
         /// <summary>
+        /// Thêm phao mới vào DB
+        /// </summary>
+        Task AddPhaoAsync(Phao phao);
+
+        /// <summary>
+        /// Kiểm tra mã phao đã tồn tại chưa
+        /// </summary>
+        Task<bool> ExistsByMaPhaoAsync(string maPhaoDayDu);
+
+        /// <summary>
+        /// Kiểm tra tên phao đã tồn tại chưa
+        /// </summary>
+        Task<bool> ExistsByTenPhaoAsync(string tenPhao);
+
+        /// <summary>
+        /// Kiểm tra ký hiệu tài sản đã tồn tại chưa (trừ phao có Id = excludeId nếu có)
+        /// </summary>
+        Task<bool> ExistsByKyHieuTaiSanAsync(string kyHieu, int? excludeId = null);
+
+        /// <summary>
         /// Lấy bản ghi lịch sử gần nhất (NgayBatDau &lt;= thoiDiem) cho mỗi phao.
         /// Kèm navigation ViTriPhaoBH → TuyenLuong.
         /// Dùng để hiển thị trạng thái phao tại một thời điểm quá khứ.

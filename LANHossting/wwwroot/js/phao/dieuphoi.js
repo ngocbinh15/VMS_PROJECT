@@ -285,21 +285,52 @@
     /* ═══════════════════════════════════════════════════════
      * 6. Filter / search
      * ═══════════════════════════════════════════════════════ */
+    var _searchTimer = null;
+
     function wireFilterEvents() {
         var selTuyen = document.getElementById('dpTuyenLuongFilter');
         var inputSearch = document.getElementById('dpSearchInput');
-        var btnRefresh = document.getElementById('dpRefreshBtn');
 
-        // Tuyến / Search: giữ lại thoiGian đang chọn
+        // Tuyến: reload trang (giữ thoiGian)
         if (selTuyen) selTuyen.addEventListener('change', function () { reloadWithParams(true); });
+
+        // Search: client-side filter với debounce 300ms
         if (inputSearch) {
-            inputSearch.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter') { e.preventDefault(); reloadWithParams(true); }
+            inputSearch.addEventListener('input', function () {
+                if (_searchTimer) clearTimeout(_searchTimer);
+                _searchTimer = setTimeout(function () {
+                    filterTableLocal(inputSearch.value.trim());
+                }, 300);
             });
         }
+    }
 
-        // Làm mới: reset toàn bộ (không giữ thoiGian → quay về trạng thái hiện tại)
-        if (btnRefresh) btnRefresh.addEventListener('click', function () { reloadWithParams(false); });
+    /**
+     * Lọc bảng phao phía client — ẩn/hiện các hàng dựa trên mã phao / tên phao.
+     */
+    function filterTableLocal(term) {
+        var rows = document.querySelectorAll('#dpTableBody .dp-row');
+        var lowerTerm = term.toLowerCase();
+        var visibleCount = 0;
+
+        rows.forEach(function (row) {
+            if (!term) {
+                row.style.display = '';
+                visibleCount++;
+                return;
+            }
+            var searchText = (row.getAttribute('data-search') || '').toLowerCase();
+            if (searchText.indexOf(lowerTerm) !== -1) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Cập nhật số lượng hiển thị
+        var countEl = document.getElementById('dpCountInfo');
+        if (countEl) countEl.innerHTML = '<strong>' + visibleCount + '</strong> phao';
     }
 
     /**
@@ -309,9 +340,7 @@
     function reloadWithParams(includeThoiGian) {
         var params = new URLSearchParams();
         var selTuyen = document.getElementById('dpTuyenLuongFilter');
-        var inputSearch = document.getElementById('dpSearchInput');
         if (selTuyen && selTuyen.value) params.set('tuyenLuongId', selTuyen.value);
-        if (inputSearch && inputSearch.value.trim()) params.set('search', inputSearch.value.trim());
         if (includeThoiGian) {
             var tg = getSelectedDate();
             if (tg) params.set('thoiGian', tg);
