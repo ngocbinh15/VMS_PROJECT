@@ -44,9 +44,11 @@ namespace LANHossting.Application.Interfaces.Buoy
         Task<VongDoiResponseDto> GetVongDoiPhaoAsync(int? tuyenLuongId);
 
         /// <summary>
-        /// Lấy danh sách phao cho bảng điều phối
+        /// Lấy danh sách phao cho bảng điều phối.
+        /// Nếu thoiDiem != null → hiển thị trạng thái phao TẠI thời điểm đó (event-based).
+        /// Nếu thoiDiem == null → hiển thị trạng thái hiện tại (mặc định).
         /// </summary>
-        Task<List<DieuPhoiPhaoRowDto>> GetDanhSachDieuPhoiAsync(string? search, int? tuyenLuongId);
+        Task<List<DieuPhoiPhaoRowDto>> GetDanhSachDieuPhoiAsync(string? search, int? tuyenLuongId, DateTime? thoiDiem = null);
 
         /// <summary>
         /// Thực hiện điều phối phao (cập nhật trạng thái + ghi lịch sử)

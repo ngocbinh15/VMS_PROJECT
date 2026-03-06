@@ -7,6 +7,8 @@
     var dsTuyenLuong = ViewBag.DanhSachTuyenLuong as dynamic ?? new List<dynamic>();
     var searchTerm = ViewBag.SearchTerm as string ?? "";
     var selectedTuyenId = ViewBag.SelectedTuyenLuongId as int?;
+    var thoiGian = ViewBag.ThoiGian as string ?? "";
+    var isHistorical = !string.IsNullOrEmpty(thoiGian);
 }
 
 @section Styles {
@@ -178,6 +180,19 @@
     }
     .dp-vitri-warn i { margin-right: 2px; }
     .dp-select.dp-warn-border { border-color: #f59e0b !important; }
+
+    /* ── Historical Mode Banner ── */
+    .dp-history-banner {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 8px 24px; background: #eff6ff; border-bottom: 1px solid #bfdbfe;
+        font-size: .82rem; color: #1e40af; gap: 12px;
+    }
+    .dp-history-banner i { font-size: 1rem; }
+    .dp-history-banner a {
+        color: #1d4ed8; text-decoration: underline; font-weight: 600;
+        white-space: nowrap;
+    }
+    .dp-history-banner a:hover { color: #1e3a8a; }
 </style>
 }
 
@@ -193,14 +208,40 @@
         </div>
     </div>
 
+    @if (isHistorical)
+    {
+        <!-- Historical mode banner -->
+        <div class="dp-history-banner" id="dpHistoryBanner">
+            <div>
+                <i class="bi bi-clock-history me-1"></i>
+                <strong>Chế độ xem lịch sử:</strong>
+                Trạng thái phao đang hiển thị tại thời điểm
+                <strong>@(DateTime.TryParse(thoiGian, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var _parsedBanner) ? _parsedBanner.ToString("dd/MM/yyyy") : thoiGian)</strong>
+            </div>
+            <a href="@Url.Action("DieuPhoi", "Phao")" title="Quay về trạng thái hiện tại">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Xem hiện tại
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- Current mode banner -->
+        <div class="dp-history-banner" id="dpHistoryBanner" style="background:#f0fdf4;border-color:#bbf7d0;color:#166534;">
+            <div>
+                <i class="bi bi-check-circle me-1"></i>
+                <strong>Chế độ xem hiện tại</strong> — Trạng thái phao đang hiển thị là trạng thái mới nhất.
+            </div>
+        </div>
+    }
+
     <!-- Toolbar -->
     <div class="dp-toolbar">
         <div class="d-flex align-items-end gap-3 flex-wrap">
             <!-- Thời gian thực hiện sự kiện — nếu không chọn → mặc định DateTime.Now -->
             <div class="dp-date-group">
                 <div class="dp-label">THỜI GIAN THỰC HIỆN <span class="dp-date-required">*</span></div>
-                <input type="text" id="dpNgayThucHien" class="dp-input" placeholder="Chọn ngày giờ…"
-                       style="width:210px; cursor:pointer;" readonly />
+                <input type="text" id="dpNgayThucHien" class="dp-input" placeholder="Chọn ngày…"
+                       style="width:180px; cursor:pointer;" readonly />
             </div>
             <div>
                 <div class="dp-label">LỌC THEO TUYẾN</div>
@@ -378,8 +419,9 @@
             viTriInfo:        '@Url.Action("GetViTriInfo", "Phao")',
             submit:           '@Url.Action("DieuPhoi", "Phao")',
             checkViTriTrung:  '@Url.Action("CheckViTriTrung", "Phao")'
-        }
+        },
+        selectedThoiGian: '@Html.Raw(thoiGian)'
     };
 </script>
-<script src="~/js/phao/dieuphoi.js?v=3.0"></script>
+<script src="~/js/phao/dieuphoi.js?v=4.0"></script>
 }

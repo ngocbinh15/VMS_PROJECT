@@ -274,15 +274,12 @@ namespace LANHossting.Application.Services.Buoy
             }
         }
 
-        public async Task<List<DieuPhoiPhaoRowDto>> GetDanhSachDieuPhoiAsync(string? search, int? tuyenLuongId)
+        public async Task<List<DieuPhoiPhaoRowDto>> GetDanhSachDieuPhoiAsync(string? search, int? tuyenLuongId, DateTime? thoiDiem = null)
         {
             var allPhao = await _phaoRepo.GetAllWithCurrentStatusAsync();
-
             var query = allPhao.AsEnumerable();
 
-            if (tuyenLuongId.HasValue)
-                query = query.Where(p => p.ViTriPhaoBHHienTai?.TuyenLuongId == tuyenLuongId.Value);
-
+            // ── Lọc theo từ khóa tìm kiếm (trên dữ liệu master — luôn đúng) ──
             if (!string.IsNullOrWhiteSpace(search))
             {
                 var s = search.Trim().ToLower();
@@ -292,17 +289,63 @@ namespace LANHossting.Application.Services.Buoy
                     (p.KyHieuTaiSan?.ToLower().Contains(s) ?? false));
             }
 
-            return query.Select(p => new DieuPhoiPhaoRowDto
+            // ── Nếu có thời điểm → lấy trạng thái lịch sử (event-based) ──
+            Dictionary<int, LichSuHoatDongPhao>? lichSuMap = null;
+            if (thoiDiem.HasValue)
             {
-                Id = p.Id,
-                MaPhaoDayDu = p.MaPhaoDayDu,
-                TenPhao = p.TenPhao,
-                TrangThaiHienTai = MapToTrangThaiHoatDong(p.TrangThaiHienTai),
-                ViTriHienTai = p.ViTriPhaoBHHienTai?.MaPhaoBH,
-                TuyenLuong = p.ViTriPhaoBHHienTai?.TuyenLuong?.TenTuyen,
-                TuyenLuongId = p.ViTriPhaoBHHienTai?.TuyenLuongId,
-                ViTriPhaoBHHienTaiId = p.ViTriPhaoBHHienTaiId
+                var lichSuList = await _phaoRepo.GetLatestStatusBeforeTimeAsync(thoiDiem.Value);
+                lichSuMap = lichSuList.ToDictionary(ls => ls.PhaoId);
+            }
+
+            // ── Map sang DTO ──
+            var dtos = query.Select(p =>
+            {
+                var dto = new DieuPhoiPhaoRowDto
+                {
+                    Id = p.Id,
+                    MaPhaoDayDu = p.MaPhaoDayDu,
+                    TenPhao = p.TenPhao,
+                };
+
+                if (lichSuMap != null)
+                {
+                    // Chế độ lịch sử: lấy trạng thái tại thời điểm T
+                    if (lichSuMap.TryGetValue(p.Id, out var ls))
+                    {
+                        dto.TrangThaiHienTai = MapToTrangThaiHoatDong(ls.LoaiTrangThai);
+                        dto.ViTriHienTai = ls.MaPhaoBH;
+                        dto.TuyenLuong = ls.ViTriPhaoBH?.TuyenLuong?.TenTuyen ?? ls.MaTuyenLuong;
+                        dto.TuyenLuongId = ls.ViTriPhaoBH?.TuyenLuongId;
+                        dto.ViTriPhaoBHHienTaiId = ls.ViTriPhaoBHId;
+                    }
+                    else
+                    {
+                        // Không có sự kiện nào trước thời điểm T → trạng thái mặc định
+                        dto.TrangThaiHienTai = MapToTrangThaiHoatDong(null);
+                        dto.ViTriHienTai = null;
+                        dto.TuyenLuong = null;
+                        dto.TuyenLuongId = null;
+                        dto.ViTriPhaoBHHienTaiId = null;
+                    }
+                }
+                else
+                {
+                    // Không chọn thời gian → trạng thái hiện tại (mặc định)
+                    dto.TrangThaiHienTai = MapToTrangThaiHoatDong(p.TrangThaiHienTai);
+                    dto.ViTriHienTai = p.ViTriPhaoBHHienTai?.MaPhaoBH;
+                    dto.TuyenLuong = p.ViTriPhaoBHHienTai?.TuyenLuong?.TenTuyen;
+                    dto.TuyenLuongId = p.ViTriPhaoBHHienTai?.TuyenLuongId;
+                    dto.ViTriPhaoBHHienTaiId = p.ViTriPhaoBHHienTaiId;
+                }
+
+                return dto;
             }).ToList();
+
+            // ── Lọc theo tuyến luồng (dựa trên trạng thái đã xác định — lịch sử hoặc hiện tại) ──
+            if (tuyenLuongId.HasValue)
+                dtos = dtos.Where(d => d.TuyenLuongId == tuyenLuongId.Value).ToList();
+
+            return dtos;
         }
 
         public async Task<(bool Success, string? Error, int Count)> DieuPhoiPhaoAsync(DieuPhoiRequestDto request)

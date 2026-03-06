@@ -1,14 +1,15 @@
 /**
- * dieuphoi.js — Dispatch (Điều Phối) logic for Phao module v3.0
+ * dieuphoi.js — Dispatch (Điều Phối) logic for Phao module v3.1
  *
  * Requires DP_CONFIG defined inline (Razor) before this file:
  *   DP_CONFIG.urls.viTriByTuyen     — GET  /Phao/GetViTriByTuyenLuong?tuyenLuongId={id}
  *   DP_CONFIG.urls.viTriInfo        — GET  /Phao/GetViTriInfo/{id}
  *   DP_CONFIG.urls.submit           — POST /Phao/DieuPhoi
  *   DP_CONFIG.urls.checkViTriTrung  — GET  /Phao/CheckViTriTrung?viTriId={id}&excludePhaoId={id}
+ *   DP_CONFIG.selectedThoiGian      — 'YYYY-MM-DD HH:mm' or '' (pre-selected time from URL)
  *
  * Features:
- *  1. Flatpickr date-time picker for NgàyThựcHiện
+ *  1. Flatpickr date-time picker for NgàyThựcHiện (+ historical view reload)
  *  2. Loại trạng thái → conditional fields
  *  3. Cascading: Tuyến luồng → Vị trí phao BH via AJAX
  *  4. Duplicate position check on vị trí selection (AJAX)
@@ -16,6 +17,7 @@
  *  6. Full validation before POST
  *  7. Custom confirm modal (no native alert/confirm)
  *  8. Toast notifications (success / error / warning)
+ *  9. Time-based status: page reloads to show historical status
  */
 (function () {
     'use strict';
@@ -27,6 +29,9 @@
 
     /* ── modal promise resolver ── */
     var _modalResolve = null;
+
+    /* ── Pre-selected time from URL (for historical view) ── */
+    var _initialThoiGian = (typeof DP_CONFIG !== 'undefined' && DP_CONFIG.selectedThoiGian) || '';
 
     /* ── Init ── */
     document.addEventListener('DOMContentLoaded', function () {
@@ -55,24 +60,30 @@
         }
 
         fpInstance = flatpickr(el, {
-            dateFormat: 'Y-m-d H:i',
+            dateFormat: 'Y-m-d',
             altInput: true,
-            altFormat: 'd/m/Y H:i',
-            enableTime: true,
-            time_24hr: true,
+            altFormat: 'd/m/Y',
+            enableTime: false,
             allowInput: false,
             maxDate: 'today',
             locale: { firstDayOfWeek: 1 },
+            defaultDate: _initialThoiGian || null,
             onChange: function () {
                 el.classList.remove('is-invalid');
                 var altInput = el.nextElementSibling;
                 if (altInput) altInput.classList.remove('is-invalid');
+            },
+            onClose: function (selectedDates, dateStr) {
+                // Khi người dùng đóng picker với giá trị khác lần trước → reload để hiển thị trạng thái lịch sử
+                if (dateStr !== _initialThoiGian) {
+                    reloadWithParams(true);
+                }
             }
         });
 
         if (fpInstance && fpInstance.altInput) {
             fpInstance.altInput.style.cursor = 'pointer';
-            fpInstance.altInput.placeholder = 'Chọn ngày giờ…';
+            fpInstance.altInput.placeholder = 'Chọn ngày…';
         }
     }
 
@@ -82,11 +93,11 @@
     }
 
     function getDateTimeForSubmit() {
-        var raw = getSelectedDate();
+        var raw = getSelectedDate(); // 'YYYY-MM-DD' or ''
         if (raw) {
-            return raw.replace(' ', 'T') + ':00';
+            return raw; // Chỉ gửi yyyy-MM-dd, không thêm T00:00:00
         }
-        return new Date().toISOString();
+        return null; // Server sẽ dùng DateTime.Now
     }
 
     /* ═══════════════════════════════════════════════════════
@@ -279,21 +290,34 @@
         var inputSearch = document.getElementById('dpSearchInput');
         var btnRefresh = document.getElementById('dpRefreshBtn');
 
-        function applyFilter() {
-            var params = new URLSearchParams();
-            if (selTuyen && selTuyen.value) params.set('tuyenLuongId', selTuyen.value);
-            if (inputSearch && inputSearch.value.trim()) params.set('search', inputSearch.value.trim());
-            var qs = params.toString();
-            window.location.href = '/Phao/DieuPhoi' + (qs ? '?' + qs : '');
-        }
-
-        if (selTuyen) selTuyen.addEventListener('change', applyFilter);
-        if (btnRefresh) btnRefresh.addEventListener('click', applyFilter);
+        // Tuyến / Search: giữ lại thoiGian đang chọn
+        if (selTuyen) selTuyen.addEventListener('change', function () { reloadWithParams(true); });
         if (inputSearch) {
             inputSearch.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter') { e.preventDefault(); applyFilter(); }
+                if (e.key === 'Enter') { e.preventDefault(); reloadWithParams(true); }
             });
         }
+
+        // Làm mới: reset toàn bộ (không giữ thoiGian → quay về trạng thái hiện tại)
+        if (btnRefresh) btnRefresh.addEventListener('click', function () { reloadWithParams(false); });
+    }
+
+    /**
+     * Reload trang với các query params hiện tại.
+     * @param {boolean} includeThoiGian - Nếu true, giữ thoiGian đang chọn; nếu false, reset về hiện tại.
+     */
+    function reloadWithParams(includeThoiGian) {
+        var params = new URLSearchParams();
+        var selTuyen = document.getElementById('dpTuyenLuongFilter');
+        var inputSearch = document.getElementById('dpSearchInput');
+        if (selTuyen && selTuyen.value) params.set('tuyenLuongId', selTuyen.value);
+        if (inputSearch && inputSearch.value.trim()) params.set('search', inputSearch.value.trim());
+        if (includeThoiGian) {
+            var tg = getSelectedDate();
+            if (tg) params.set('thoiGian', tg);
+        }
+        var qs = params.toString();
+        window.location.href = '/Phao/DieuPhoi' + (qs ? '?' + qs : '');
     }
 
     /* ═══════════════════════════════════════════════════════
@@ -521,11 +545,9 @@
 
     function formatDateTimeVN(val) {
         if (!val) return '';
-        var split = val.split(' ');
-        var datePart = split[0] || '';
-        var timePart = split[1] || '';
-        var parts = datePart.split('-');
-        return parts[2] + '/' + parts[1] + '/' + parts[0] + (timePart ? ' ' + timePart : '');
+        var parts = val.split('-');
+        if (parts.length === 3) return parts[2] + '/' + parts[1] + '/' + parts[0];
+        return val;
     }
 
     function escapeHtml(str) {

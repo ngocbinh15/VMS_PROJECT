@@ -184,5 +184,26 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
                 .Select(p => p.MaPhaoDayDu)
                 .FirstOrDefaultAsync();
         }
+
+        /// <inheritdoc />
+        public async Task<List<LichSuHoatDongPhao>> GetLatestStatusBeforeTimeAsync(DateTime thoiDiem)
+        {
+            // Load tất cả bản ghi lịch sử có NgayBatDau <= thời điểm kèm navigation
+            var allBefore = await _context.Set<LichSuHoatDongPhao>()
+                .Where(ls => ls.NgayBatDau <= thoiDiem)
+                .Include(ls => ls.ViTriPhaoBH)
+                    .ThenInclude(v => v!.TuyenLuong)
+                .AsNoTracking()
+                .ToListAsync();
+
+            // Group in-memory: lấy bản ghi mới nhất (NgayBatDau lớn nhất, Id cao nhất) cho mỗi PhaoId
+            return allBefore
+                .GroupBy(ls => ls.PhaoId)
+                .Select(g => g
+                    .OrderByDescending(ls => ls.NgayBatDau)
+                    .ThenByDescending(ls => ls.Id)
+                    .First())
+                .ToList();
+        }
     }
 }

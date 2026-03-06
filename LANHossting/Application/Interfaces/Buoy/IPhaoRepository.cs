@@ -83,5 +83,12 @@ namespace LANHossting.Application.Interfaces.Buoy
         /// Trả về MaPhaoDayDu của phao trùng, hoặc null nếu không trùng.
         /// </summary>
         Task<string?> CheckViTriTrungAsync(int viTriId, int excludePhaoId);
+
+        /// <summary>
+        /// Lấy bản ghi lịch sử gần nhất (NgayBatDau &lt;= thoiDiem) cho mỗi phao.
+        /// Kèm navigation ViTriPhaoBH → TuyenLuong.
+        /// Dùng để hiển thị trạng thái phao tại một thời điểm quá khứ.
+        /// </summary>
+        Task<List<LichSuHoatDongPhao>> GetLatestStatusBeforeTimeAsync(DateTime thoiDiem);
     }
 }

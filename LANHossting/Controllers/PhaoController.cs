@@ -182,12 +182,23 @@ namespace LANHossting.Controllers
 
         /// <summary>
         /// GET: /Phao/DieuPhoi
+        /// thoiGian=YYYY-MM-DD HH:mm → hiển thị trạng thái phao tại thời điểm đó
         /// </summary>
-        public async Task<IActionResult> DieuPhoi(string? search, int? tuyenLuongId)
+        public async Task<IActionResult> DieuPhoi(string? search, int? tuyenLuongId, string? thoiGian)
         {
             ViewBag.FullName = HttpContext.Session.GetString("HoTen");
 
-            var danhSach = await _phaoService.GetDanhSachDieuPhoiAsync(search, tuyenLuongId);
+            // Parse thời gian — chỉ ngày (YYYY-MM-DD), chuẩn hóa sang cuối ngày
+            // để bao gồm các sự kiện xảy ra trong ngày được chọn.
+            DateTime? thoiDiem = null;
+            if (!string.IsNullOrWhiteSpace(thoiGian))
+            {
+                if (DateTime.TryParse(thoiGian, System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.None, out var parsed))
+                    thoiDiem = parsed.Date.AddHours(23).AddMinutes(59).AddSeconds(59);
+            }
+
+            var danhSach = await _phaoService.GetDanhSachDieuPhoiAsync(search, tuyenLuongId, thoiDiem);
             var tuyenLuong = await _context.DmTuyenLuong
                 .AsNoTracking()
                 .Where(t => t.TrangThai == "Hoạt động")
@@ -199,6 +210,7 @@ namespace LANHossting.Controllers
             ViewBag.DanhSachTuyenLuong = tuyenLuong;
             ViewBag.SearchTerm = search;
             ViewBag.SelectedTuyenLuongId = tuyenLuongId;
+            ViewBag.ThoiGian = thoiGian;  // pass-through cho JS pre-fill flatpickr
             return View();
         }
 
@@ -244,9 +256,17 @@ namespace LANHossting.Controllers
         /// GET: /Phao/DanhSachDieuPhoi — trả JSON danh sách phao cho bảng điều phối (AJAX)
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> DanhSachDieuPhoi(string? search, int? tuyenLuongId)
+        public async Task<IActionResult> DanhSachDieuPhoi(string? search, int? tuyenLuongId, string? thoiGian)
         {
-            var danhSach = await _phaoService.GetDanhSachDieuPhoiAsync(search, tuyenLuongId);
+            DateTime? thoiDiem = null;
+            if (!string.IsNullOrWhiteSpace(thoiGian))
+            {
+                if (DateTime.TryParse(thoiGian, System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.None, out var parsed))
+                    thoiDiem = parsed.Date.AddHours(23).AddMinutes(59).AddSeconds(59);
+            }
+
+            var danhSach = await _phaoService.GetDanhSachDieuPhoiAsync(search, tuyenLuongId, thoiDiem);
             return Json(new { items = danhSach });
         }
 
