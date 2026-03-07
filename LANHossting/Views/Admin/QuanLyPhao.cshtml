@@ -1,0 +1,574 @@
+@{
+    ViewData["Title"] = "Admin Phao";
+    Layout = "_MainLayout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin/dashboard.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/admin/admin-phao.css" asp-append-version="true">
+}
+
+@section NavbarExtra {
+    <a class="nav-link text-secondary fw-semibold small d-none d-md-inline" href="@Url.Action("Dashboard", "Admin")">
+        <i class="bi bi-speedometer2 me-1"></i>Admin Kho
+    </a>
+    <a class="nav-link text-secondary fw-semibold small d-none d-md-inline" href="@Url.Action("Dashboard", "Phao")">
+        <i class="bi bi-droplet-fill me-1"></i>Dashboard Phao
+    </a>
+}
+
+<!-- Toast -->
+<div id="toastContainer" class="toast-container-custom"></div>
+
+<!-- ═══ SIDEBAR ═══ -->
+<aside class="ap-sidebar">
+    <nav class="ap-sidebar-nav">
+        <a class="ap-nav-item active" data-section="secOverview" href="#">
+            <i class="bi bi-grid-1x2"></i><span>Tổng Quan</span>
+        </a>
+        <div class="ap-nav-divider">Danh mục</div>
+        <a class="ap-nav-item" data-section="secTinhThanh" href="#">
+            <i class="bi bi-geo-alt"></i><span>Tỉnh / Thành Phố</span>
+        </a>
+        <a class="ap-nav-item" data-section="secDonVi" href="#">
+            <i class="bi bi-building"></i><span>Đơn Vị</span>
+        </a>
+        <a class="ap-nav-item" data-section="secTram" href="#">
+            <i class="bi bi-broadcast-pin"></i><span>Trạm Quản Lý</span>
+        </a>
+        <a class="ap-nav-item" data-section="secTuyenLuong" href="#">
+            <i class="bi bi-signpost-split"></i><span>Tuyến Luồng</span>
+        </a>
+        <a class="ap-nav-item" data-section="secViTri" href="#">
+            <i class="bi bi-pin-map-fill"></i><span>Vị Trí Phao BH</span>
+        </a>
+        <div class="ap-nav-divider">Liên kết</div>
+        <a class="ap-nav-item" href="@Url.Action("Dashboard", "Admin")">
+            <i class="bi bi-box-seam-fill"></i><span>Quản Trị Kho</span>
+        </a>
+        <!-- <a class="ap-nav-item" href="@Url.Action("Dashboard", "Phao")">
+            <i class="bi bi-droplet-fill"></i><span>Dashboard Phao</span>
+        </a> -->
+    </nav>
+</aside>
+
+<!-- ═══ MAIN ═══ -->
+<main class="ap-main">
+
+    <!-- Content -->
+    <div class="ap-content">
+
+        <!-- ────────── TỔNG QUAN ────────── -->
+        <section id="secOverview" class="ap-section active">
+
+            <!-- Stat cards -->
+            <div class="ap-stats-grid">
+                <div class="ap-stat-card ap-stat-cyan" onclick="switchSection('secTinhThanh')">
+                    <div class="ap-stat-icon"><i class="bi bi-droplet-fill"></i></div>
+                    <div>
+                        <div class="ap-stat-value" id="statPhao">—</div>
+                        <div class="ap-stat-label">Tổng Phao</div>
+                    </div>
+                </div>
+                <div class="ap-stat-card ap-stat-blue" onclick="switchSection('secTuyenLuong')">
+                    <div class="ap-stat-icon"><i class="bi bi-signpost-split-fill"></i></div>
+                    <div>
+                        <div class="ap-stat-value" id="statTuyen">—</div>
+                        <div class="ap-stat-label">Tuyến Luồng</div>
+                    </div>
+                </div>
+                <div class="ap-stat-card ap-stat-green" onclick="switchSection('secViTri')">
+                    <div class="ap-stat-icon"><i class="bi bi-pin-map-fill"></i></div>
+                    <div>
+                        <div class="ap-stat-value" id="statViTri">—</div>
+                        <div class="ap-stat-label">Vị Trí Phao</div>
+                    </div>
+                </div>
+                <div class="ap-stat-card ap-stat-amber" onclick="switchSection('secTram')">
+                    <div class="ap-stat-icon"><i class="bi bi-broadcast-pin"></i></div>
+                    <div>
+                        <div class="ap-stat-value" id="statTram">—</div>
+                        <div class="ap-stat-label">Trạm Quản Lý</div>
+                    </div>
+                </div>
+                <div class="ap-stat-card ap-stat-red" onclick="switchSection('secDonVi')">
+                    <div class="ap-stat-icon"><i class="bi bi-building"></i></div>
+                    <div>
+                        <div class="ap-stat-value" id="statDonVi">—</div>
+                        <div class="ap-stat-label">Đơn Vị</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action cards -->
+<div class="ap-actions-grid">
+
+    <div class="ap-action-card ap-card-kho">
+        <div class="ap-action-icon">
+            <i class="bi bi-box-seam"></i>
+        </div>
+
+        <h5>Quản Lý Kho</h5>
+
+        <p>Quản lý vật liệu, tồn kho, nhập xuất kho</p>
+
+        <a href="/Kho/Dashboard" class="ap-btn-access">
+            Truy cập <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+
+    <div class="ap-action-card ap-card-phao">
+        <div class="ap-action-icon">
+            <i class="bi bi-droplet"></i>
+        </div>
+
+        <h5>Quản Lý Phao</h5>
+
+        <p>Quản lý phao báo hiệu, tuyến luồng, vị trí phao</p>
+
+        <a href="/Phao/Dashboard" class="ap-btn-access">
+            Truy cập <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+
+</div>
+
+        </section>
+
+        <!-- ────────── DM TỈNH / THÀNH PHỐ ────────── -->
+        <section id="secTinhThanh" class="ap-section">
+            <div class="ap-table-header">
+                <h5><i class="bi bi-geo-alt"></i> Tỉnh / Thành Phố</h5>
+                <div class="ap-table-toolbar">
+                    <div class="ap-search-box">
+                        <i class="bi bi-search"></i>
+                        <input type="text" id="searchTinhThanh" placeholder="Tìm kiếm..." oninput="searchTable('tinhThanh', this.value)">
+                    </div>
+                    <button class="ap-btn-add" onclick="openModal('tinhThanh')">
+                        <i class="bi bi-plus-lg"></i> Thêm mới
+                    </button>
+                </div>
+            </div>
+            <div class="ap-table-card">
+                <div class="table-responsive">
+                    <table class="ap-table">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="width:50px">#</th>
+                                <th>Mã Tỉnh</th>
+                                <th>Tên Tỉnh / Thành Phố</th>
+                                <th class="text-center">Thứ Tự</th>
+                                <th>Trạng Thái</th>
+                                <th style="width:110px">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tinhThanhBody">
+                            <tr><td colspan="6"><div class="ap-loading"><div class="ap-spinner"></div><span>Đang tải dữ liệu...</span></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="pgTinhThanh" class="ap-pagination"></div>
+        </section>
+
+        <!-- ────────── DM ĐƠN VỊ ────────── -->
+        <section id="secDonVi" class="ap-section">
+            <div class="ap-table-header">
+                <h5><i class="bi bi-building"></i> Đơn Vị</h5>
+                <div class="ap-table-toolbar">
+                    <div class="ap-search-box">
+                        <i class="bi bi-search"></i>
+                        <input type="text" id="searchDonVi" placeholder="Tìm kiếm..." oninput="searchTable('donVi', this.value)">
+                    </div>
+                    <button class="ap-btn-add" onclick="openModal('donVi')">
+                        <i class="bi bi-plus-lg"></i> Thêm mới
+                    </button>
+                </div>
+            </div>
+            <div class="ap-table-card">
+                <div class="table-responsive">
+                    <table class="ap-table">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="width:50px">#</th>
+                                <th>Mã ĐV</th>
+                                <th>Tên Đơn Vị</th>
+                                <th>Loại</th>
+                                <th>Địa Chỉ</th>
+                                <th>SĐT</th>
+                                <th class="text-center">Thứ Tự</th>
+                                <th>Trạng Thái</th>
+                                <th style="width:110px">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="donViBody">
+                            <tr><td colspan="9"><div class="ap-loading"><div class="ap-spinner"></div><span>Đang tải dữ liệu...</span></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="pgDonVi" class="ap-pagination"></div>
+        </section>
+
+        <!-- ────────── DM TRẠM QUẢN LÝ ────────── -->
+        <section id="secTram" class="ap-section">
+            <div class="ap-table-header">
+                <h5><i class="bi bi-broadcast-pin"></i> Trạm Quản Lý</h5>
+                <div class="ap-table-toolbar">
+                    <div class="ap-search-box">
+                        <i class="bi bi-search"></i>
+                        <input type="text" id="searchTram" placeholder="Tìm kiếm..." oninput="searchTable('tram', this.value)">
+                    </div>
+                    <button class="ap-btn-add" onclick="openModal('tram')">
+                        <i class="bi bi-plus-lg"></i> Thêm mới
+                    </button>
+                </div>
+            </div>
+            <div class="ap-table-card">
+                <div class="table-responsive">
+                    <table class="ap-table">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="width:50px">#</th>
+                                <th>Mã Trạm</th>
+                                <th>Tên Trạm</th>
+                                <th>Đơn Vị Chủ Quản</th>
+                                <th>Địa Điểm</th>
+                                <th>SĐT</th>
+                                <th class="text-center">Thứ Tự</th>
+                                <th>Trạng Thái</th>
+                                <th style="width:110px">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tramBody">
+                            <tr><td colspan="9"><div class="ap-loading"><div class="ap-spinner"></div><span>Đang tải dữ liệu...</span></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="pgTram" class="ap-pagination"></div>
+        </section>
+
+        <!-- ────────── DM TUYẾN LUỒNG ────────── -->
+        <section id="secTuyenLuong" class="ap-section">
+            <div class="ap-table-header">
+                <h5><i class="bi bi-signpost-split"></i> Tuyến Luồng</h5>
+                <div class="ap-table-toolbar">
+                    <div class="ap-search-box">
+                        <i class="bi bi-search"></i>
+                        <input type="text" id="searchTuyen" placeholder="Tìm kiếm..." oninput="searchTable('tuyenLuong', this.value)">
+                    </div>
+                    <button class="ap-btn-add" onclick="openModal('tuyenLuong')">
+                        <i class="bi bi-plus-lg"></i> Thêm mới
+                    </button>
+                </div>
+            </div>
+            <div class="ap-table-card">
+                <div class="table-responsive">
+                    <table class="ap-table">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="width:50px">#</th>
+                                <th>Mã Tuyến</th>
+                                <th>Tên Tuyến</th>
+                                <th>Mô Tả</th>
+                                <th class="text-center">Số Vị Trí</th>
+                                <th class="text-center">Thứ Tự</th>
+                                <th>Trạng Thái</th>
+                                <th style="width:110px">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tuyenBody">
+                            <tr><td colspan="8"><div class="ap-loading"><div class="ap-spinner"></div><span>Đang tải dữ liệu...</span></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="pgTuyenLuong" class="ap-pagination"></div>
+        </section>
+
+        <!-- ────────── DM VỊ TRÍ PHAO BH ────────── -->
+        <section id="secViTri" class="ap-section">
+            <div class="ap-table-header">
+                <h5><i class="bi bi-pin-map-fill"></i> Vị Trí Phao Bảo Hiệu</h5>
+                <div class="ap-table-toolbar">
+                    <button class="ap-btn-add" onclick="openModal('viTri')">
+                        <i class="bi bi-plus-lg"></i> Thêm mới
+                    </button>
+                </div>
+            </div>
+
+            <div class="ap-filter-bar">
+                <div>
+                    <label>Tuyến Luồng</label>
+                    <select id="viTriTuyenFilter" style="width:300px" onchange="loadViTri()">
+                        <option value="">— Chọn tuyến luồng —</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Tìm kiếm</label>
+                    <input type="text" id="searchViTri" placeholder="Tìm kiếm..." style="width:240px"
+                           oninput="searchTable('viTri', this.value)">
+                </div>
+            </div>
+
+            <div class="ap-table-card">
+                <div class="table-responsive">
+                    <table class="ap-table">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="width:50px">#</th>
+                                <th>Tuyến Luồng</th>
+                                <th>Số Vị Trí</th>
+                                <th>Mã Phao BH</th>
+                                <th>Tọa Độ Thiết Kế</th>
+                                <th>Mô Tả</th>
+                                <th class="text-center">Thứ Tự</th>
+                                <th>Trạng Thái</th>
+                                <th style="width:110px">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="viTriBody">
+                            <tr><td colspan="9">
+                                <div class="ap-empty">
+                                    <i class="bi bi-funnel"></i>
+                                    <span>Chọn tuyến luồng để xem danh sách</span>
+                                </div>
+                            </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="pgViTri" class="ap-pagination"></div>
+        </section>
+
+    </div><!-- /.ap-content -->
+</main>
+
+<!-- ═══════════ MODALS ═══════════ -->
+
+<!-- Modal: Tỉnh Thành -->
+<div class="modal fade" id="modalTinhThanh" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTinhThanhTitle">Thêm Tỉnh / Thành Phố</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="ttId">
+                <div class="mb-3">
+                    <label class="form-label">Mã Tỉnh <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="ttMaTinh" maxlength="10" placeholder="Nhập mã tỉnh">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Tên Tỉnh / Thành Phố <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="ttTenTinh" maxlength="255" placeholder="Nhập tên tỉnh / thành phố">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Thứ Tự Hiển Thị</label>
+                    <input type="number" class="form-control" id="ttThuTu" placeholder="0">
+                </div>
+                <div id="ttError" class="text-danger small" style="display:none"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="saveTinhThanh()">
+                    <i class="bi bi-check-lg me-1"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Đơn Vị -->
+<div class="modal fade" id="modalDonVi" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalDonViTitle">Thêm Đơn Vị</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="dvId">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Mã Đơn Vị <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="dvMaDonVi" maxlength="50" placeholder="Nhập mã đơn vị">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tên Đơn Vị <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="dvTenDonVi" maxlength="255" placeholder="Nhập tên đơn vị">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Loại Đơn Vị</label>
+                        <input type="text" class="form-control" id="dvLoaiDonVi" maxlength="100" placeholder="VD: Công ty, Ban ngành...">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Số Điện Thoại</label>
+                        <input type="text" class="form-control" id="dvSoDienThoai" maxlength="50" placeholder="Nhập SĐT">
+                    </div>
+                    <div class="col-md-9">
+                        <label class="form-label">Địa Chỉ</label>
+                        <input type="text" class="form-control" id="dvDiaChi" maxlength="500" placeholder="Nhập địa chỉ">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Thứ Tự</label>
+                        <input type="number" class="form-control" id="dvThuTu" placeholder="0">
+                    </div>
+                </div>
+                <div id="dvError" class="text-danger small mt-2" style="display:none"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="saveDonVi()">
+                    <i class="bi bi-check-lg me-1"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Trạm Quản Lý -->
+<div class="modal fade" id="modalTram" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTramTitle">Thêm Trạm Quản Lý</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="tramId">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Mã Trạm <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="tramMaTram" maxlength="50" placeholder="Nhập mã trạm">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tên Trạm <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="tramTenTram" maxlength="255" placeholder="Nhập tên trạm">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Đơn Vị Chủ Quản</label>
+                        <select class="form-select" id="tramDonViId">
+                            <option value="">— Không —</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Số Điện Thoại</label>
+                        <input type="text" class="form-control" id="tramSoDienThoai" maxlength="50" placeholder="Nhập SĐT">
+                    </div>
+                    <div class="col-md-9">
+                        <label class="form-label">Địa Điểm</label>
+                        <input type="text" class="form-control" id="tramDiaDiem" maxlength="255" placeholder="Nhập địa điểm">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Thứ Tự</label>
+                        <input type="number" class="form-control" id="tramThuTu" placeholder="0">
+                    </div>
+                </div>
+                <div id="tramError" class="text-danger small mt-2" style="display:none"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="saveTram()">
+                    <i class="bi bi-check-lg me-1"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Tuyến Luồng -->
+<div class="modal fade" id="modalTuyenLuong" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTuyenLuongTitle">Thêm Tuyến Luồng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="tlId">
+                <div class="mb-3">
+                    <label class="form-label">Mã Tuyến <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="tlMaTuyen" maxlength="50" placeholder="Nhập mã tuyến">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Tên Tuyến <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="tlTenTuyen" maxlength="255" placeholder="Nhập tên tuyến luồng">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Mô Tả</label>
+                    <textarea class="form-control" id="tlMoTa" rows="2" placeholder="Nhập mô tả (tuỳ chọn)"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Thứ Tự Hiển Thị</label>
+                    <input type="number" class="form-control" id="tlThuTu" placeholder="0">
+                </div>
+                <div id="tlError" class="text-danger small" style="display:none"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="saveTuyenLuong()">
+                    <i class="bi bi-check-lg me-1"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Vị Trí Phao BH -->
+<div class="modal fade" id="modalViTri" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalViTriTitle">Thêm Vị Trí Phao BH</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="vtId">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Tuyến Luồng <span class="text-danger">*</span></label>
+                        <select class="form-select" id="vtTuyenLuongId">
+                            <option value="">— Chọn tuyến —</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Số Vị Trí <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="vtSoViTri" maxlength="50" placeholder="VD: VT01">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Mã Phao BH <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="vtMaPhaoBH" maxlength="50" placeholder="Nhập mã">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Tọa Độ Thiết Kế</label>
+                        <input type="text" class="form-control" id="vtToaDo" maxlength="100" placeholder="Nhập toạ độ">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Thứ Tự</label>
+                        <input type="number" class="form-control" id="vtThuTu" placeholder="0">
+                    </div>
+                    <div class="col-md-3"></div>
+                    <div class="col-12">
+                        <label class="form-label">Mô Tả</label>
+                        <textarea class="form-control" id="vtMoTa" rows="2" placeholder="Nhập mô tả (tuỳ chọn)"></textarea>
+                    </div>
+                </div>
+                <div id="vtError" class="text-danger small mt-2" style="display:none"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="saveViTri()">
+                    <i class="bi bi-check-lg me-1"></i>Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>document.body.classList.add('ap-body');</script>
+    <script src="~/js/admin/admin-phao.js" asp-append-version="true"></script>
+}

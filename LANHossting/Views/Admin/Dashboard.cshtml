@@ -26,28 +26,49 @@
 
 <!-- ═══ SIDEBAR ═══ -->
 <aside class="admin-sidebar">
-    <nav class="nav flex-column">
-        <a class="nav-link active" data-section="sectionOverview" href="#">
-            <i class="bi bi-speedometer2"></i>Tổng Quan
+    <nav class="ap-sidebar-nav">
+
+        <a class="ap-nav-item active nav-link" data-section="sectionOverview" href="#">
+            <i class="bi bi-speedometer2"></i>
+            <span>Tổng Quan</span>
         </a>
-        <div class="sidebar-divider"></div>
-        <a class="nav-link" data-section="sectionTaiKhoan" href="#">
-            <i class="bi bi-people"></i>Quản Lý Tài Khoản
+
+        <div class="ap-nav-divider">Quản lý</div>
+
+        <a class="ap-nav-item nav-link" data-section="sectionTaiKhoan" href="#">
+            <i class="bi bi-people"></i>
+            <span>Quản Lý Tài Khoản</span>
         </a>
-        <a class="nav-link" data-section="sectionVatLieu" href="#">
-            <i class="bi bi-box-seam"></i>Quản Lý Vật Liệu
+
+        <a class="ap-nav-item nav-link" data-section="sectionVatLieu" href="#">
+            <i class="bi bi-box-seam"></i>
+            <span>Quản Lý Vật Liệu</span>
         </a>
-        <div class="sidebar-divider"></div>
-        <a class="nav-link" data-section="sectionSystemLog" href="#">
-            <i class="bi bi-journal-text"></i>Nhật Ký Nhập – Xuất – Điều Chuyển
+
+        <div class="ap-nav-divider">Hệ thống</div>
+
+        <a class="ap-nav-item nav-link" data-section="sectionSystemLog" href="#">
+            <i class="bi bi-journal-text"></i>
+            <span>Nhật Ký Nhập – Xuất – Điều Chuyển</span>
         </a>
-        <div class="sidebar-divider"></div>
-        <a class="nav-link" href="@Url.Action("Dashboard", "Kho")">
-            <i class="bi bi-box-seam-fill"></i>Đi tới Kho
+
+        <div class="ap-nav-divider">Liên kết</div>
+
+        <!-- <a class="ap-nav-item" href="@Url.Action("Dashboard", "Kho")">
+            <i class="bi bi-box-seam-fill"></i>
+            <span>Đi tới Kho</span>
         </a>
-        <a class="nav-link" href="@Url.Action("Dashboard", "Phao")">
-            <i class="bi bi-droplet-fill"></i>Đi tới Phao
+
+        <a class="ap-nav-item" href="@Url.Action("Dashboard", "Phao")">
+            <i class="bi bi-droplet-fill"></i>
+            <span>Đi tới Phao</span>
+        </a> -->
+
+        <a class="ap-nav-item" href="@Url.Action("QuanLyPhao", "Admin")">
+            <i class="bi bi-gear-wide-connected"></i>
+            <span>Admin Phao</span>
         </a>
+
     </nav>
 </aside>
 
@@ -101,18 +122,21 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="admin-card">
-                    <div class="card-body text-center py-4">
-                        <div class="stat-icon cyan mx-auto mb-3"><i class="bi bi-droplet-fill"></i></div>
-                        <h5 class="fw-bold">Quản Lý Phao</h5>
-                        <p class="text-muted small mb-3">Quản lý phao báo hiệu, tuyến luồng, vị trí phao</p>
-                        <a href="@Url.Action("Dashboard", "Phao")" class="btn btn-info btn-sm rounded-pill px-4 text-white">
-                            <i class="bi bi-arrow-right-circle me-1"></i>Truy cập
-                        </a>
-                    </div>
-                </div>
+<div class="col-md-6">
+    <div class="admin-card">
+        <div class="card-body text-center py-4">
+            <div class="stat-icon cyan mx-auto mb-3">
+                <i class="bi bi-box-seam-fill"></i>
             </div>
+            <h5 class="fw-bold">Quản Lý Kho</h5>
+            <p class="text-muted small mb-3">Quản lý vật liệu, tồn kho, nhập xuất kho</p>
+            <a href="@Url.Action("Dashboard", "Kho")"
+               class="btn btn-info btn-sm rounded-pill px-4 text-white">
+                <i class="bi bi-arrow-right-circle me-1"></i>Truy cập
+            </a>
+        </div>
+    </div>
+</div>
         </div>
     </section>
 

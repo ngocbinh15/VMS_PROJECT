@@ -48,7 +48,7 @@ body {
   position: fixed;
   top: 64px;
   left: 0;
-  width: 240px;
+  width: 260px;
   height: calc(100vh - 64px);
   background: var(--admin-card-bg);
   border-right: 1px solid var(--admin-border);
@@ -90,6 +90,53 @@ body {
 .admin-sidebar .sidebar-divider {
   border-top: 1px solid var(--admin-border);
   margin: .75rem 1.25rem;
+}
+
+/* ── PHAO STYLE SIDEBAR ───────────────── */
+
+.ap-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.ap-nav-item {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  padding: .75rem 1.25rem;
+  font-size: .875rem;
+  font-weight: 500;
+  color: var(--admin-muted);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: all .2s ease;
+}
+
+.ap-nav-item i {
+  width: 20px;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.ap-nav-item:hover {
+  background: rgba(67, 97, 238, .04);
+  color: var(--admin-primary);
+}
+
+.ap-nav-item.active {
+  background: rgba(67, 97, 238, .08);
+  color: var(--admin-primary);
+  border-left-color: var(--admin-primary);
+  font-weight: 600;
+}
+
+.ap-nav-divider {
+  margin: .75rem 1.25rem .4rem;
+  font-size: .7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: .5px;
 }
 
 /* ── MAIN CONTENT ────────────────────────── */
