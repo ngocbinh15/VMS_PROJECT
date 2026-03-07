@@ -298,7 +298,8 @@ body.ap-body .glass-nav {
   background: var(--admin-info);
 }
 
-.ap-action-card.ap-card-kho .ap-action-icon {
+.ap-action-card.ap-card-kho .ap-action-icon,
+.ap-action-card.ap-card-phao .ap-action-icon {
   background: rgba(6, 182, 212, .1);
   color: var(--admin-info);
 }
@@ -336,7 +337,7 @@ body.ap-body .glass-nav {
 }
 
 .ap-card-phao .ap-btn-access {
-  background: var(--admin-info);
+  background: var(--admin-primary);
 }
 
 .ap-btn-access:hover {
