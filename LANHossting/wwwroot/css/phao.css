@@ -840,3 +840,59 @@
   color: #94a3b8;
   text-transform: uppercase;
 }
+
+/* ── Shared pagination buttons (Dashboard + DieuPhoi) ── */
+.dp-pg-btn {
+  border: none;
+  border-radius: 8px;
+  background: #f3f4f6;
+  color: #4b5563;
+  font-size: .82rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1.4;
+  min-width: 36px;
+  margin: 0 3px;
+}
+
+.dp-pg-btn:hover:not(:disabled):not(.dp-pg-active) {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.dp-pg-btn:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+.dp-pg-btn.dp-pg-active {
+  background: #2f5bea;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(47, 91, 234, .25);
+}
+
+.dp-pg-dots {
+  color: #9ca3af;
+  font-size: .82rem;
+  padding: 0 6px;
+  line-height: 1.6;
+  user-select: none;
+}
+
+@keyframes dp-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dp-page-animate {
+  animation: dp-fade-in 0.2s ease-in-out;
+}

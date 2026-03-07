@@ -26,6 +26,8 @@
     var THU_HOI = 'Thu hồi';
     var isSubmitting = false;
     var fpInstance = null;
+    var _dpPage = 1;
+    var DP_PAGE_SIZE = 20;
 
     /* ── modal promise resolver ── */
     var _modalResolve = null;
@@ -42,6 +44,7 @@
         wireSubmitEvent();
         wireModalEvents();
         updateSelectedCount();
+        applyDpPagination();
     });
 
     /* ═══════════════════════════════════════════════════════
@@ -309,29 +312,85 @@
      * Lọc bảng phao phía client — ẩn/hiện các hàng dựa trên mã phao / tên phao.
      */
     function filterTableLocal(term) {
-        var rows = document.querySelectorAll('#dpTableBody .dp-row');
         var lowerTerm = term.toLowerCase();
-        var visibleCount = 0;
-
-        rows.forEach(function (row) {
+        document.querySelectorAll('#dpTableBody .dp-row').forEach(function (row) {
             if (!term) {
-                row.style.display = '';
-                visibleCount++;
-                return;
-            }
-            var searchText = (row.getAttribute('data-search') || '').toLowerCase();
-            if (searchText.indexOf(lowerTerm) !== -1) {
-                row.style.display = '';
-                visibleCount++;
+                row.classList.remove('dp-pg-filtered');
             } else {
-                row.style.display = 'none';
+                var searchText = (row.getAttribute('data-search') || '').toLowerCase();
+                if (searchText.indexOf(lowerTerm) !== -1) {
+                    row.classList.remove('dp-pg-filtered');
+                } else {
+                    row.classList.add('dp-pg-filtered');
+                }
             }
         });
-
-        // Cập nhật số lượng hiển thị
-        var countEl = document.getElementById('dpCountInfo');
-        if (countEl) countEl.innerHTML = '<strong>' + visibleCount + '</strong> phao';
+        _dpPage = 1;
+        applyDpPagination();
     }
+
+    function applyDpPagination() {
+        var allRows = Array.from(document.querySelectorAll('#dpTableBody .dp-row'));
+        var matchedRows = allRows.filter(function (r) { return !r.classList.contains('dp-pg-filtered'); });
+        var total = matchedRows.length;
+        var totalPages = Math.max(1, Math.ceil(total / DP_PAGE_SIZE));
+        if (_dpPage > totalPages) _dpPage = totalPages;
+        if (_dpPage < 1) _dpPage = 1;
+        var start = (_dpPage - 1) * DP_PAGE_SIZE;
+        var end = start + DP_PAGE_SIZE;
+        allRows.forEach(function (row) {
+            if (row.classList.contains('dp-pg-filtered')) {
+                row.style.display = 'none';
+            } else {
+                var idx = matchedRows.indexOf(row);
+                row.style.display = (idx >= start && idx < end) ? '' : 'none';
+            }
+        });
+        renderDpPagination(total, _dpPage, totalPages);
+        var countEl = document.getElementById('dpCountInfo');
+        if (countEl) {
+            countEl.innerHTML = totalPages > 1
+                ? '<strong>' + total + '</strong> phao — trang <strong>' + _dpPage + '</strong>/' + totalPages
+                : '<strong>' + total + '</strong> phao';
+        }
+        updateCheckAllState();
+    }
+
+    function renderDpPagination(total, currentPage, totalPages) {
+        var container = document.getElementById('dpPagination');
+        if (!container) return;
+        if (totalPages <= 1) { container.innerHTML = ''; return; }
+        var sp = Math.max(1, currentPage - 2);
+        var ep = Math.min(totalPages, sp + 4);
+        sp = Math.max(1, ep - 4);
+        var h = '';
+        h += '<button class="dp-pg-btn" onclick="goDpPage(' + (currentPage - 1) + ')"' + (currentPage === 1 ? ' disabled' : '') + '><i class="bi bi-chevron-left"></i></button>';
+        if (sp > 1) {
+            h += '<button class="dp-pg-btn" onclick="goDpPage(1)">1</button>';
+            if (sp > 2) h += '<span class="dp-pg-dots">&hellip;</span>';
+        }
+        for (var pg = sp; pg <= ep; pg++) {
+            h += '<button class="dp-pg-btn' + (pg === currentPage ? ' dp-pg-active' : '') + '" onclick="goDpPage(' + pg + ')">' + pg + '</button>';
+        }
+        if (ep < totalPages) {
+            if (ep < totalPages - 1) h += '<span class="dp-pg-dots">&hellip;</span>';
+            h += '<button class="dp-pg-btn" onclick="goDpPage(' + totalPages + ')">' + totalPages + '</button>';
+        }
+        h += '<button class="dp-pg-btn" onclick="goDpPage(' + (currentPage + 1) + ')"' + (currentPage === totalPages ? ' disabled' : '') + '><i class="bi bi-chevron-right"></i></button>';
+        container.innerHTML = h;
+    }
+
+    /* ─ Expose goDpPage for pagination onclick handlers ─ */
+    window.goDpPage = function (page) {
+        _dpPage = page;
+        applyDpPagination();
+        var tbodyEl = document.getElementById('dpTableBody');
+        if (tbodyEl) {
+            tbodyEl.classList.remove('dp-page-animate');
+            void tbodyEl.offsetWidth;
+            tbodyEl.classList.add('dp-page-animate');
+        }
+    };
 
     /**
      * Reload trang với các query params hiện tại.

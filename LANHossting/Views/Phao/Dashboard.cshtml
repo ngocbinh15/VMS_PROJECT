@@ -195,10 +195,11 @@
             </div>
 
             <!-- Footer -->
-            <div class="px-4 py-3 border-top border-light d-flex justify-content-between align-items-center bg-white">
+            <div class="px-4 py-3 border-top border-light d-flex justify-content-between align-items-center bg-white flex-wrap gap-2">
                 <div class="text-muted small fw-bold">
                     Hiển thị <span class="text-primary" id="displayCount">@Model.DanhSachPhao.Count</span> phao
                 </div>
+                <nav id="buoyPagination" aria-label="Phân trang danh sách phao"></nav>
             </div>
         </div>
     </div>
@@ -611,5 +612,5 @@
         };
         const fpDate = {};
     </script>
-    <script src="~/js/phao/dashboard.js?v=5.0"></script>
+    <script src="~/js/phao/dashboard.js?v=6.0"></script>
     }

@@ -1,6 +1,5 @@
 wwwroot\css\admin\dashboard.css
 wwwroot\css\kho\dashboard.css
-wwwroot\css\phao.css
 wwwroot\css\site.css
 wwwroot\favicon.ico
 wwwroot\image_2.png
@@ -72,3 +71,4 @@ wwwroot\lib\jquery\dist\jquery.js
 wwwroot\lib\jquery\dist\jquery.min.js
 wwwroot\lib\jquery\dist\jquery.min.map
 wwwroot\lib\jquery\LICENSE.txt
+wwwroot\css\phao.css

@@ -61,6 +61,9 @@ function hideFormAlert() {
 
 // Auto-clear error on typing
 document.addEventListener('DOMContentLoaded', function () {
+    // Initial load: fetch all data and apply pagination
+    reloadTable();
+
     ['edKyHieu', 'edMaPhao', 'edTenPhao'].forEach(function (id) {
         var el = document.getElementById(id);
         if (el) el.addEventListener('input', function () {
@@ -97,9 +100,12 @@ function populateSelect(selectId, items, selectedVal) {
 }
 
 // ══════════════════════════════════════════════
-// AJAX FILTER (search + route)
+// AJAX FILTER (search + route) + PAGINATION
 // ══════════════════════════════════════════════
 var filterTimeout = null;
+var PAGE_SIZE = 20;
+var _allItems = [];
+var _dashPage = 1;
 
 function reloadTable() {
     var search = document.getElementById('searchInput').value.trim();
@@ -111,7 +117,9 @@ function reloadTable() {
     fetch(URLS.danhSach + '?' + params.toString())
         .then(function(r) { return r.json(); })
         .then(function(data) {
-            renderTable(data.items);
+            _allItems = data.items || [];
+            _dashPage = 1;
+            renderCurrentPage();
             updateStats(data.thongKe);
         })
         .catch(function(err) {
@@ -119,10 +127,58 @@ function reloadTable() {
         });
 }
 
-function renderTable(items) {
+function renderCurrentPage() {
+    var total = _allItems.length;
+    var start = (_dashPage - 1) * PAGE_SIZE;
+    var end = Math.min(start + PAGE_SIZE, total);
+    renderTable(_allItems.slice(start, end), start);
+    renderPagination(total, _dashPage);
+    var totalEl = document.getElementById('totalCount');
+    if (totalEl) totalEl.textContent = total;
+    var dispEl = document.getElementById('displayCount');
+    if (dispEl) dispEl.textContent = total > 0 ? (start + 1) + '–' + end + '\u00a0/\u00a0' + total : '0';
+}
+
+function goDashPage(page) {
+    _dashPage = page;
+    renderCurrentPage();
+    var tbodyEl = document.getElementById('buoyTableBody');
+    if (tbodyEl) {
+        tbodyEl.classList.remove('dp-page-animate');
+        void tbodyEl.offsetWidth;
+        tbodyEl.classList.add('dp-page-animate');
+        tbodyEl.closest('div').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+function renderPagination(total, currentPage) {
+    var nav = document.getElementById('buoyPagination');
+    if (!nav) return;
+    var totalPages = Math.ceil(total / PAGE_SIZE);
+    if (totalPages <= 1) { nav.innerHTML = ''; return; }
+    var sp = Math.max(1, currentPage - 2);
+    var ep = Math.min(totalPages, sp + 4);
+    sp = Math.max(1, ep - 4);
+    var h = '';
+    h += '<button class="dp-pg-btn" onclick="goDashPage(' + (currentPage - 1) + ')"' + (currentPage === 1 ? ' disabled' : '') + '><i class="bi bi-chevron-left"></i></button>';
+    if (sp > 1) {
+        h += '<button class="dp-pg-btn" onclick="goDashPage(1)">1</button>';
+        if (sp > 2) h += '<span class="dp-pg-dots">&hellip;</span>';
+    }
+    for (var pg = sp; pg <= ep; pg++) {
+        h += '<button class="dp-pg-btn' + (pg === currentPage ? ' dp-pg-active' : '') + '" onclick="goDashPage(' + pg + ')">' + pg + '</button>';
+    }
+    if (ep < totalPages) {
+        if (ep < totalPages - 1) h += '<span class="dp-pg-dots">&hellip;</span>';
+        h += '<button class="dp-pg-btn" onclick="goDashPage(' + totalPages + ')">' + totalPages + '</button>';
+    }
+    h += '<button class="dp-pg-btn" onclick="goDashPage(' + (currentPage + 1) + ')"' + (currentPage === totalPages ? ' disabled' : '') + '><i class="bi bi-chevron-right"></i></button>';
+    nav.innerHTML = h;
+}
+
+function renderTable(items, pageOffset) {
+    var offset = pageOffset || 0;
     var tbody = document.getElementById('buoyTableBody');
-    document.getElementById('totalCount').textContent = items.length;
-    document.getElementById('displayCount').textContent = items.length;
 
     if (!items.length) {
         tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-5">' +
@@ -144,7 +200,7 @@ function renderTable(items) {
         var kyHieuSafe = (p.kyHieuTaiSan || '--').replace(/'/g, "\\'");
 
         return '<tr data-id="' + p.id + '">' +
-            '<td class="text-center ps-4 fw-bold text-muted">' + (i + 1) + '</td>' +
+            '<td class="text-center ps-4 fw-bold text-muted">' + (offset + i + 1) + '</td>' +
             '<td><div class="fw-bold text-dark">' + (p.kyHieuTaiSan || '--') + '</div>' +
                 '<div class="small text-muted" style="font-size:0.75rem">' + (p.maLoaiPhao || '') + '</div></td>' +
             '<td class="fw-semibold text-primary">' + p.maPhaoDayDu + '</td>' +
