@@ -1,13 +1,5 @@
+SELECT *
+FROM DmTinhThanhPho
 
-UPDATE v
-SET DonGia =
-    CASE n.MaNhom
-        WHEN 'NHIEN_LIEU' THEN 20000 + (ABS(CHECKSUM(NEWID())) % 60000)
-        WHEN 'VAT_TU_PHAO' THEN 200000 + (ABS(CHECKSUM(NEWID())) % 800000)
-        WHEN 'VAT_TU_TP' THEN 500000 + (ABS(CHECKSUM(NEWID())) % 2000000)
-        ELSE 50000 + (ABS(CHECKSUM(NEWID())) % 500000)
-    END
-FROM VatLieu v
-JOIN NhomVatLieu n ON v.NhomVatLieuId = n.Id;
-
-SELECT * FROM LichSuHoatDongPhao
+DELETE FROM DmTinhThanhPho
+WHERE TenTinh = N'Cà Mau';

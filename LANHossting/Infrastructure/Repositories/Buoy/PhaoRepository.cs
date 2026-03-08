@@ -141,5 +141,103 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
                 .AsNoTracking()
                 .FirstOrDefaultAsync(v => v.Id == id);
         }
+
+        public async Task<List<LichSuHoatDongPhao>> GetLichSuHoatDongByTuyenAsync(int? tuyenLuongId)
+        {
+            var query = _context.Set<LichSuHoatDongPhao>()
+                .Include(ls => ls.Phao)
+                .Include(ls => ls.ViTriPhaoBH)
+                    .ThenInclude(v => v!.TuyenLuong)
+                .AsNoTracking();
+
+            if (tuyenLuongId.HasValue)
+            {
+                // Lấy danh sách PhaoId đã từng hoạt động trên tuyến luồng này
+                // (dựa vào các bản ghi có ViTriPhaoBH thuộc tuyến đó)
+                var phaoIdsInTuyen = await _context.Set<LichSuHoatDongPhao>()
+                    .AsNoTracking()
+                    .Where(ls => ls.ViTriPhaoBH != null
+                              && ls.ViTriPhaoBH.TuyenLuongId == tuyenLuongId.Value)
+                    .Select(ls => ls.PhaoId)
+                    .Distinct()
+                    .ToListAsync();
+
+                // Lấy TOÀN BỘ lịch sử của các phao đó (bao gồm cả Thu hồi, Trên bãi...)
+                query = query.Where(ls => phaoIdsInTuyen.Contains(ls.PhaoId));
+            }
+
+            return await query
+                .OrderBy(ls => ls.PhaoId)
+                .ThenBy(ls => ls.Nam)
+                .ThenBy(ls => ls.NgayBatDau)
+                .ToListAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<string?> CheckViTriTrungAsync(int viTriId, int excludePhaoId)
+        {
+            return await _context.Set<Phao>()
+                .AsNoTracking()
+                .Where(p => p.ViTriPhaoBHHienTaiId == viTriId
+                         && p.Id != excludePhaoId
+                         && p.TrangThaiHienTai == Domain.Enums.TrangThaiHoatDongPhao.TrenLuong)
+                .Select(p => p.MaPhaoDayDu)
+                .FirstOrDefaultAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<List<LichSuHoatDongPhao>> GetLatestStatusBeforeTimeAsync(DateTime thoiDiem)
+        {
+            // Load tất cả bản ghi lịch sử có NgayBatDau <= thời điểm kèm navigation
+            var allBefore = await _context.Set<LichSuHoatDongPhao>()
+                .Where(ls => ls.NgayBatDau <= thoiDiem)
+                .Include(ls => ls.ViTriPhaoBH)
+                    .ThenInclude(v => v!.TuyenLuong)
+                .AsNoTracking()
+                .ToListAsync();
+
+            // Group in-memory: lấy bản ghi mới nhất (NgayBatDau lớn nhất, Id cao nhất) cho mỗi PhaoId
+            return allBefore
+                .GroupBy(ls => ls.PhaoId)
+                .Select(g => g
+                    .OrderByDescending(ls => ls.NgayBatDau)
+                    .ThenByDescending(ls => ls.Id)
+                    .First())
+                .ToList();
+        }
+
+        /// <inheritdoc />
+        public async Task AddPhaoAsync(Phao phao)
+        {
+            _context.Set<Phao>().Add(phao);
+            await _context.SaveChangesAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> ExistsByMaPhaoAsync(string maPhaoDayDu, int? excludeId = null)
+        {
+            var query = _context.Set<Phao>().Where(p => p.MaPhaoDayDu == maPhaoDayDu);
+            if (excludeId.HasValue)
+                query = query.Where(p => p.Id != excludeId.Value);
+            return await query.AnyAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> ExistsByTenPhaoAsync(string tenPhao, int? excludeId = null)
+        {
+            var query = _context.Set<Phao>().Where(p => p.TenPhao == tenPhao);
+            if (excludeId.HasValue)
+                query = query.Where(p => p.Id != excludeId.Value);
+            return await query.AnyAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> ExistsByKyHieuTaiSanAsync(string kyHieu, int? excludeId = null)
+        {
+            var query = _context.Set<Phao>().Where(p => p.KyHieuTaiSan == kyHieu);
+            if (excludeId.HasValue)
+                query = query.Where(p => p.Id != excludeId.Value);
+            return await query.AnyAsync();
+        }
     }
 }

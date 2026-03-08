@@ -27,6 +27,58 @@ function splitCoords(toaDo) {
     return { viDo: parts[0] || '--', kinhDo: parts[1] || '--' };
 }
 
+// ── Field error helpers ──
+function showFieldError(inputId, errorId, message) {
+    var input = document.getElementById(inputId);
+    var errDiv = document.getElementById(errorId);
+    if (input) input.classList.add('is-invalid');
+    if (errDiv) { errDiv.textContent = message; errDiv.style.display = 'block'; }
+}
+function clearFieldErrors() {
+    ['edKyHieu', 'edMaPhao', 'edTenPhao'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.classList.remove('is-invalid');
+    });
+    ['edKyHieuError', 'edMaPhaoError', 'edTenPhaoError'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) { el.textContent = ''; el.style.display = 'none'; }
+    });
+    hideFormAlert();
+}
+function showFormAlert(msg, type) {
+    var el = document.getElementById('editFormAlert');
+    if (!el) return;
+    var cls = type === 'success' ? 'alert-success' : 'alert-danger';
+    var icon = type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill';
+    el.className = 'w-100 mb-2 alert ' + cls + ' small py-2 px-3 d-flex align-items-center';
+    el.innerHTML = '<i class="bi ' + icon + ' me-2"></i>' + msg;
+    el.style.display = 'flex';
+}
+function hideFormAlert() {
+    var el = document.getElementById('editFormAlert');
+    if (el) el.style.display = 'none';
+}
+
+// Auto-clear error on typing
+document.addEventListener('DOMContentLoaded', function () {
+    // Initial load: fetch all data and apply pagination
+    reloadTable();
+
+    ['edKyHieu', 'edMaPhao', 'edTenPhao'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('input', function () {
+            var errId = id + (id === 'edKyHieu' ? 'Error' : (id === 'edMaPhao' ? 'Error' : 'Error'));
+            // Map: edKyHieu→edKyHieuError, edMaPhao→edMaPhaoError, edTenPhao→edTenPhaoError
+            var map = { edKyHieu: 'edKyHieuError', edMaPhao: 'edMaPhaoError', edTenPhao: 'edTenPhaoError' };
+            var inp = document.getElementById(id);
+            if (inp) inp.classList.remove('is-invalid');
+            var err = document.getElementById(map[id]);
+            if (err) { err.textContent = ''; err.style.display = 'none'; }
+            hideFormAlert();
+        });
+    });
+});
+
 // Dropdown cache
 var _dropdownCache = null;
 function loadDropdownData() {
@@ -47,23 +99,13 @@ function populateSelect(selectId, items, selectedVal) {
     if (selectedVal != null) sel.value = selectedVal;
 }
 
-function showToast(message, type) {
-    type = type || 'success';
-    var container = document.getElementById('toastContainer');
-    var icon = type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill';
-    var bg = type === 'success' ? 'bg-success' : 'bg-danger';
-    var html = '<div class="toast align-items-center text-white ' + bg + ' border-0 show" role="alert">' +
-        '<div class="d-flex"><div class="toast-body"><i class="bi ' + icon + ' me-2"></i>' + message + '</div>' +
-        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>';
-    container.insertAdjacentHTML('beforeend', html);
-    var toast = container.lastElementChild;
-    setTimeout(function() { toast.remove(); }, 4000);
-}
-
 // ══════════════════════════════════════════════
-// AJAX FILTER (search + route)
+// AJAX FILTER (search + route) + PAGINATION
 // ══════════════════════════════════════════════
 var filterTimeout = null;
+var PAGE_SIZE = 20;
+var _allItems = [];
+var _dashPage = 1;
 
 function reloadTable() {
     var search = document.getElementById('searchInput').value.trim();
@@ -75,19 +117,68 @@ function reloadTable() {
     fetch(URLS.danhSach + '?' + params.toString())
         .then(function(r) { return r.json(); })
         .then(function(data) {
-            renderTable(data.items);
+            _allItems = data.items || [];
+            _dashPage = 1;
+            renderCurrentPage();
             updateStats(data.thongKe);
         })
         .catch(function(err) {
             console.error('Filter error:', err);
-            showToast('Lỗi tải dữ liệu', 'error');
         });
 }
 
-function renderTable(items) {
+function renderCurrentPage() {
+    var total = _allItems.length;
+    var start = (_dashPage - 1) * PAGE_SIZE;
+    var end = Math.min(start + PAGE_SIZE, total);
+    renderTable(_allItems.slice(start, end), start);
+    renderPagination(total, _dashPage);
+    var totalEl = document.getElementById('totalCount');
+    if (totalEl) totalEl.textContent = total;
+    var dispEl = document.getElementById('displayCount');
+    if (dispEl) dispEl.textContent = total > 0 ? (start + 1) + '–' + end + '\u00a0/\u00a0' + total : '0';
+}
+
+function goDashPage(page) {
+    _dashPage = page;
+    renderCurrentPage();
+    var tbodyEl = document.getElementById('buoyTableBody');
+    if (tbodyEl) {
+        tbodyEl.classList.remove('dp-page-animate');
+        void tbodyEl.offsetWidth;
+        tbodyEl.classList.add('dp-page-animate');
+        tbodyEl.closest('div').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+function renderPagination(total, currentPage) {
+    var nav = document.getElementById('buoyPagination');
+    if (!nav) return;
+    var totalPages = Math.ceil(total / PAGE_SIZE);
+    if (totalPages <= 1) { nav.innerHTML = ''; return; }
+    var sp = Math.max(1, currentPage - 2);
+    var ep = Math.min(totalPages, sp + 4);
+    sp = Math.max(1, ep - 4);
+    var h = '';
+    h += '<button class="dp-pg-btn" onclick="goDashPage(' + (currentPage - 1) + ')"' + (currentPage === 1 ? ' disabled' : '') + '><i class="bi bi-chevron-left"></i></button>';
+    if (sp > 1) {
+        h += '<button class="dp-pg-btn" onclick="goDashPage(1)">1</button>';
+        if (sp > 2) h += '<span class="dp-pg-dots">&hellip;</span>';
+    }
+    for (var pg = sp; pg <= ep; pg++) {
+        h += '<button class="dp-pg-btn' + (pg === currentPage ? ' dp-pg-active' : '') + '" onclick="goDashPage(' + pg + ')">' + pg + '</button>';
+    }
+    if (ep < totalPages) {
+        if (ep < totalPages - 1) h += '<span class="dp-pg-dots">&hellip;</span>';
+        h += '<button class="dp-pg-btn" onclick="goDashPage(' + totalPages + ')">' + totalPages + '</button>';
+    }
+    h += '<button class="dp-pg-btn" onclick="goDashPage(' + (currentPage + 1) + ')"' + (currentPage === totalPages ? ' disabled' : '') + '><i class="bi bi-chevron-right"></i></button>';
+    nav.innerHTML = h;
+}
+
+function renderTable(items, pageOffset) {
+    var offset = pageOffset || 0;
     var tbody = document.getElementById('buoyTableBody');
-    document.getElementById('totalCount').textContent = items.length;
-    document.getElementById('displayCount').textContent = items.length;
 
     if (!items.length) {
         tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-5">' +
@@ -109,7 +200,7 @@ function renderTable(items) {
         var kyHieuSafe = (p.kyHieuTaiSan || '--').replace(/'/g, "\\'");
 
         return '<tr data-id="' + p.id + '">' +
-            '<td class="text-center ps-4 fw-bold text-muted">' + (i + 1) + '</td>' +
+            '<td class="text-center ps-4 fw-bold text-muted">' + (offset + i + 1) + '</td>' +
             '<td><div class="fw-bold text-dark">' + (p.kyHieuTaiSan || '--') + '</div>' +
                 '<div class="small text-muted" style="font-size:0.75rem">' + (p.maLoaiPhao || '') + '</div></td>' +
             '<td class="fw-semibold text-primary">' + p.maPhaoDayDu + '</td>' +
@@ -219,102 +310,11 @@ function viewPhaoDetail(id) {
 // ══════════════════════════════════════════════
 // EDIT MODAL
 // ══════════════════════════════════════════════
-// ── Toggle Tuyến/ViTri enable/disable theo TrangThaiHoatDong ──
-function applyTrangThaiLogic(val) {
-    var isTrenLuong = val === 'Trên luồng';
-    var ddlTuyen = document.getElementById('edTuyenLuong');
-    var ddlViTri = document.getElementById('edViTri');
-    ddlTuyen.disabled = !isTrenLuong;
-    if (!isTrenLuong) {
-        ddlTuyen.value = '';
-        ddlViTri.innerHTML = '<option value="">-- Chọn tuyến luồng trước --</option>';
-        ddlViTri.disabled = true;
-        document.getElementById('edViDo').textContent = '--';
-        document.getElementById('edKinhDo').textContent = '--';
-        document.getElementById('edViTriWarning').classList.add('d-none');
-        document.getElementById('btnSaveEdit').disabled = false;
-    }
-}
+// Trạng thái vận hành (trạng thái, tuyến, vị trí) được quản lý qua Điều Phối.
+// Modal này chỉ cho chỉnh sửa thông tin kỹ thuật / định danh.
 
-// ── Cascade: load ViTri by TuyenLuong ──
-var _viTriByTuyenCache = {};
-function loadViTriByTuyen(tuyenLuongId) {
-    var selViTri = document.getElementById('edViTri');
-    var warn = document.getElementById('edViTriWarning');
-    warn.classList.add('d-none');
-    if (!tuyenLuongId) {
-        selViTri.innerHTML = '<option value="">-- Chọn tuyến luồng trước --</option>';
-        selViTri.disabled = true;
-        updateEditCoords();
-        return Promise.resolve([]);
-    }
-    if (_viTriByTuyenCache[tuyenLuongId]) {
-        var cached = _viTriByTuyenCache[tuyenLuongId];
-        populateViTriSelect(cached, null);
-        selViTri.disabled = false;
-        return Promise.resolve(cached);
-    }
-    return fetch(URLS.viTriByTuyen + '?tuyenLuongId=' + tuyenLuongId)
-        .then(function(resp) { return resp.json(); })
-        .then(function(items) {
-            _viTriByTuyenCache[tuyenLuongId] = items;
-            populateViTriSelect(items, null);
-            selViTri.disabled = false;
-            return items;
-        });
-}
-
-function populateViTriSelect(items, selectedVal) {
-    var sel = document.getElementById('edViTri');
-    sel.innerHTML = '<option value="">-- Chọn vị trí --</option>';
-    items.forEach(function(it) {
-        var opt = document.createElement('option');
-        opt.value = it.id;
-        opt.textContent = it.maPhaoBH;
-        opt.dataset.toaDo = it.toaDoThietKe || '';
-        sel.appendChild(opt);
-    });
-    if (selectedVal != null) sel.value = selectedVal;
-}
-
-function updateEditCoords() {
-    var sel = document.getElementById('edViTri');
-    var selOpt = sel.options[sel.selectedIndex];
-    var toaDo = selOpt && selOpt.dataset.toaDo ? selOpt.dataset.toaDo : null;
-    if (toaDo) {
-        var c = splitCoords(toaDo);
-        document.getElementById('edViDo').textContent = c.viDo;
-        document.getElementById('edKinhDo').textContent = c.kinhDo;
-    } else {
-        document.getElementById('edViDo').textContent = '--';
-        document.getElementById('edKinhDo').textContent = '--';
-    }
-}
-
-// ── Duplicate ViTri check ──
-function checkViTriDuplicate() {
-    var viTriId = getIntVal('edViTri');
-    var phaoId = parseInt(getVal('editId'));
-    var warn = document.getElementById('edViTriWarning');
-    var btn = document.getElementById('btnSaveEdit');
-    warn.classList.add('d-none');
-
-    if (!viTriId) { btn.disabled = false; return Promise.resolve(); }
-
-    return fetch(URLS.checkViTriTrung + '?viTriId=' + viTriId + '&excludePhaoId=' + phaoId)
-        .then(function(resp) { return resp.json(); })
-        .then(function(result) {
-            if (result.trung) {
-                document.getElementById('edViTriWarningText').textContent =
-                    'Vị trí này đang được sử dụng bởi phao: ' + (result.tenPhao || result.maPhao);
-                warn.classList.remove('d-none');
-                btn.disabled = true;
-            } else {
-                btn.disabled = false;
-            }
-        })
-        .catch(function() { btn.disabled = false; });
-}
+// ── Track modal mode: 'edit' or 'create' ──
+var _modalMode = 'edit';
 
 // ── Tab height sync ──
 function syncTabHeight() {
@@ -329,12 +329,18 @@ function syncTabHeight() {
 }
 
 function openEditModal(id) {
+    _modalMode = 'edit';
+    clearFieldErrors();
     var modal = new bootstrap.Modal(document.getElementById('phaoEditModal'));
     document.getElementById('editLoading').classList.remove('d-none');
     document.getElementById('editContent').classList.add('d-none');
-    document.getElementById('edViTriWarning').classList.add('d-none');
     document.getElementById('btnSaveEdit').disabled = false;
-    _viTriByTuyenCache = {};
+    document.getElementById('editModalTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Chỉnh Sửa Phao';
+    document.getElementById('btnSaveEdit').innerHTML = '<i class="bi bi-check-lg me-1"></i>Lưu thay đổi';
+
+    // Show VẬN HÀNH section in edit mode
+    var vanHanhSection = document.getElementById('editVanHanhSection');
+    if (vanHanhSection) vanHanhSection.style.display = '';
 
     // Reset to first tab
     var firstTab = document.querySelector('#phaoEditModal .nav-link');
@@ -370,52 +376,13 @@ function openEditModal(id) {
         fpDate['edSuaChuaGanNhat'].setDate(data.thoiDiemSuaChuaGanNhat ? new Date(data.thoiDiemSuaChuaGanNhat) : null, false);
         document.getElementById('edDienTich').value = data.dienTich != null ? data.dienTich : '';
 
-        // ── Trạng thái hoạt động ──
-        var trangThaiVal = data.trangThaiHoatDong || '';
-        document.getElementById('edTrangThai').value = trangThaiVal;
-        applyTrangThaiLogic(trangThaiVal);
-        document.getElementById('edTrangThai').onchange = function () {
-            applyTrangThaiLogic(this.value);
-        };
-
-        // ── Tuyến luồng dropdown ──
-        populateSelect('edTuyenLuong', dd.tuyenLuong, data.tuyenLuongId);
-        // Re-apply disabled state after populate
-        document.getElementById('edTuyenLuong').disabled = trangThaiVal !== 'Trên luồng';
-        document.getElementById('edTuyenLuong').onchange = function () {
-            loadViTriByTuyen(this.value).then(function() {
-                updateEditCoords();
-                document.getElementById('edViTriWarning').classList.add('d-none');
-                document.getElementById('btnSaveEdit').disabled = false;
-            });
-        };
-
-        // ── Cascade: load ViTri for current TuyenLuong ──
-        var viTriPromise;
-        if (trangThaiVal === 'Trên luồng' && data.tuyenLuongId) {
-            viTriPromise = loadViTriByTuyen(data.tuyenLuongId).then(function(items) {
-                populateViTriSelect(items, data.viTriPhaoBHHienTaiId);
-            });
-        } else {
-            viTriPromise = Promise.resolve();
-        }
-
-        viTriPromise.then(function() {
-            // Show coords
-            if (data.toaDoThietKe) {
-                var c = splitCoords(data.toaDoThietKe);
-                document.getElementById('edViDo').textContent = c.viDo;
-                document.getElementById('edKinhDo').textContent = c.kinhDo;
-            } else {
-                updateEditCoords();
-            }
-        });
-
-        // ── ViTri change: coords + duplicate check ──
-        document.getElementById('edViTri').onchange = function () {
-            updateEditCoords();
-            checkViTriDuplicate();
-        };
+        // Vận hành — readonly (thay đổi qua Điều Phối)
+        document.getElementById('edTrangThaiRO').value = data.trangThaiHienTai || data.trangThaiHoatDong || '--';
+        document.getElementById('edTuyenLuongRO').value = data.tuyenLuong || '--';
+        document.getElementById('edViTriRO').value = data.viTriHienTai || '--';
+        var coords = splitCoords(data.toaDoThietKe);
+        document.getElementById('edViDoRO').value = coords.viDo;
+        document.getElementById('edKinhDoRO').value = coords.kinhDo;
 
         // Populate dropdowns: Quản lý
         populateSelect('edTramQL', dd.tramQuanLy, data.tramQuanLyId);
@@ -455,19 +422,114 @@ function openEditModal(id) {
     });
 }
 
-function saveEdit() {
-    var maPhao = getVal('edMaPhao').trim();
-    if (!maPhao) {
-        showToast('Mã phao đầy đủ là bắt buộc', 'error');
+// ══════════════════════════════════════════════
+// CREATE MODAL (reuses edit modal with blank fields)
+// ══════════════════════════════════════════════
+function openCreateModal() {
+    _modalMode = 'create';
+    clearFieldErrors();
+    var modal = new bootstrap.Modal(document.getElementById('phaoEditModal'));
+    document.getElementById('editLoading').classList.remove('d-none');
+    document.getElementById('editContent').classList.add('d-none');
+    document.getElementById('btnSaveEdit').disabled = false;
+    document.getElementById('editModalTitle').innerHTML = '<i class="bi bi-plus-circle me-2"></i>Thêm Phao Mới';
+    document.getElementById('btnSaveEdit').innerHTML = '<i class="bi bi-plus-lg me-1"></i>Thêm phao';
+
+    // Reset to first tab
+    var firstTab = document.querySelector('#phaoEditModal .nav-link');
+    if (firstTab) bootstrap.Tab.getOrCreateInstance(firstTab).show();
+
+    modal.show();
+
+    // Load dropdown data then clear all fields
+    loadDropdownData()
+    .then(function(dd) {
+        document.getElementById('editLoading').classList.add('d-none');
+        document.getElementById('editContent').classList.remove('d-none');
+
+        // Clear all inputs
+        document.getElementById('editId').value = '0';
+        document.getElementById('edKyHieu').value = '';
+        document.getElementById('edMaPhao').value = '';
+        document.getElementById('edTenPhao').value = '';
+        document.getElementById('edSoPhao').value = '';
+        document.getElementById('edDuongKinh').value = '';
+        document.getElementById('edChieuCao').value = '';
+        document.getElementById('edHinhDang').value = '';
+        document.getElementById('edVatLieu').value = '';
+        document.getElementById('edMauSac').value = '';
+        document.getElementById('edThoiGianSD').value = '';
+        document.getElementById('edDienTich').value = '';
+        fpDate['edThoiDiemThayTha'].clear();
+        fpDate['edSuaChuaGanNhat'].clear();
+
+        // Hide VẬN HÀNH section in create mode (status is always Thu hồi)
+        var vanHanhSection = document.getElementById('editVanHanhSection');
+        if (vanHanhSection) vanHanhSection.style.display = 'none';
+
+        // Populate dropdowns (no preselected values)
+        populateSelect('edTramQL', dd.tramQuanLy, null);
+        populateSelect('edTinhTP', dd.tinhThanhPho, null);
+        populateSelect('edDVQL', dd.donVi, null);
+        populateSelect('edDVVH', dd.donVi, null);
+
+        // Xích / Rùa
+        document.getElementById('edXichPhao_DK').value = '';
+        document.getElementById('edXichPhao_CD').value = '';
+        fpDate['edXichPhao_SD'].clear();
+        document.getElementById('edXichRua_DK').value = '';
+        document.getElementById('edXichRua_CD').value = '';
+        fpDate['edXichRua_SD'].clear();
+        document.getElementById('edRua_TL').value = '';
+        fpDate['edRua_SD'].clear();
+
+        // Đèn
+        document.getElementById('edDen_CL').value = '';
+        document.getElementById('edDen_AIS').value = '';
+        document.getElementById('edDen_AS').value = '';
+        document.getElementById('edDen_CX').value = '';
+        document.getElementById('edDen_NL').value = '';
+        fpDate['edDen_SD'].clear();
+        fpDate['edDen_SC'].clear();
+        document.getElementById('edDen_CCTSHD').value = '';
+        document.getElementById('edDen_SQDT').value = '';
+
+        // Quản lý
+        document.getElementById('edSoQDTang').value = '';
+        fpDate['edNgayQDTang'].clear();
+
+        syncTabHeight();
+    })
+    .catch(function(err) {
+        document.getElementById('editLoading').innerHTML =
+            '<div class="text-danger"><i class="bi bi-exclamation-circle fs-1"></i><div class="mt-2">Không thể tải dữ liệu</div></div>';
+    });
+}
+
+// ══════════════════════════════════════════════
+// SAVE (create or edit based on _modalMode)
+// ══════════════════════════════════════════════
+function savePhao() {
+    clearFieldErrors();
+    hideFormAlert();
+
+    // 1) Ký hiệu tài sản bắt buộc
+    var kyHieu = getVal('edKyHieu').trim();
+    if (!kyHieu) {
+        showFieldError('edKyHieu', 'edKyHieuError', 'Ký hiệu tài sản không được để trống.');
         return;
     }
 
-    var trangThaiHoatDong = getVal('edTrangThai').trim();
-    if (!trangThaiHoatDong) {
-        showToast('Vui lòng chọn trạng thái hoạt động', 'error');
+    // 2) Mã phao bắt buộc
+    var maPhao = getVal('edMaPhao').trim();
+    if (!maPhao) {
+        showFieldError('edMaPhao', 'edMaPhaoError', 'Mã phao không được để trống.');
         return;
     }
-    var isTrenLuong = trangThaiHoatDong === 'Trên luồng';
+    if (maPhao.indexOf('.') === -1) {
+        showFieldError('edMaPhao', 'edMaPhaoError', 'Mã phao phải chứa dấu chấm (.) để tách mã loại phao. Ví dụ: T26.064.17');
+        return;
+    }
 
     var btn = document.getElementById('btnSaveEdit');
     btn.disabled = true;
@@ -490,8 +552,7 @@ function saveEdit() {
         thoiDiemThayTha: getVal('edThoiDiemThayTha') || null,
         thoiDiemSuaChuaGanNhat: getVal('edSuaChuaGanNhat') || null,
         dienTich: getNumVal('edDienTich'),
-        trangThaiHoatDong: trangThaiHoatDong,
-        viTriPhaoBHHienTaiId: isTrenLuong ? getIntVal('edViTri') : null,
+        // Trạng thái / Tuyến / Vị trí: KHÔNG gửi — xử lý qua Điều Phối
         xichPhao_DuongKinh: getNumVal('edXichPhao_DK'),
         xichPhao_ChieuDai: getNumVal('edXichPhao_CD'),
         xichPhao_ThoiDiemSuDung: getVal('edXichPhao_SD') || null,
@@ -519,7 +580,14 @@ function saveEdit() {
         ngayQuyetDinhTang: getVal('edNgayQDTang') || null
     };
 
-    fetch(URLS.capNhat, {
+    var isCreate = (_modalMode === 'create');
+    var url = isCreate ? URLS.themMoi : URLS.capNhat;
+    var successMsg = isCreate ? 'Thêm phao mới thành công!' : 'Cập nhật phao thành công!';
+    var btnLabel = isCreate
+        ? '<i class="bi bi-plus-lg me-1"></i>Thêm phao'
+        : '<i class="bi bi-check-lg me-1"></i>Lưu thay đổi';
+
+    fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dto)
@@ -527,20 +595,29 @@ function saveEdit() {
     .then(function(r) { return r.json(); })
     .then(function(data) {
         btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Lưu thay đổi';
+        btn.innerHTML = btnLabel;
 
         if (data.success) {
             bootstrap.Modal.getInstance(document.getElementById('phaoEditModal')).hide();
-            showToast('Cập nhật phao thành công!');
             reloadTable();
         } else {
-            showToast(data.error || 'Lỗi cập nhật', 'error');
+            var errMsg = data.error || 'Có lỗi xảy ra';
+            // Highlight the specific field that caused the error
+            if (errMsg.indexOf('Ký hiệu tài sản') !== -1) {
+                showFieldError('edKyHieu', 'edKyHieuError', errMsg);
+            } else if (errMsg.indexOf('Tên phao') !== -1) {
+                showFieldError('edTenPhao', 'edTenPhaoError', errMsg);
+            } else if (errMsg.indexOf('Mã phao') !== -1) {
+                showFieldError('edMaPhao', 'edMaPhaoError', errMsg);
+            } else {
+                showFormAlert(errMsg, 'error');
+            }
         }
     })
     .catch(function(err) {
         btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Lưu thay đổi';
-        showToast('Lỗi kết nối server', 'error');
+        btn.innerHTML = btnLabel;
+        showFormAlert('Lỗi kết nối server. Vui lòng thử lại.', 'error');
     });
 }
 
@@ -555,31 +632,49 @@ function confirmDelete(id, name) {
 
 function executeDelete() {
     var id = document.getElementById('deletePhaoId').value;
+    var errEl = document.getElementById('deleteErrorAlert');
+    if (errEl) errEl.style.display = 'none';
 
     fetch(URLS.xoa + '/' + id, { method: 'POST' })
         .then(function(r) { return r.json(); })
         .then(function(data) {
-            bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
             if (data.success) {
-                showToast('Đã xóa phao thành công!');
+                bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
                 reloadTable();
             } else {
-                showToast(data.error || 'Lỗi xóa phao', 'error');
+                if (errEl) {
+                    errEl.textContent = data.error || 'Lỗi xóa phao';
+                    errEl.style.display = 'block';
+                }
             }
         })
         .catch(function(err) {
-            bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
-            showToast('Lỗi kết nối server', 'error');
+            if (errEl) {
+                errEl.textContent = 'Lỗi kết nối server';
+                errEl.style.display = 'block';
+            }
         });
 }
 
 // ── Flatpickr init (dd/MM/yyyy for all modal date inputs) ──────────────
-['edThoiDiemThayTha','edSuaChuaGanNhat','edXichPhao_SD','edXichRua_SD',
- 'edRua_SD','edDen_SD','edDen_SC','edNgayQDTang'].forEach(function(id) {
-    fpDate[id] = flatpickr(document.getElementById(id), {
-        dateFormat: 'Y-m-d',
-        altInput: true,
-        altFormat: 'd/m/Y',
-        allowInput: true
+if (typeof flatpickr !== 'undefined') {
+    ['edThoiDiemThayTha','edSuaChuaGanNhat','edXichPhao_SD','edXichRua_SD',
+     'edRua_SD','edDen_SD','edDen_SC','edNgayQDTang'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) {
+            fpDate[id] = flatpickr(el, {
+                dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'd/m/Y',
+                allowInput: true
+            });
+        }
     });
-});
+} else {
+    console.error('[Dashboard] flatpickr not loaded — date inputs will use native HTML date type');
+    ['edThoiDiemThayTha','edSuaChuaGanNhat','edXichPhao_SD','edXichRua_SD',
+     'edRua_SD','edDen_SD','edDen_SC','edNgayQDTang'].forEach(function(id) {
+        // Create a stub so fpDate[id].setDate() won't crash openEditModal
+        fpDate[id] = { setDate: function() {} };
+    });
+}

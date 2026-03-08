@@ -171,6 +171,29 @@ namespace LANHossting.Controllers
         }
 
         /// <summary>
+        /// POST: /Phao/ThemMoi — thêm phao mới (AJAX JSON)
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> ThemMoi([FromBody] PhaoEditDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return Json(new { success = false, error = string.Join("; ", errors) });
+            }
+
+            dto.NguoiCapNhat = HttpContext.Session.GetString("Username")
+                             ?? HttpContext.Session.GetString("HoTen")
+                             ?? "system";
+
+            var (success, error) = await _phaoService.ThemPhaoAsync(dto);
+            return Json(new { success, error });
+        }
+
+        /// <summary>
         /// POST: /Phao/Xoa/{id} — xóa phao (cascade xóa bản ghi liên quan)
         /// </summary>
         [HttpPost]
@@ -182,20 +205,121 @@ namespace LANHossting.Controllers
 
         /// <summary>
         /// GET: /Phao/DieuPhoi
+        /// thoiGian=YYYY-MM-DD HH:mm → hiển thị trạng thái phao tại thời điểm đó
         /// </summary>
-        public IActionResult DieuPhoi()
+        public async Task<IActionResult> DieuPhoi(string? search, int? tuyenLuongId, string? thoiGian)
         {
             ViewBag.FullName = HttpContext.Session.GetString("HoTen");
+
+            // Parse thời gian — chỉ ngày (YYYY-MM-DD), chuẩn hóa sang cuối ngày
+            // để bao gồm các sự kiện xảy ra trong ngày được chọn.
+            DateTime? thoiDiem = null;
+            if (!string.IsNullOrWhiteSpace(thoiGian))
+            {
+                if (DateTime.TryParse(thoiGian, System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.None, out var parsed))
+                    thoiDiem = parsed.Date.AddHours(23).AddMinutes(59).AddSeconds(59);
+            }
+
+            var danhSach = await _phaoService.GetDanhSachDieuPhoiAsync(search, tuyenLuongId, thoiDiem);
+            var tuyenLuong = await _context.DmTuyenLuong
+                .AsNoTracking()
+                .Where(t => t.TrangThai == "Hoạt động")
+                .OrderBy(t => t.ThuTuHienThi)
+                .Select(t => new { t.Id, t.MaTuyen, t.TenTuyen })
+                .ToListAsync();
+
+            ViewBag.DanhSachPhao = danhSach;
+            ViewBag.DanhSachTuyenLuong = tuyenLuong;
+            ViewBag.SearchTerm = search;
+            ViewBag.SelectedTuyenLuongId = tuyenLuongId;
+            ViewBag.ThoiGian = thoiGian;  // pass-through cho JS pre-fill flatpickr
             return View();
         }
 
         /// <summary>
-        /// GET: /Phao/LichSu
+        /// POST: /Phao/DieuPhoi — thực hiện điều phối hàng loạt (AJAX JSON)
         /// </summary>
-        public IActionResult LichSu()
+        [HttpPost]
+        public async Task<IActionResult> DieuPhoi([FromBody] DieuPhoiRequestDto request)
+        {
+            if (request == null || request.Items == null || request.Items.Count == 0)
+                return Json(new { success = false, error = "Không có dữ liệu điều phối." });
+
+            // Fallback: nếu không chọn thời gian → lấy DateTime.Now
+            if (!request.NgayThucHien.HasValue)
+                request.NgayThucHien = DateTime.Now;
+
+            // Validate bắt buộc từng item
+            foreach (var item in request.Items)
+            {
+                if (string.IsNullOrWhiteSpace(item.LoaiTrangThai))
+                    return Json(new { success = false, error = $"Phao #{item.PhaoId}: chưa chọn loại trạng thái." });
+                if (string.IsNullOrWhiteSpace(item.GhiChu))
+                    return Json(new { success = false, error = $"Phao #{item.PhaoId}: chưa chọn ghi chú." });
+                // Nếu Trên luồng → bắt buộc tuyến + vị trí
+                if (item.LoaiTrangThai == TrangThaiHoatDongPhao.TrenLuong)
+                {
+                    if (!item.TuyenLuongId.HasValue)
+                        return Json(new { success = false, error = $"Phao #{item.PhaoId}: trạng thái 'Trên luồng' phải chọn tuyến luồng." });
+                    if (!item.ViTriPhaoBHId.HasValue)
+                        return Json(new { success = false, error = $"Phao #{item.PhaoId}: trạng thái 'Trên luồng' phải chọn vị trí phao BH." });
+                }
+            }
+
+            request.NguoiThucHien = HttpContext.Session.GetString("Username")
+                                  ?? HttpContext.Session.GetString("HoTen")
+                                  ?? "system";
+
+            var (success, error, count) = await _phaoService.DieuPhoiPhaoAsync(request);
+            return Json(new { success, error, count });
+        }
+
+        /// <summary>
+        /// GET: /Phao/DanhSachDieuPhoi — trả JSON danh sách phao cho bảng điều phối (AJAX)
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> DanhSachDieuPhoi(string? search, int? tuyenLuongId, string? thoiGian)
+        {
+            DateTime? thoiDiem = null;
+            if (!string.IsNullOrWhiteSpace(thoiGian))
+            {
+                if (DateTime.TryParse(thoiGian, System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.None, out var parsed))
+                    thoiDiem = parsed.Date.AddHours(23).AddMinutes(59).AddSeconds(59);
+            }
+
+            var danhSach = await _phaoService.GetDanhSachDieuPhoiAsync(search, tuyenLuongId, thoiDiem);
+            return Json(new { items = danhSach });
+        }
+
+        /// <summary>
+        /// GET: /Phao/LichSu — trang vòng đời phao (Flow Diagram)
+        /// </summary>
+        public async Task<IActionResult> LichSu()
         {
             ViewBag.FullName = HttpContext.Session.GetString("HoTen");
+
+            // Lấy danh sách tuyến luồng cho dropdown filter
+            var tuyenLuong = await _context.DmTuyenLuong
+                .AsNoTracking()
+                .Where(t => t.TrangThai == "Hoạt động")
+                .OrderBy(t => t.ThuTuHienThi)
+                .Select(t => new { t.Id, t.MaTuyen, t.TenTuyen })
+                .ToListAsync();
+
+            ViewBag.DanhSachTuyenLuong = tuyenLuong;
             return View();
+        }
+
+        /// <summary>
+        /// GET: /Phao/GetVongDoiJson?tuyenLuongId=X — dữ liệu vòng đời phao (JSON) cho flow diagram
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetVongDoiJson(int? tuyenLuongId)
+        {
+            var result = await _phaoService.GetVongDoiPhaoAsync(tuyenLuongId);
+            return Json(result);
         }
 
         /// <summary>
@@ -263,14 +387,16 @@ namespace LANHossting.Controllers
         }
 
         /// <summary>
-        /// GET: /Phao/CheckViTriTrung?viTriId=X&excludePhaoId=Y — kiểm tra vị trí đã có phao khác chưa
+        /// GET: /Phao/CheckViTriTrung?viTriId=X&excludePhaoId=Y — kiểm tra vị trí đã có phao khác đang "Trên luồng" chưa
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> CheckViTriTrung(int viTriId, int excludePhaoId)
         {
             var phaoTrung = await _context.Phao
                 .AsNoTracking()
-                .Where(p => p.ViTriPhaoBHHienTaiId == viTriId && p.Id != excludePhaoId)
+                .Where(p => p.ViTriPhaoBHHienTaiId == viTriId
+                         && p.Id != excludePhaoId
+                         && p.TrangThaiHienTai == TrangThaiHoatDongPhao.TrenLuong)
                 .Select(p => new { p.Id, p.MaPhaoDayDu, p.KyHieuTaiSan, p.TenPhao })
                 .FirstOrDefaultAsync();
 
@@ -303,10 +429,6 @@ namespace LANHossting.Controllers
                 ThoiDiemThayTha = ct.ThoiDiemThayTha,
                 ThoiDiemSuaChuaGanNhat = ct.ThoiDiemSuaChuaGanNhat,
                 TrangThaiHienTai = ct.TrangThaiHienTai,
-                TrangThaiHoatDong = ct.TrangThaiHoatDong
-                    ?? TrangThaiHoatDongPhao.ThuHoi,
-                TuyenLuongId = ct.TuyenLuongId,
-                ViTriPhaoBHHienTaiId = ct.ViTriPhaoBHHienTaiId,
                 XichPhao_DuongKinh = ct.XichPhao_DuongKinh,
                 XichPhao_ChieuDai = ct.XichPhao_ChieuDai,
                 XichPhao_ThoiDiemSuDung = ct.XichPhao_ThoiDiemSuDung,

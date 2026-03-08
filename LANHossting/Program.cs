@@ -35,6 +35,8 @@ builder.Services.AddScoped<ISystemLogService, SystemLogService>();
 builder.Services.AddScoped<LANHossting.Application.Interfaces.Buoy.IPhaoRepository, LANHossting.Infrastructure.Repositories.Buoy.PhaoRepository>();
 builder.Services.AddScoped<LANHossting.Application.Interfaces.Buoy.ITuyenLuongRepository, LANHossting.Infrastructure.Repositories.Buoy.TuyenLuongRepository>();
 builder.Services.AddScoped<LANHossting.Application.Interfaces.Buoy.IPhaoService, LANHossting.Application.Services.Buoy.PhaoService>();
+builder.Services.AddScoped<LANHossting.Application.Interfaces.Buoy.IAdminPhaoRepository, LANHossting.Infrastructure.Repositories.Buoy.AdminPhaoRepository>();
+builder.Services.AddScoped<LANHossting.Application.Interfaces.Buoy.IAdminPhaoService, LANHossting.Application.Services.Buoy.AdminPhaoService>();
 
 // ✅ THÊM 2: Cấu hình Session cho Authentication
 builder.Services.AddSession(options =>

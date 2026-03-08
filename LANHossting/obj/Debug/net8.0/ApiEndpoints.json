@@ -1,5 +1,176 @@
 [
   {
+    "ContainingType": "LANHossting.Controllers.AdminPhaoAPIController",
+    "Method": "DsDonVi",
+    "RelativePath": "api/admin-phao/don-vi",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminPhaoAPIController",
+    "Method": "SaveDonVi",
+    "RelativePath": "api/admin-phao/don-vi",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "LANHossting.Application.DTOs.Buoy.SaveDonViDto",
+        "IsRequired": true
+      },
+      {
+        "Name": "id",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminPhaoAPIController",
+    "Method": "ThongKe",
+    "RelativePath": "api/admin-phao/thong-ke",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminPhaoAPIController",
+    "Method": "DsTinhThanh",
+    "RelativePath": "api/admin-phao/tinh-thanh",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminPhaoAPIController",
+    "Method": "SaveTinhThanh",
+    "RelativePath": "api/admin-phao/tinh-thanh",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "LANHossting.Application.DTOs.Buoy.SaveTinhThanhPhoDto",
+        "IsRequired": true
+      },
+      {
+        "Name": "id",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminPhaoAPIController",
+    "Method": "DsTram",
+    "RelativePath": "api/admin-phao/tram",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminPhaoAPIController",
+    "Method": "SaveTram",
+    "RelativePath": "api/admin-phao/tram",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "LANHossting.Application.DTOs.Buoy.SaveTramQuanLyDto",
+        "IsRequired": true
+      },
+      {
+        "Name": "id",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminPhaoAPIController",
+    "Method": "DsTuyenLuong",
+    "RelativePath": "api/admin-phao/tuyen-luong",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminPhaoAPIController",
+    "Method": "SaveTuyenLuong",
+    "RelativePath": "api/admin-phao/tuyen-luong",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "LANHossting.Application.DTOs.Buoy.SaveTuyenLuongDto",
+        "IsRequired": true
+      },
+      {
+        "Name": "id",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminPhaoAPIController",
+    "Method": "DsViTri",
+    "RelativePath": "api/admin-phao/vi-tri",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "tuyenLuongId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminPhaoAPIController",
+    "Method": "SaveViTri",
+    "RelativePath": "api/admin-phao/vi-tri",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "LANHossting.Application.DTOs.Buoy.SaveViTriPhaoBHDto",
+        "IsRequired": true
+      },
+      {
+        "Name": "id",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "LANHossting.Controllers.AdminAPIController",
     "Method": "GetSystemLog",
     "RelativePath": "api/admin/systemlog",

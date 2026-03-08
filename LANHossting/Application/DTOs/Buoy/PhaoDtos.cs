@@ -149,15 +149,6 @@ namespace LANHossting.Application.DTOs.Buoy
         [System.ComponentModel.DataAnnotations.MaxLength(255)]
         public string? TrangThaiHienTai { get; set; }
 
-        /// <summary>Trạng thái hoạt động: Thu hồi | Cho thuê | Sửa chữa | Trên luồng | Mất dấu</summary>
-        [System.ComponentModel.DataAnnotations.MaxLength(50)]
-        public string? TrangThaiHoatDong { get; set; }
-
-        /// <summary>Tuyến luồng (chỉ khi TrangThaiHoatDong = Trên luồng)</summary>
-        public int? TuyenLuongId { get; set; }
-
-        public int? ViTriPhaoBHHienTaiId { get; set; }
-
         // Xích phao
         public decimal? XichPhao_DuongKinh { get; set; }
         public decimal? XichPhao_ChieuDai { get; set; }
@@ -198,9 +189,6 @@ namespace LANHossting.Application.DTOs.Buoy
         /// <summary>Người cập nhật (lấy từ Session)</summary>
         [System.ComponentModel.DataAnnotations.MaxLength(100)]
         public string? NguoiCapNhat { get; set; }
-
-        /// <summary>Ghi chú cho bản ghi lịch sử hoạt động (tùy chọn)</summary>
-        public string? GhiChuLichSu { get; set; }
     }
 
     /// <summary>
@@ -213,5 +201,125 @@ namespace LANHossting.Application.DTOs.Buoy
         public string TenTuyen { get; set; } = string.Empty;
         public int SoViTri { get; set; }
         public int SoPhaoTrenLuong { get; set; }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  ĐIỀU PHỐI PHAO — DTOs for Dispatch
+    // ══════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// DTO cho request điều phối 1 phao (từ form submit)
+    /// </summary>
+    public class DieuPhoiItemDto
+    {
+        public int PhaoId { get; set; }
+
+        /// <summary>Loại trạng thái: Trên luồng | Thu hồi | Cho thuê | Sửa chữa | Mất dấu</summary>
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Chưa chọn loại trạng thái")]
+        [System.ComponentModel.DataAnnotations.MaxLength(50)]
+        public string LoaiTrangThai { get; set; } = string.Empty;
+
+        /// <summary>Ghi chú nghiệp vụ — phải chọn từ danh sách</summary>
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Chưa chọn ghi chú")]
+        [System.ComponentModel.DataAnnotations.MaxLength(255)]
+        public string GhiChu { get; set; } = string.Empty;
+
+        /// <summary>Địa điểm (chỉ enable khi Thu hồi)</summary>
+        [System.ComponentModel.DataAnnotations.MaxLength(255)]
+        public string? DiaDiem { get; set; }
+
+        /// <summary>Tuyến luồng đích (khi chuyển vị trí / lên luồng)</summary>
+        public int? TuyenLuongId { get; set; }
+
+        /// <summary>Vị trí phao BH đích (khi chuyển vị trí / lên luồng)</summary>
+        public int? ViTriPhaoBHId { get; set; }
+    }
+
+    /// <summary>
+    /// DTO cho request điều phối hàng loạt
+    /// </summary>
+    public class DieuPhoiRequestDto
+    {
+        public List<DieuPhoiItemDto> Items { get; set; } = new();
+        public string? NguoiThucHien { get; set; }
+
+        /// <summary>Ngày/giờ thực hiện sự kiện — nếu không chọn, backend tự lấy DateTime.Now</summary>
+        public DateTime? NgayThucHien { get; set; }
+    }
+
+    /// <summary>
+    /// DTO hiển thị 1 phao trong bảng điều phối
+    /// </summary>
+    public class DieuPhoiPhaoRowDto
+    {
+        public int Id { get; set; }
+        public string MaPhaoDayDu { get; set; } = string.Empty;
+        public string? KyHieuTaiSan { get; set; }
+        public string? TenPhao { get; set; }
+        public string? TrangThaiHienTai { get; set; }
+        public string? ViTriHienTai { get; set; }
+        public string? TuyenLuong { get; set; }
+        public int? TuyenLuongId { get; set; }
+        public int? ViTriPhaoBHHienTaiId { get; set; }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  VÒNG ĐỜI PHAO — DTOs for Flow Diagram
+    // ══════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Một bước (step) trong vòng đời phao — khớp cấu trúc FE: { yr, pos, sl, type, note }
+    /// </summary>
+    public class VongDoiStepDto
+    {
+        /// <summary>Năm (INT)</summary>
+        public int Yr { get; set; }
+
+        /// <summary>Vị trí phao BH (e.g. "0"-QN)</summary>
+        public string Pos { get; set; } = string.Empty;
+
+        /// <summary>L = Trên luồng, R = Thu hồi về</summary>
+        public string Sl { get; set; } = "L";
+
+        /// <summary>Loại trạng thái FE: active, recalled, kho, incident, maintenance, transfer</summary>
+        public string Type { get; set; } = "active";
+
+        /// <summary>Ghi chú (tùy chọn)</summary>
+        public string? Note { get; set; }
+
+        /// <summary>Ngày bắt đầu (dd/MM/yyyy) — dùng để FE sắp xếp & hiển thị lịch sử trong modal</summary>
+        public string? Date { get; set; }
+    }
+
+    /// <summary>
+    /// Một phao với toàn bộ lịch sử vòng đời — khớp cấu trúc FE: { id, steps[] }
+    /// </summary>
+    public class VongDoiBuoyDto
+    {
+        /// <summary>Mã phao đầy đủ (e.g. T26.016.12)</summary>
+        public string Id { get; set; } = string.Empty;
+
+        /// <summary>Danh sách bước theo thời gian</summary>
+        public List<VongDoiStepDto> Steps { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Response trả về cho API vòng đời phao — gồm metadata + danh sách phao
+    /// </summary>
+    public class VongDoiResponseDto
+    {
+        /// <summary>Danh sách năm (trục X)</summary>
+        public List<int> Years { get; set; } = new();
+
+        /// <summary>Danh sách vị trí (trục Y, e.g. ["\"0\"-QN", ...])</summary>
+        public List<string> Positions { get; set; } = new();
+
+        /// <summary>Danh sách phao kèm lịch sử steps</summary>
+        public List<VongDoiBuoyDto> Buoys { get; set; } = new();
+
+        /// <summary>Tuyến luồng đang xem</summary>
+        public string? TuyenLuongTen { get; set; }
+
+        public string? TuyenLuongMa { get; set; }
     }
 }
