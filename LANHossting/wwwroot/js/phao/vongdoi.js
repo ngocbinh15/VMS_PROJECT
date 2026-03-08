@@ -60,6 +60,24 @@
         '#0e7490', '#92400e'
     ];
 
+    /* ── Note-based color mapping (màu theo Ghi chú) ──────── */
+    var NOTE_COLORS = {
+        'Từ bãi đưa xuống biển':                  { bg: '#dcfce7', text: '#166534', dot: '#22c55e' },
+        'Thu hồi đưa về bãi':                     { bg: '#fee2e2', text: '#dc2626', dot: '#ef4444' },
+        'Phao xin thanh lý':                      { bg: '#fef9c3', text: '#92400e', dot: '#f59e0b' },
+        'Không có trên biển':                      { bg: '#ffedd5', text: '#c2410c', dot: '#f97316' },
+        'Phao từ biển đưa về bãi':                 { bg: '#e0f2fe', text: '#0369a1', dot: '#0ea5e9' },
+        'Phao bị sự cố trôi không tìm được':      { bg: '#ede9fe', text: '#6d28d9', dot: '#8b5cf6' },
+        'Đổi vị trí trên luồng hoặc không đổi':   { bg: '#ccfbf1', text: '#115e59', dot: '#14b8a6' }
+    };
+
+    var NOTE_KHAC = { bg: '#f1f5f9', text: '#475569', dot: '#94a3b8' };
+
+    function getNoteStyle(note) {
+        if (!note || !note.trim()) return NOTE_KHAC;
+        return NOTE_COLORS[note.trim()] || NOTE_KHAC;
+    }
+
     /* ── Dynamic data (loaded from API) ───────────────────── */
     var YEARS = [];
     var POSITIONS = [];
@@ -227,7 +245,7 @@
                 var slotClass = c.sl === 'R' ? ' fd-td-r' : '';
                 html += '<td class="fd-td' + slotClass + '" id="fdc_' + pi + '_' + ci + '">';
                 entries.forEach(function (e) {
-                    var t = TYPES[e.step.type] || TYPES.active;
+                    var t = getNoteStyle(e.step.note);
                     var bc = BUOY_COLORS[e.bi % BUOY_COLORS.length];
                     var noteHtml = e.step.note ? '<span class="fd-node-note" title="' + escHtml(e.step.note) + '">' + escHtml(e.step.note) + '</span>' : '';
                     // draggable="false" ngăn trình duyệt kích hoạt HTML drag & drop mặc định trên node
@@ -290,8 +308,33 @@
             }
         }, 80);
 
+        buildLegend();
         gridBuilt = true;
         updateStatusBar();
+    }
+
+    /* ── Fixed legend (8 items only) ────────────────────── */
+    var LEGEND_ITEMS = [
+        'Từ bãi đưa xuống biển',
+        'Thu hồi đưa về bãi',
+        'Phao xin thanh lý',
+        'Không có trên biển',
+        'Phao từ biển đưa về bãi',
+        'Phao bị sự cố trôi không tìm được',
+        'Đổi vị trí trên luồng hoặc không đổi',
+        'Khác'
+    ];
+
+    function buildLegend() {
+        var el = document.getElementById('fdLegendRow');
+        if (!el) return;
+        var html = '';
+        LEGEND_ITEMS.forEach(function (label) {
+            var c = (label === 'Khác') ? NOTE_KHAC : NOTE_COLORS[label];
+            if (!c) return;
+            html += '<span class="fd-leg"><span class="fd-legdot" style="background:' + c.dot + ';"></span>' + escHtml(label) + '</span>';
+        });
+        el.innerHTML = html;
     }
 
     /* ── Helpers ────────────────────────────────────────────── */
@@ -617,7 +660,8 @@
         var bi      = parseInt(el.dataset.bi);
         var bc      = BUOY_COLORS[bi % BUOY_COLORS.length];
         var type    = el.dataset.type;
-        var t       = TYPES[type] || TYPES.active;
+        var tType   = TYPES[type] || TYPES.active;
+        var tNote   = getNoteStyle(el.dataset.note);
         var buoyId  = el.dataset.buoy;
         var yr      = parseInt(el.dataset.yr);
         var pos     = el.dataset.pos;
@@ -629,7 +673,7 @@
         document.getElementById('fdNodeYear').textContent  = yr;
         document.getElementById('fdNodeNote').textContent  = el.dataset.note || '(không có ghi chú)';
         var s = document.getElementById('fdNodeStatus');
-        s.textContent = t.label; s.style.background = t.bg; s.style.color = t.text;
+        s.textContent = tType.label; s.style.background = tNote.bg; s.style.color = tNote.text;
 
         // Build full event history for this (buoy, year, position)
         var histEl = document.getElementById('fdNodeHistory');
@@ -648,16 +692,17 @@
                 // Show most recent first
                 for (var i = events.length - 1; i >= 0; i--) {
                     var ev = events[i];
-                    var evT = TYPES[ev.type] || TYPES.active;
+                    var evType = TYPES[ev.type] || TYPES.active;
+                    var evNote = getNoteStyle(ev.note);
                     var dateStr = ev.date || '';
                     var isLatest = (i === events.length - 1);
                     html += '<div class="list-group-item px-0 py-1 border-0 d-flex align-items-center gap-2' +
                         (isLatest ? ' fw-bold' : ' text-muted') + '">';
                     html += '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' +
-                        evT.bg + ';border:1px solid ' + evT.text + ';"></span>';
+                        evNote.bg + ';border:1px solid ' + evNote.text + ';"></span>';
                     html += '<span>' + dateStr + '</span>';
                     html += '<span style="padding:1px 8px;border-radius:12px;font-size:.75rem;background:' +
-                        evT.bg + ';color:' + evT.text + ';">' + evT.label + '</span>';
+                        evNote.bg + ';color:' + evNote.text + ';">' + evType.label + '</span>';
                     if (ev.note) html += '<span class="text-secondary" style="font-size:.78rem;">' + escHtml(ev.note) + '</span>';
                     html += '</div>';
                 }
