@@ -12,6 +12,8 @@ namespace LANHossting.Application.Interfaces.Buoy
         Task<TinhThanhPhoDto?> GetTinhThanhByIdAsync(int id);
         Task<int> InsertTinhThanhAsync(SaveTinhThanhPhoDto dto, string? nguoiTao);
         Task UpdateTinhThanhAsync(int id, SaveTinhThanhPhoDto dto);
+        Task<bool> IsMaTinhExistsAsync(string maTinh, int? excludeId);
+        Task<bool> IsTenTinhExistsAsync(string tenTinh, int? excludeId);
 
         // ── DmDonVi ──
         Task<List<DonViDto>> GetAllDonViAsync();

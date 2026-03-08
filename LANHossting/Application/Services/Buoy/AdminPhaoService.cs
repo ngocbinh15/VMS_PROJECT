@@ -21,6 +21,10 @@ namespace LANHossting.Application.Services.Buoy
                 return (false, "Mã tỉnh không được để trống", 0);
             if (string.IsNullOrWhiteSpace(dto.TenTinh))
                 return (false, "Tên tỉnh không được để trống", 0);
+            if (await _repo.IsMaTinhExistsAsync(dto.MaTinh, id))
+                return (false, "Mã tỉnh/thành phố đã tồn tại.", 0);
+            if (await _repo.IsTenTinhExistsAsync(dto.TenTinh, id))
+                return (false, "Tên tỉnh/thành phố đã tồn tại.", 0);
 
             if (id.HasValue)
             {

@@ -44,11 +44,12 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
 
         public async Task<int> InsertTinhThanhAsync(SaveTinhThanhPhoDto dto, string? nguoiTao)
         {
+            var maxOrder = await _db.DmTinhThanhPho.MaxAsync(x => (int?)x.ThuTuHienThi) ?? 0;
             var entity = new Domain.Entities.Buoy.DmTinhThanhPho
             {
                 MaTinh = dto.MaTinh.Trim(),
                 TenTinh = dto.TenTinh.Trim(),
-                ThuTuHienThi = dto.ThuTuHienThi,
+                ThuTuHienThi = maxOrder + 1,
                 NguoiTao = nguoiTao,
                 NgayTao = DateTime.Now
             };
@@ -63,8 +64,22 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
                 ?? throw new KeyNotFoundException("Không tìm thấy tỉnh/thành phố");
             entity.MaTinh = dto.MaTinh.Trim();
             entity.TenTinh = dto.TenTinh.Trim();
-            entity.ThuTuHienThi = dto.ThuTuHienThi;
+            // ThuTuHienThi is preserved as-is on update
             await _db.SaveChangesAsync();
+        }
+
+        public async Task<bool> IsMaTinhExistsAsync(string maTinh, int? excludeId)
+        {
+            var normalized = maTinh.Trim();
+            return await _db.DmTinhThanhPho
+                .AnyAsync(x => x.MaTinh == normalized && (!excludeId.HasValue || x.Id != excludeId.Value));
+        }
+
+        public async Task<bool> IsTenTinhExistsAsync(string tenTinh, int? excludeId)
+        {
+            var normalized = tenTinh.Trim();
+            return await _db.DmTinhThanhPho
+                .AnyAsync(x => x.TenTinh == normalized && (!excludeId.HasValue || x.Id != excludeId.Value));
         }
 
         // ══════════════════════════════════════════
@@ -93,6 +108,7 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
 
         public async Task<int> InsertDonViAsync(SaveDonViDto dto, string? nguoiTao)
         {
+            var maxOrder = await _db.DmDonVi.MaxAsync(x => (int?)x.ThuTuHienThi) ?? 0;
             var entity = new Domain.Entities.Buoy.DmDonVi
             {
                 MaDonVi = dto.MaDonVi.Trim(),
@@ -100,7 +116,7 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
                 LoaiDonVi = dto.LoaiDonVi?.Trim(),
                 DiaChi = dto.DiaChi?.Trim(),
                 SoDienThoai = dto.SoDienThoai?.Trim(),
-                ThuTuHienThi = dto.ThuTuHienThi,
+                ThuTuHienThi = maxOrder + 1,
                 NguoiTao = nguoiTao,
                 NgayTao = DateTime.Now
             };
@@ -118,7 +134,6 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
             entity.LoaiDonVi = dto.LoaiDonVi?.Trim();
             entity.DiaChi = dto.DiaChi?.Trim();
             entity.SoDienThoai = dto.SoDienThoai?.Trim();
-            entity.ThuTuHienThi = dto.ThuTuHienThi;
             entity.NgayCapNhat = DateTime.Now;
             entity.NguoiCapNhat = nguoiCapNhat;
             await _db.SaveChangesAsync();
@@ -153,6 +168,7 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
 
         public async Task<int> InsertTramAsync(SaveTramQuanLyDto dto, string? nguoiTao)
         {
+            var maxOrder = await _db.DmTramQuanLy.MaxAsync(x => (int?)x.ThuTuHienThi) ?? 0;
             var entity = new Domain.Entities.Buoy.DmTramQuanLy
             {
                 MaTram = dto.MaTram.Trim(),
@@ -160,7 +176,7 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
                 DonViChuQuanId = dto.DonViChuQuanId,
                 DiaDiem = dto.DiaDiem?.Trim(),
                 SoDienThoai = dto.SoDienThoai?.Trim(),
-                ThuTuHienThi = dto.ThuTuHienThi,
+                ThuTuHienThi = maxOrder + 1,
                 NguoiTao = nguoiTao,
                 NgayTao = DateTime.Now
             };
@@ -178,7 +194,6 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
             entity.DonViChuQuanId = dto.DonViChuQuanId;
             entity.DiaDiem = dto.DiaDiem?.Trim();
             entity.SoDienThoai = dto.SoDienThoai?.Trim();
-            entity.ThuTuHienThi = dto.ThuTuHienThi;
             entity.NgayCapNhat = DateTime.Now;
             entity.NguoiCapNhat = nguoiCapNhat;
             await _db.SaveChangesAsync();
@@ -208,12 +223,13 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
 
         public async Task<int> InsertTuyenLuongAsync(SaveTuyenLuongDto dto, string? nguoiTao)
         {
+            var maxOrder = await _db.DmTuyenLuong.MaxAsync(x => (int?)x.ThuTuHienThi) ?? 0;
             var entity = new Domain.Entities.Buoy.DmTuyenLuong
             {
                 MaTuyen = dto.MaTuyen.Trim(),
                 TenTuyen = dto.TenTuyen.Trim(),
                 MoTa = dto.MoTa?.Trim(),
-                ThuTuHienThi = dto.ThuTuHienThi,
+                ThuTuHienThi = maxOrder + 1,
                 NguoiTao = nguoiTao,
                 NgayTao = DateTime.Now
             };
@@ -229,7 +245,6 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
             entity.MaTuyen = dto.MaTuyen.Trim();
             entity.TenTuyen = dto.TenTuyen.Trim();
             entity.MoTa = dto.MoTa?.Trim();
-            entity.ThuTuHienThi = dto.ThuTuHienThi;
             entity.NgayCapNhat = DateTime.Now;
             entity.NguoiCapNhat = nguoiCapNhat;
             await _db.SaveChangesAsync();
@@ -265,6 +280,7 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
 
         public async Task<int> InsertViTriAsync(SaveViTriPhaoBHDto dto, string? nguoiTao)
         {
+            var maxOrder = await _db.DmViTriPhaoBH.MaxAsync(x => (int?)x.ThuTuHienThi) ?? 0;
             var entity = new Domain.Entities.Buoy.DmViTriPhaoBH
             {
                 TuyenLuongId = dto.TuyenLuongId,
@@ -272,7 +288,7 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
                 MaPhaoBH = dto.MaPhaoBH.Trim(),
                 ToaDoThietKe = dto.ToaDoThietKe?.Trim(),
                 MoTa = dto.MoTa?.Trim(),
-                ThuTuHienThi = dto.ThuTuHienThi,
+                ThuTuHienThi = maxOrder + 1,
                 NguoiTao = nguoiTao,
                 NgayTao = DateTime.Now
             };
@@ -290,7 +306,6 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
             entity.MaPhaoBH = dto.MaPhaoBH.Trim();
             entity.ToaDoThietKe = dto.ToaDoThietKe?.Trim();
             entity.MoTa = dto.MoTa?.Trim();
-            entity.ThuTuHienThi = dto.ThuTuHienThi;
             await _db.SaveChangesAsync();
         }
     }

@@ -193,7 +193,7 @@ function editTinhThanh(id) {
 function saveTinhThanh() {
     showErr('ttError', '');
     var id = val('ttId');
-    var body = { maTinh: val('ttMaTinh'), tenTinh: val('ttTenTinh'), thuTuHienThi: intVal('ttThuTu') };
+    var body = { maTinh: val('ttMaTinh'), tenTinh: val('ttTenTinh') };
     var url = API + '/tinh-thanh' + (id ? '?id=' + id : '');
     fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
         .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
@@ -260,7 +260,7 @@ function editDonVi(id) {
     if (!x) return;
     setVal('dvId', x.id); setVal('dvMaDonVi', x.maDonVi); setVal('dvTenDonVi', x.tenDonVi);
     setVal('dvLoaiDonVi', x.loaiDonVi); setVal('dvDiaChi', x.diaChi);
-    setVal('dvSoDienThoai', x.soDienThoai); setVal('dvThuTu', x.thuTuHienThi);
+    setVal('dvSoDienThoai', x.soDienThoai);
     document.getElementById('modalDonViTitle').textContent = 'Chỉnh Sửa Đơn Vị';
     showErr('dvError', '');
     new bootstrap.Modal(document.getElementById('modalDonVi')).show();
@@ -272,7 +272,7 @@ function saveDonVi() {
     var body = {
         maDonVi: val('dvMaDonVi'), tenDonVi: val('dvTenDonVi'),
         loaiDonVi: val('dvLoaiDonVi') || null, diaChi: val('dvDiaChi') || null,
-        soDienThoai: val('dvSoDienThoai') || null, thuTuHienThi: intVal('dvThuTu')
+        soDienThoai: val('dvSoDienThoai') || null
     };
     var url = API + '/don-vi' + (id ? '?id=' + id : '');
     fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -330,7 +330,7 @@ function editTram(id) {
     populateDonViDropdown();
     setVal('tramId', x.id); setVal('tramMaTram', x.maTram); setVal('tramTenTram', x.tenTram);
     setVal('tramDonViId', x.donViChuQuanId || ''); setVal('tramDiaDiem', x.diaDiem);
-    setVal('tramSoDienThoai', x.soDienThoai); setVal('tramThuTu', x.thuTuHienThi);
+    setVal('tramSoDienThoai', x.soDienThoai);
     document.getElementById('modalTramTitle').textContent = 'Chỉnh Sửa Trạm Quản Lý';
     showErr('tramError', '');
     new bootstrap.Modal(document.getElementById('modalTram')).show();
@@ -343,7 +343,7 @@ function saveTram() {
     var body = {
         maTram: val('tramMaTram'), tenTram: val('tramTenTram'),
         donViChuQuanId: donViId, diaDiem: val('tramDiaDiem') || null,
-        soDienThoai: val('tramSoDienThoai') || null, thuTuHienThi: intVal('tramThuTu')
+        soDienThoai: val('tramSoDienThoai') || null
     };
     var url = API + '/tram' + (id ? '?id=' + id : '');
     fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -409,7 +409,7 @@ function editTuyenLuong(id) {
     var x = _data.tuyenLuong.find(function (d) { return d.id === id; });
     if (!x) return;
     setVal('tlId', x.id); setVal('tlMaTuyen', x.maTuyen); setVal('tlTenTuyen', x.tenTuyen);
-    setVal('tlMoTa', x.moTa); setVal('tlThuTu', x.thuTuHienThi);
+    setVal('tlMoTa', x.moTa);
     document.getElementById('modalTuyenLuongTitle').textContent = 'Chỉnh Sửa Tuyến Luồng';
     showErr('tlError', '');
     new bootstrap.Modal(document.getElementById('modalTuyenLuong')).show();
@@ -420,7 +420,7 @@ function saveTuyenLuong() {
     var id = val('tlId');
     var body = {
         maTuyen: val('tlMaTuyen'), tenTuyen: val('tlTenTuyen'),
-        moTa: val('tlMoTa') || null, thuTuHienThi: intVal('tlThuTu')
+        moTa: val('tlMoTa') || null
     };
     var url = API + '/tuyen-luong' + (id ? '?id=' + id : '');
     fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -490,7 +490,6 @@ function editViTri(id) {
     setVal('vtId', x.id); setVal('vtTuyenLuongId', x.tuyenLuongId);
     setVal('vtSoViTri', x.soViTri); setVal('vtMaPhaoBH', x.maPhaoBH);
     setVal('vtToaDo', x.toaDoThietKe); setVal('vtMoTa', x.moTa);
-    setVal('vtThuTu', x.thuTuHienThi);
     document.getElementById('modalViTriTitle').textContent = 'Chỉnh Sửa Vị Trí Phao BH';
     showErr('vtError', '');
     new bootstrap.Modal(document.getElementById('modalViTri')).show();
@@ -502,8 +501,7 @@ function saveViTri() {
     var body = {
         tuyenLuongId: intVal('vtTuyenLuongId') || 0,
         soViTri: val('vtSoViTri'), maPhaoBH: val('vtMaPhaoBH'),
-        toaDoThietKe: val('vtToaDo') || null, moTa: val('vtMoTa') || null,
-        thuTuHienThi: intVal('vtThuTu')
+        toaDoThietKe: val('vtToaDo') || null, moTa: val('vtMoTa') || null
     };
     var url = API + '/vi-tri' + (id ? '?id=' + id : '');
     fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -522,32 +520,32 @@ function saveViTri() {
 
 function openModal(type) {
     if (type === 'tinhThanh') {
-        setVal('ttId', ''); setVal('ttMaTinh', ''); setVal('ttTenTinh', ''); setVal('ttThuTu', '');
+        setVal('ttId', ''); setVal('ttMaTinh', ''); setVal('ttTenTinh', '');
         document.getElementById('modalTinhThanhTitle').textContent = 'Thêm Tỉnh / Thành Phố';
         showErr('ttError', '');
         new bootstrap.Modal(document.getElementById('modalTinhThanh')).show();
     } else if (type === 'donVi') {
         setVal('dvId', ''); setVal('dvMaDonVi', ''); setVal('dvTenDonVi', '');
-        setVal('dvLoaiDonVi', ''); setVal('dvDiaChi', ''); setVal('dvSoDienThoai', ''); setVal('dvThuTu', '');
+        setVal('dvLoaiDonVi', ''); setVal('dvDiaChi', ''); setVal('dvSoDienThoai', '');
         document.getElementById('modalDonViTitle').textContent = 'Thêm Đơn Vị';
         showErr('dvError', '');
         new bootstrap.Modal(document.getElementById('modalDonVi')).show();
     } else if (type === 'tram') {
         populateDonViDropdown();
         setVal('tramId', ''); setVal('tramMaTram', ''); setVal('tramTenTram', '');
-        setVal('tramDonViId', ''); setVal('tramDiaDiem', ''); setVal('tramSoDienThoai', ''); setVal('tramThuTu', '');
+        setVal('tramDonViId', ''); setVal('tramDiaDiem', ''); setVal('tramSoDienThoai', '');
         document.getElementById('modalTramTitle').textContent = 'Thêm Trạm Quản Lý';
         showErr('tramError', '');
         new bootstrap.Modal(document.getElementById('modalTram')).show();
     } else if (type === 'tuyenLuong') {
-        setVal('tlId', ''); setVal('tlMaTuyen', ''); setVal('tlTenTuyen', ''); setVal('tlMoTa', ''); setVal('tlThuTu', '');
+        setVal('tlId', ''); setVal('tlMaTuyen', ''); setVal('tlTenTuyen', ''); setVal('tlMoTa', '');
         document.getElementById('modalTuyenLuongTitle').textContent = 'Thêm Tuyến Luồng';
         showErr('tlError', '');
         new bootstrap.Modal(document.getElementById('modalTuyenLuong')).show();
     } else if (type === 'viTri') {
         populateTuyenDropdowns();
         setVal('vtId', ''); setVal('vtSoViTri', ''); setVal('vtMaPhaoBH', '');
-        setVal('vtToaDo', ''); setVal('vtMoTa', ''); setVal('vtThuTu', '');
+        setVal('vtToaDo', ''); setVal('vtMoTa', '');
         var filterVal = val('viTriTuyenFilter');
         setVal('vtTuyenLuongId', filterVal);
         document.getElementById('modalViTriTitle').textContent = 'Thêm Vị Trí Phao BH';

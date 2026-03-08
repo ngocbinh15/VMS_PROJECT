@@ -24,7 +24,7 @@
 <aside class="ap-sidebar">
     <nav class="ap-sidebar-nav">
         <a class="ap-nav-item active" data-section="secOverview" href="#">
-            <i class="bi bi-grid-1x2"></i><span>Tổng Quan</span>
+            <i class="bi bi-speedometer2"></i><span>Tổng Quan</span>
         </a>
         <div class="ap-nav-divider">Danh mục</div>
         <a class="ap-nav-item" data-section="secTinhThanh" href="#">
@@ -354,19 +354,17 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="ttId">
-                <div class="mb-3">
-                    <label class="form-label">Mã Tỉnh <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="ttMaTinh" maxlength="10" placeholder="Nhập mã tỉnh">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Mã Tỉnh <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="ttMaTinh" maxlength="10" placeholder="Nhập mã tỉnh">
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">Tên Tỉnh / Thành Phố <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="ttTenTinh" maxlength="255" placeholder="Nhập tên tỉnh / thành phố">
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Tên Tỉnh / Thành Phố <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="ttTenTinh" maxlength="255" placeholder="Nhập tên tỉnh / thành phố">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Thứ Tự Hiển Thị</label>
-                    <input type="number" class="form-control" id="ttThuTu" placeholder="0">
-                </div>
-                <div id="ttError" class="text-danger small" style="display:none"></div>
+                <div id="ttError" class="text-danger small mt-2" style="display:none"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
@@ -405,13 +403,9 @@
                         <label class="form-label">Số Điện Thoại</label>
                         <input type="text" class="form-control" id="dvSoDienThoai" maxlength="50" placeholder="Nhập SĐT">
                     </div>
-                    <div class="col-md-9">
+                    <div class="col-12">
                         <label class="form-label">Địa Chỉ</label>
                         <input type="text" class="form-control" id="dvDiaChi" maxlength="500" placeholder="Nhập địa chỉ">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Thứ Tự</label>
-                        <input type="number" class="form-control" id="dvThuTu" placeholder="0">
                     </div>
                 </div>
                 <div id="dvError" class="text-danger small mt-2" style="display:none"></div>
@@ -455,13 +449,9 @@
                         <label class="form-label">Số Điện Thoại</label>
                         <input type="text" class="form-control" id="tramSoDienThoai" maxlength="50" placeholder="Nhập SĐT">
                     </div>
-                    <div class="col-md-9">
+                    <div class="col-12">
                         <label class="form-label">Địa Điểm</label>
                         <input type="text" class="form-control" id="tramDiaDiem" maxlength="255" placeholder="Nhập địa điểm">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Thứ Tự</label>
-                        <input type="number" class="form-control" id="tramThuTu" placeholder="0">
                     </div>
                 </div>
                 <div id="tramError" class="text-danger small mt-2" style="display:none"></div>
@@ -486,23 +476,21 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="tlId">
-                <div class="mb-3">
-                    <label class="form-label">Mã Tuyến <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="tlMaTuyen" maxlength="50" placeholder="Nhập mã tuyến">
+                <div class="row g-3">
+                    <div class="col-md-5">
+                        <label class="form-label">Mã Tuyến <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="tlMaTuyen" maxlength="50" placeholder="Nhập mã tuyến">
+                    </div>
+                    <div class="col-md-7">
+                        <label class="form-label">Tên Tuyến <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="tlTenTuyen" maxlength="255" placeholder="Nhập tên tuyến luồng">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Mô Tả</label>
+                        <textarea class="form-control" id="tlMoTa" rows="2" placeholder="Nhập mô tả (tuỳ chọn)"></textarea>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Tên Tuyến <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="tlTenTuyen" maxlength="255" placeholder="Nhập tên tuyến luồng">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Mô Tả</label>
-                    <textarea class="form-control" id="tlMoTa" rows="2" placeholder="Nhập mô tả (tuỳ chọn)"></textarea>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Thứ Tự Hiển Thị</label>
-                    <input type="number" class="form-control" id="tlThuTu" placeholder="0">
-                </div>
-                <div id="tlError" class="text-danger small" style="display:none"></div>
+                <div id="tlError" class="text-danger small mt-2" style="display:none"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
@@ -543,14 +531,9 @@
                         <label class="form-label">Tọa Độ Thiết Kế</label>
                         <input type="text" class="form-control" id="vtToaDo" maxlength="100" placeholder="Nhập toạ độ">
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Thứ Tự</label>
-                        <input type="number" class="form-control" id="vtThuTu" placeholder="0">
-                    </div>
-                    <div class="col-md-3"></div>
-                    <div class="col-12">
+                    <div class="col-md-6">
                         <label class="form-label">Mô Tả</label>
-                        <textarea class="form-control" id="vtMoTa" rows="2" placeholder="Nhập mô tả (tuỳ chọn)"></textarea>
+                        <input type="text" class="form-control" id="vtMoTa" maxlength="500" placeholder="Nhập mô tả (tuỳ chọn)">
                     </div>
                 </div>
                 <div id="vtError" class="text-danger small mt-2" style="display:none"></div>
