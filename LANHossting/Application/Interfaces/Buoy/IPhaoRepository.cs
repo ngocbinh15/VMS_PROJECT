@@ -73,10 +73,10 @@ namespace LANHossting.Application.Interfaces.Buoy
         Task<DmViTriPhaoBH?> GetViTriByIdAsync(int id);
 
         /// <summary>
-        /// Lấy toàn bộ LichSuHoatDongPhao theo tuyến luồng (hoặc tất cả nếu null)
+        /// Lấy toàn bộ LichSuHoatDongPhao theo danh sách tuyến luồng (hoặc tất cả nếu null/rỗng)
         /// Kèm navigation ViTriPhaoBH → TuyenLuong và Phao
         /// </summary>
-        Task<List<LichSuHoatDongPhao>> GetLichSuHoatDongByTuyenAsync(int? tuyenLuongId);
+        Task<List<LichSuHoatDongPhao>> GetLichSuHoatDongByTuyenAsync(List<int>? tuyenLuongIds);
 
         /// <summary>
         /// Kiểm tra vị trí đã có phao khác tại thời điểm cụ thể chưa (trừ phao hiện tại).

@@ -134,10 +134,12 @@
     function getPosIdx(pos) { return POSITIONS.indexOf(pos); }
 
     /* ── Fetch data from API ──────────────────────────────── */
-    function fetchVongDoiData(tuyenLuongId, callback) {
+    function fetchVongDoiData(tuyenLuongIds, callback) {
         isLoading = true;
         var url = '/Phao/GetVongDoiJson';
-        if (tuyenLuongId) url += '?tuyenLuongId=' + tuyenLuongId;
+        if (tuyenLuongIds && tuyenLuongIds.length > 0) {
+            url += '?' + tuyenLuongIds.map(function (id) { return 'tuyenLuongIds=' + id; }).join('&');
+        }
 
         fetch(url)
             .then(function (res) { return res.json(); })
@@ -861,34 +863,188 @@
         });
     }
 
-    /* ── Tuyến luồng selector ──────────────────────────────── */
+    /* ── Tuyến luồng multi-select ─────────────────────────── */
+    function getSelectedTuyenIds() {
+        var ids = [];
+        document.querySelectorAll('.fd-tuyen-cb:checked').forEach(function (cb) {
+            ids.push(cb.value);
+        });
+        return ids;
+    }
+
+    function updateMultiLabel() {
+        var label = document.getElementById('fdMultiLabel');
+        var badge = document.getElementById('fdMultiBadge');
+        var countEl = document.getElementById('fdMultiCount');
+        if (!label) return;
+
+        var cbs = document.querySelectorAll('.fd-tuyen-cb');
+        var checked = document.querySelectorAll('.fd-tuyen-cb:checked');
+        var n = checked.length;
+        var total = cbs.length;
+
+        // Update label text
+        if (n === 0) {
+            label.textContent = '-- Chọn tuyến --';
+            label.style.color = '#94a3b8';
+        } else if (n === total) {
+            label.textContent = 'Tất cả tuyến';
+            label.style.color = '#334155';
+        } else if (n === 1) {
+            var span = checked[0].parentElement.querySelector('span');
+            label.textContent = span ? span.textContent.trim() : '1 tuyến';
+            label.style.color = '#334155';
+        } else {
+            label.textContent = n + ' tuyến đã chọn';
+            label.style.color = '#334155';
+        }
+
+        // Badge
+        if (badge) {
+            if (n > 0) {
+                badge.textContent = n;
+                badge.style.display = '';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        // Footer count
+        if (countEl) {
+            countEl.textContent = n + ' / ' + total + ' tuyến đã chọn';
+        }
+
+        // Sync "Chọn tất cả"
+        var checkAll = document.getElementById('fdCheckAll');
+        if (checkAll) {
+            checkAll.checked = n === total && total > 0;
+            checkAll.indeterminate = n > 0 && n < total;
+        }
+
+        // Update checked class on items
+        cbs.forEach(function (cb) {
+            var item = cb.closest('.fd-multi-item');
+            if (item) {
+                if (cb.checked) item.classList.add('checked');
+                else item.classList.remove('checked');
+            }
+        });
+    }
+
+    function reloadVongDoiData() {
+        var ids = getSelectedTuyenIds();
+        gridBuilt = false;
+        scale = 1;
+        highlightBuoyId = null;
+        selectedNodeId  = null;
+        hoveredNodeId   = null;
+        if (nodeClickTimer) { clearTimeout(nodeClickTimer); nodeClickTimer = null; }
+        nodeMap = {};
+        filterQuery = '';
+        var fInp = document.getElementById('fdFilterInput');
+        if (fInp) fInp.value = '';
+        var vp = document.getElementById('fdViewport');
+        if (vp) { vp.scrollLeft = 0; vp.scrollTop = 0; }
+
+        var grid = document.getElementById('fdGrid');
+        if (grid) grid.innerHTML = '<div class="fd-loading"><i class="bi bi-hourglass-split me-2"></i> Đang tải dữ liệu...</div>';
+
+        fetchVongDoiData(ids, function () {
+            buildGrid();
+            applyTransform();
+        });
+    }
+
+    var _reloadTimer = null;
+    function scheduleReload() {
+        if (_reloadTimer) clearTimeout(_reloadTimer);
+        _reloadTimer = setTimeout(reloadVongDoiData, 350);
+    }
+
     function setupTuyenLuongSelector() {
-        var sel = document.getElementById('fdTuyenLuongSelect');
-        if (!sel) return;
-        sel.addEventListener('change', function () {
-            var tuyenId = sel.value || null;
-            gridBuilt = false;
-            // Reset zoom, scroll & interaction state
-            scale = 1;
-            highlightBuoyId = null;
-            selectedNodeId  = null;
-            hoveredNodeId   = null;
-            if (nodeClickTimer) { clearTimeout(nodeClickTimer); nodeClickTimer = null; }
-            nodeMap = {};
-            filterQuery = '';
-            var fInp = document.getElementById('fdFilterInput');
-            if (fInp) fInp.value = '';
-            var vp = document.getElementById('fdViewport');
-            if (vp) { vp.scrollLeft = 0; vp.scrollTop = 0; }
+        var wrapper = document.getElementById('fdTuyenMultiSelect');
+        var toggle = document.getElementById('fdMultiToggle');
+        var checkAll = document.getElementById('fdCheckAll');
+        var searchInput = document.getElementById('fdTuyenSearch');
+        var clearBtn = document.getElementById('fdMultiClear');
+        var emptyMsg = document.getElementById('fdMultiEmpty');
+        if (!wrapper || !toggle) return;
 
-            var grid = document.getElementById('fdGrid');
-            if (grid) grid.innerHTML = '<div class="fd-loading"><i class="bi bi-hourglass-split me-2"></i> Đang tải dữ liệu...</div>';
+        // Toggle dropdown
+        toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            wrapper.classList.toggle('open');
+            if (wrapper.classList.contains('open') && searchInput) {
+                setTimeout(function () { searchInput.focus(); }, 50);
+            }
+        });
 
-            fetchVongDoiData(tuyenId, function () {
-                buildGrid();
-                applyTransform();
+        // Close on outside click
+        document.addEventListener('click', function (e) {
+            if (!wrapper.contains(e.target)) {
+                wrapper.classList.remove('open');
+            }
+        });
+
+        // Close on Escape
+        wrapper.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') wrapper.classList.remove('open');
+        });
+
+        // Search filter
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                var q = searchInput.value.trim().toLowerCase();
+                var items = document.querySelectorAll('#fdMultiList .fd-multi-item');
+                var visibleCount = 0;
+                items.forEach(function (item) {
+                    var name = (item.getAttribute('data-name') || '').toLowerCase();
+                    var match = !q || name.indexOf(q) >= 0;
+                    if (match) {
+                        item.classList.remove('hidden');
+                        visibleCount++;
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+                if (emptyMsg) {
+                    emptyMsg.style.display = visibleCount === 0 ? '' : 'none';
+                }
+            });
+
+            // Prevent dropdown from closing when clicking search
+            searchInput.addEventListener('click', function (e) { e.stopPropagation(); });
+        }
+
+        // "Chọn tất cả"
+        if (checkAll) {
+            checkAll.addEventListener('change', function () {
+                // Only affect visible (non-hidden) checkboxes
+                var cbs = document.querySelectorAll('#fdMultiList .fd-multi-item:not(.hidden) .fd-tuyen-cb');
+                cbs.forEach(function (cb) { cb.checked = checkAll.checked; });
+                updateMultiLabel();
+                scheduleReload();
+            });
+        }
+
+        // Individual checkboxes
+        document.querySelectorAll('.fd-tuyen-cb').forEach(function (cb) {
+            cb.addEventListener('change', function () {
+                updateMultiLabel();
+                scheduleReload();
             });
         });
+
+        // Clear button
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                document.querySelectorAll('.fd-tuyen-cb').forEach(function (cb) { cb.checked = false; });
+                if (checkAll) checkAll.checked = false;
+                updateMultiLabel();
+                scheduleReload();
+            });
+        }
     }
 
     /* ── Window resize ─────────────────────────────────────── */
@@ -921,14 +1077,15 @@
         setupResize();
 
         // Auto-select first tuyến luồng if available, otherwise load all
-        var sel = document.getElementById('fdTuyenLuongSelect');
-        var initialTuyenId = null;
-        if (sel && sel.options.length > 1) {
-            sel.selectedIndex = 1;
-            initialTuyenId = sel.value;
+        var firstCb = document.querySelector('.fd-tuyen-cb');
+        var initialIds = null;
+        if (firstCb) {
+            firstCb.checked = true;
+            updateMultiLabel();
+            initialIds = [firstCb.value];
         }
 
-        fetchVongDoiData(initialTuyenId, function () {
+        fetchVongDoiData(initialIds, function () {
             buildGrid();
             setupZoomPan();
             setupFilter();

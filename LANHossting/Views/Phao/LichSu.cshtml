@@ -31,13 +31,35 @@
         <div class="d-flex align-items-center gap-3 flex-wrap">
             <div>
                 <div class="fd-label">TUYẾN LUỒNG</div>
-                <select id="fdTuyenLuongSelect" class="fd-sel">
-                    <option value="">-- Tất cả tuyến --</option>
-                    @foreach (var tl in dsTuyenLuong)
-                    {
-                        <option value="@tl.Id">@tl.TenTuyen (@tl.MaTuyen)</option>
-                    }
-                </select>
+                <div id="fdTuyenMultiSelect" class="fd-multi-select">
+                    <div class="fd-multi-toggle" id="fdMultiToggle">
+                        <span id="fdMultiLabel">-- Chọn tuyến --</span>
+                        <span id="fdMultiBadge" class="fd-multi-badge" style="display:none;">0</span>
+                        <i class="bi bi-chevron-down fd-multi-caret"></i>
+                    </div>
+                    <div class="fd-multi-dropdown" id="fdMultiDropdown">
+                        <div class="fd-multi-search-wrap">
+                            <input type="text" id="fdTuyenSearch" class="fd-multi-search" placeholder="Tìm tuyến luồng…" autocomplete="off" />
+                        </div>
+                        <label class="fd-multi-item fd-multi-all">
+                            <input type="checkbox" id="fdCheckAll" /> <span>Chọn tất cả</span>
+                        </label>
+                        <div class="fd-multi-list" id="fdMultiList">
+                            @foreach (var tl in dsTuyenLuong)
+                            {
+                                <label class="fd-multi-item" data-name="@tl.TenTuyen (@tl.MaTuyen)">
+                                    <input type="checkbox" class="fd-tuyen-cb" value="@tl.Id" />
+                                    <span>@tl.TenTuyen (@tl.MaTuyen)</span>
+                                </label>
+                            }
+                            <div class="fd-multi-empty" id="fdMultiEmpty" style="display:none;">Không tìm thấy tuyến luồng</div>
+                        </div>
+                        <div class="fd-multi-footer">
+                            <span id="fdMultiCount">0 tuyến đã chọn</span>
+                            <button type="button" class="fd-multi-clear" id="fdMultiClear">Bỏ chọn tất cả</button>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div>
                 <div class="fd-label">LỌC THEO PHAO</div>

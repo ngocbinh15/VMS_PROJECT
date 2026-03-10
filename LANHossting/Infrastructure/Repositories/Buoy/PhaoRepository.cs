@@ -142,7 +142,7 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
                 .FirstOrDefaultAsync(v => v.Id == id);
         }
 
-        public async Task<List<LichSuHoatDongPhao>> GetLichSuHoatDongByTuyenAsync(int? tuyenLuongId)
+        public async Task<List<LichSuHoatDongPhao>> GetLichSuHoatDongByTuyenAsync(List<int>? tuyenLuongIds)
         {
             var query = _context.Set<LichSuHoatDongPhao>()
                 .Include(ls => ls.Phao)
@@ -150,22 +150,22 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
                     .ThenInclude(v => v!.TuyenLuong)
                 .AsNoTracking();
 
-            if (tuyenLuongId.HasValue)
+            if (tuyenLuongIds != null && tuyenLuongIds.Count > 0)
             {
-                // Lấy danh sách PhaoId đã từng hoạt động trên tuyến luồng này
+                // Lấy danh sách PhaoId đã từng hoạt động trên các tuyến luồng đã chọn
                 var phaoIdsInTuyen = await _context.Set<LichSuHoatDongPhao>()
                     .AsNoTracking()
                     .Where(ls => ls.ViTriPhaoBH != null
-                              && ls.ViTriPhaoBH.TuyenLuongId == tuyenLuongId.Value)
+                              && tuyenLuongIds.Contains(ls.ViTriPhaoBH.TuyenLuongId))
                     .Select(ls => ls.PhaoId)
                     .Distinct()
                     .ToListAsync();
 
-                // Chỉ lấy bản ghi có vị trí thuộc tuyến đã chọn,
-                // hoặc bản ghi không có vị trí (Thu hồi, Trên bãi...) của phao thuộc tuyến đó
+                // Chỉ lấy bản ghi có vị trí thuộc các tuyến đã chọn,
+                // hoặc bản ghi không có vị trí (Thu hồi, Trên bãi...) của phao thuộc các tuyến đó
                 query = query.Where(ls => phaoIdsInTuyen.Contains(ls.PhaoId)
                     && (ls.ViTriPhaoBHId == null
-                        || (ls.ViTriPhaoBH != null && ls.ViTriPhaoBH.TuyenLuongId == tuyenLuongId.Value)));
+                        || (ls.ViTriPhaoBH != null && tuyenLuongIds.Contains(ls.ViTriPhaoBH.TuyenLuongId))));
             }
 
             return await query

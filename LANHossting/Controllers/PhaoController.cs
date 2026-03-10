@@ -313,12 +313,13 @@ namespace LANHossting.Controllers
         }
 
         /// <summary>
-        /// GET: /Phao/GetVongDoiJson?tuyenLuongId=X — dữ liệu vòng đời phao (JSON) cho flow diagram
+        /// GET: /Phao/GetVongDoiJson?tuyenLuongIds=1&amp;tuyenLuongIds=2 — dữ liệu vòng đời phao (JSON) cho flow diagram
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> GetVongDoiJson(int? tuyenLuongId)
+        public async Task<IActionResult> GetVongDoiJson([FromQuery] List<int>? tuyenLuongIds)
         {
-            var result = await _phaoService.GetVongDoiPhaoAsync(tuyenLuongId);
+            var ids = (tuyenLuongIds != null && tuyenLuongIds.Count > 0) ? tuyenLuongIds : null;
+            var result = await _phaoService.GetVongDoiPhaoAsync(ids);
             return Json(result);
         }
 

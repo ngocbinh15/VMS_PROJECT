@@ -563,17 +563,17 @@ namespace LANHossting.Application.Services.Buoy
             }
         }
 
-        public async Task<VongDoiResponseDto> GetVongDoiPhaoAsync(int? tuyenLuongId)
+        public async Task<VongDoiResponseDto> GetVongDoiPhaoAsync(List<int>? tuyenLuongIds)
         {
-            var records = await _phaoRepo.GetLichSuHoatDongByTuyenAsync(tuyenLuongId);
+            var records = await _phaoRepo.GetLichSuHoatDongByTuyenAsync(tuyenLuongIds);
 
             // Lấy thông tin tuyến luồng
             string? tuyenTen = null;
             string? tuyenMa = null;
-            if (tuyenLuongId.HasValue)
+            if (tuyenLuongIds != null && tuyenLuongIds.Count == 1)
             {
                 var tuyenList = await _tuyenLuongRepo.GetAllActiveAsync();
-                var tuyen = tuyenList.FirstOrDefault(t => t.Id == tuyenLuongId.Value);
+                var tuyen = tuyenList.FirstOrDefault(t => t.Id == tuyenLuongIds[0]);
                 tuyenTen = tuyen?.TenTuyen;
                 tuyenMa = tuyen?.MaTuyen;
             }
