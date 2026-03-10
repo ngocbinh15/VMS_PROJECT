@@ -153,7 +153,6 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
             if (tuyenLuongId.HasValue)
             {
                 // Lấy danh sách PhaoId đã từng hoạt động trên tuyến luồng này
-                // (dựa vào các bản ghi có ViTriPhaoBH thuộc tuyến đó)
                 var phaoIdsInTuyen = await _context.Set<LichSuHoatDongPhao>()
                     .AsNoTracking()
                     .Where(ls => ls.ViTriPhaoBH != null
@@ -162,8 +161,11 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
                     .Distinct()
                     .ToListAsync();
 
-                // Lấy TOÀN BỘ lịch sử của các phao đó (bao gồm cả Thu hồi, Trên bãi...)
-                query = query.Where(ls => phaoIdsInTuyen.Contains(ls.PhaoId));
+                // Chỉ lấy bản ghi có vị trí thuộc tuyến đã chọn,
+                // hoặc bản ghi không có vị trí (Thu hồi, Trên bãi...) của phao thuộc tuyến đó
+                query = query.Where(ls => phaoIdsInTuyen.Contains(ls.PhaoId)
+                    && (ls.ViTriPhaoBHId == null
+                        || (ls.ViTriPhaoBH != null && ls.ViTriPhaoBH.TuyenLuongId == tuyenLuongId.Value)));
             }
 
             return await query
@@ -174,15 +176,69 @@ namespace LANHossting.Infrastructure.Repositories.Buoy
         }
 
         /// <inheritdoc />
-        public async Task<string?> CheckViTriTrungAsync(int viTriId, int excludePhaoId)
+        public async Task<string?> CheckViTriTrungAsync(int viTriId, int excludePhaoId, DateTime ngaySuKien)
         {
-            return await _context.Set<Phao>()
-                .AsNoTracking()
-                .Where(p => p.ViTriPhaoBHHienTaiId == viTriId
-                         && p.Id != excludePhaoId
-                         && p.TrangThaiHienTai == Domain.Enums.TrangThaiHoatDongPhao.TrenLuong)
-                .Select(p => p.MaPhaoDayDu)
-                .FirstOrDefaultAsync();
+            // Kiểm tra overlap theo khoảng thời gian thực tế:
+            // - Mỗi bản ghi có NgayBatDau (start) và effective end = NgayKetThuc nếu có,
+            //   nếu không thì lấy NgayBatDau của bản ghi tiếp theo của cùng phao (phao đã rời vị trí),
+            //   nếu không có bản ghi tiếp theo thì phao vẫn đang ở vị trí đó (end = null → vô hạn).
+            var allRecords = _context.Set<Domain.Entities.Buoy.LichSuHoatDongPhao>().AsNoTracking();
+
+            // Lấy các bản ghi tại vị trí này của phao khác
+            var candidateRecords = await allRecords
+                .Where(ls => ls.ViTriPhaoBHId == viTriId && ls.PhaoId != excludePhaoId)
+                .OrderBy(ls => ls.NgayBatDau)
+                .ToListAsync();
+
+            if (!candidateRecords.Any()) return null;
+
+            // Lấy tất cả bản ghi của các phao liên quan để tính effective end
+            var phaoIds = candidateRecords.Select(r => r.PhaoId).Distinct().ToList();
+            var allRecordsOfPhaos = await allRecords
+                .Where(ls => phaoIds.Contains(ls.PhaoId))
+                .OrderBy(ls => ls.PhaoId)
+                .ThenBy(ls => ls.NgayBatDau)
+                .ToListAsync();
+
+            // Tính effective end cho từng bản ghi candidate
+            foreach (var record in candidateRecords)
+            {
+                // Effective end = NgayKetThuc nếu đã set
+                DateTime? effectiveEnd = record.NgayKetThuc;
+
+                if (effectiveEnd == null)
+                {
+                    // Tìm bản ghi tiếp theo của cùng phao (theo NgayBatDau)
+                    var nextRecord = allRecordsOfPhaos
+                        .Where(r => r.PhaoId == record.PhaoId && r.NgayBatDau > record.NgayBatDau)
+                        .OrderBy(r => r.NgayBatDau)
+                        .FirstOrDefault();
+
+                    if (nextRecord != null)
+                    {
+                        // Phao đã rời vị trí này → effective end = ngày bắt đầu bản ghi tiếp theo
+                        effectiveEnd = nextRecord.NgayBatDau;
+                    }
+                    // Nếu không có bản ghi tiếp theo → effectiveEnd = null → phao vẫn ở đây
+                }
+
+                // Overlap check: [record.NgayBatDau, effectiveEnd) ∩ [ngaySuKien, ∞)
+                // Overlap xảy ra khi: record.NgayBatDau < ∞ (luôn đúng) AND (effectiveEnd > ngaySuKien OR effectiveEnd == null)
+                bool hasOverlap = effectiveEnd == null || effectiveEnd > ngaySuKien;
+
+                if (hasOverlap)
+                {
+                    // Tìm tên phao để hiển thị lỗi
+                    var phao = await _context.Set<Domain.Entities.Buoy.Phao>()
+                        .AsNoTracking()
+                        .Where(p => p.Id == record.PhaoId)
+                        .Select(p => p.MaPhaoDayDu)
+                        .FirstOrDefaultAsync();
+                    return phao;
+                }
+            }
+
+            return null;
         }
 
         /// <inheritdoc />

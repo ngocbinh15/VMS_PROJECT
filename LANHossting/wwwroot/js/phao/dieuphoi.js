@@ -223,9 +223,11 @@
     function checkDuplicatePosition(viTriId, excludePhaoId, ddlViTri, warnDiv) {
         if (!DP_CONFIG.urls.checkViTriTrung) return;
 
+        var ngay = getSelectedDate(); // 'YYYY-MM-DD' or ''
         var url = DP_CONFIG.urls.checkViTriTrung
             + '?viTriId=' + viTriId
-            + '&excludePhaoId=' + excludePhaoId;
+            + '&excludePhaoId=' + excludePhaoId
+            + (ngay ? '&ngay=' + encodeURIComponent(ngay) : '');
 
         fetch(url)
             .then(function (r) { return r.json(); })
@@ -234,10 +236,10 @@
                     if (ddlViTri) ddlViTri.classList.add('dp-warn-border');
                     if (warnDiv) {
                         warnDiv.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> '
-                            + 'Vị trí đã có phao <strong>' + escapeHtml(data.maPhao || data.tenPhao || '') + '</strong> đang hoạt động!';
+                            + 'Vị trí đã có phao <strong>' + escapeHtml(data.maPhao || data.tenPhao || '') + '</strong> trong khoảng thời gian đã chọn!';
                         warnDiv.style.display = 'block';
                     }
-                    showToast('Vị trí này đã có phao "' + (data.maPhao || data.tenPhao || '') + '" đang trên luồng!', 'warning');
+                    showToast('Vị trí này đã có phao "' + (data.maPhao || data.tenPhao || '') + '" trong khoảng thời gian đã chọn!', 'warning');
                 }
             })
             .catch(function () {

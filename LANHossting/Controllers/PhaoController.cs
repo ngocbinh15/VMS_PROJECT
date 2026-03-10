@@ -387,23 +387,61 @@ namespace LANHossting.Controllers
         }
 
         /// <summary>
-        /// GET: /Phao/CheckViTriTrung?viTriId=X&excludePhaoId=Y — kiểm tra vị trí đã có phao khác đang "Trên luồng" chưa
+        /// GET: /Phao/CheckViTriTrung?viTriId=X&excludePhaoId=Y&ngay=YYYY-MM-DD
+        /// Kiểm tra vị trí đã có phao khác trong khoảng thời gian (dựa trên LichSuHoatDongPhao)
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> CheckViTriTrung(int viTriId, int excludePhaoId)
+        public async Task<IActionResult> CheckViTriTrung(int viTriId, int excludePhaoId, DateTime? ngay)
         {
-            var phaoTrung = await _context.Phao
-                .AsNoTracking()
-                .Where(p => p.ViTriPhaoBHHienTaiId == viTriId
-                         && p.Id != excludePhaoId
-                         && p.TrangThaiHienTai == TrangThaiHoatDongPhao.TrenLuong)
-                .Select(p => new { p.Id, p.MaPhaoDayDu, p.KyHieuTaiSan, p.TenPhao })
-                .FirstOrDefaultAsync();
+            var ngaySuKien = ngay ?? DateTime.Today;
 
-            if (phaoTrung != null)
+            // Lấy các bản ghi tại vị trí này của phao khác
+            var candidateRecords = await _context.LichSuHoatDongPhao
+                .AsNoTracking()
+                .Where(ls => ls.ViTriPhaoBHId == viTriId && ls.PhaoId != excludePhaoId)
+                .OrderBy(ls => ls.NgayBatDau)
+                .ToListAsync();
+
+            if (!candidateRecords.Any())
+                return Json(new { trung = false });
+
+            // Lấy tất cả bản ghi của các phao liên quan để tính effective end
+            var phaoIds = candidateRecords.Select(r => r.PhaoId).Distinct().ToList();
+            var allRecordsOfPhaos = await _context.LichSuHoatDongPhao
+                .AsNoTracking()
+                .Where(ls => phaoIds.Contains(ls.PhaoId))
+                .OrderBy(ls => ls.PhaoId)
+                .ThenBy(ls => ls.NgayBatDau)
+                .ToListAsync();
+
+            foreach (var record in candidateRecords)
             {
-                var ten = phaoTrung.TenPhao ?? phaoTrung.MaPhaoDayDu;
-                return Json(new { trung = true, tenPhao = ten, maPhao = phaoTrung.MaPhaoDayDu });
+                DateTime? effectiveEnd = record.NgayKetThuc;
+
+                if (effectiveEnd == null)
+                {
+                    var nextRecord = allRecordsOfPhaos
+                        .Where(r => r.PhaoId == record.PhaoId && r.NgayBatDau > record.NgayBatDau)
+                        .OrderBy(r => r.NgayBatDau)
+                        .FirstOrDefault();
+
+                    if (nextRecord != null)
+                        effectiveEnd = nextRecord.NgayBatDau;
+                }
+
+                bool hasOverlap = effectiveEnd == null || effectiveEnd > ngaySuKien;
+
+                if (hasOverlap)
+                {
+                    var phaoTrung = await _context.Phao
+                        .AsNoTracking()
+                        .Where(p => p.Id == record.PhaoId)
+                        .Select(p => new { p.MaPhaoDayDu, p.TenPhao })
+                        .FirstOrDefaultAsync();
+
+                    var ten = phaoTrung?.TenPhao ?? phaoTrung?.MaPhaoDayDu;
+                    return Json(new { trung = true, tenPhao = ten, maPhao = phaoTrung?.MaPhaoDayDu });
+                }
             }
 
             return Json(new { trung = false });

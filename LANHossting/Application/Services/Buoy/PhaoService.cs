@@ -507,11 +507,11 @@ namespace LANHossting.Application.Services.Buoy
                         if (!item.ViTriPhaoBHId.HasValue)
                             return (false, $"Phao {phao.MaPhaoDayDu}: trạng thái 'Trên luồng' phải chọn vị trí phao BH.", 0);
 
-                        // Kiểm tra trùng vị trí: không cho 2 phao cùng vị trí trên cùng tuyến
-                        var maPhaoTrung = await _phaoRepo.CheckViTriTrungAsync(item.ViTriPhaoBHId.Value, item.PhaoId);
+                        // Kiểm tra trùng vị trí theo thời gian: không cho 2 phao cùng vị trí trong cùng khoảng thời gian
+                        var maPhaoTrung = await _phaoRepo.CheckViTriTrungAsync(item.ViTriPhaoBHId.Value, item.PhaoId, ngaySuKien);
 
                         if (maPhaoTrung != null)
-                            return (false, $"Vị trí này trên tuyến đã có phao '{maPhaoTrung}' đang hoạt động. Không thể đặt 2 phao cùng vị trí.", 0);
+                            return (false, $"Vị trí này đã có phao '{maPhaoTrung}' trong khoảng thời gian đã chọn.", 0);
                     }
 
                     int? newViTriId = requireViTri ? item.ViTriPhaoBHId : null;
