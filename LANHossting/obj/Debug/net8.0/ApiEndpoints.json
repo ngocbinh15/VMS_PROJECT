@@ -172,6 +172,64 @@
   },
   {
     "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "GetDanhSachKho",
+    "RelativePath": "api/admin/kho",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "CreateKho",
+    "RelativePath": "api/admin/kho",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "LANHossting.Application.DTOs.AdminKhoDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "UpdateKho",
+    "RelativePath": "api/admin/kho",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "LANHossting.Application.DTOs.AdminKhoDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "DeleteKho",
+    "RelativePath": "api/admin/kho/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
     "Method": "GetSystemLog",
     "RelativePath": "api/admin/systemlog",
     "HttpMethod": "GET",

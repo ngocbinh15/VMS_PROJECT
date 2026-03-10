@@ -132,4 +132,14 @@ namespace LANHossting.Application.DTOs
         public string MaVaiTro { get; set; } = string.Empty;
         public string TenVaiTro { get; set; } = string.Empty;
     }
+
+    // ── KHO (Admin CRUD) ────────────────────────
+
+    public class AdminKhoDto
+    {
+        public int Id { get; set; }
+        public string TenKho { get; set; } = string.Empty;
+        public string? DiaChi { get; set; }
+        public string? MoTa { get; set; }
+    }
 }

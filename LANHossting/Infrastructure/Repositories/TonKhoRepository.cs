@@ -137,7 +137,8 @@ namespace LANHossting.Infrastructure.Repositories
                     TenKho = k.TenKho,
                     LoaiKho = k.LoaiKho,
                     DiaChi = k.DiaChi,
-                    KhoMeId = k.KhoMeId
+                    KhoMeId = k.KhoMeId,
+                    MoTa = k.MoTa
                 })
                 .ToListAsync();
         }

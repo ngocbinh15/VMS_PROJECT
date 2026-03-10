@@ -6,6 +6,7 @@
 /* ── State ────────────────────────────────── */
 let _accounts = [];
 let _materials = [];
+let _khoList = [];
 let _roles = [];
 let _logCurrentPage = 1;
 
@@ -44,6 +45,9 @@ async function onSectionEnter(section) {
             break;
         case 'sectionVatLieu':
             await loadVatLieu();
+            break;
+        case 'sectionKho':
+            await loadKho();
             break;
         case 'sectionSystemLog':
             _logCurrentPage = 1;
@@ -288,6 +292,86 @@ async function confirmDeleteVatLieu(id, tenVatLieu) {
         if (result && result.success) {
             showToast(result.message, 'success');
             await loadVatLieu();
+        } else {
+            showToast(result?.message || 'Thất bại', 'error');
+        }
+    } catch (e) {
+        showToast('Lỗi: ' + e.message, 'error');
+    }
+}
+
+/* ══════════════════════════════════════════
+   KHO
+   ══════════════════════════════════════════ */
+async function loadKho() {
+    try {
+        _khoList = await AdminAPI.getKho() || [];
+        renderKhoTable(_khoList);
+    } catch (e) {
+        showToast('Lỗi tải danh sách kho: ' + e.message, 'error');
+    }
+}
+
+function openCreateKho() {
+    document.getElementById('formKhoTitle').textContent = 'Thêm Kho Mới';
+    document.getElementById('formKhoId').value = '';
+    document.getElementById('formTenKho').value = '';
+    document.getElementById('formDiaChiKho').value = '';
+    document.getElementById('formGhiChuKho').value = '';
+    new bootstrap.Modal(document.getElementById('khoModal')).show();
+}
+
+function openEditKho(id) {
+    const k = _khoList.find(x => x.id === id);
+    if (!k) return;
+
+    document.getElementById('formKhoTitle').textContent = 'Cập Nhật Kho';
+    document.getElementById('formKhoId').value = k.id;
+    document.getElementById('formTenKho').value = k.tenKho;
+    document.getElementById('formDiaChiKho').value = k.diaChi || '';
+    document.getElementById('formGhiChuKho').value = k.moTa || '';
+    new bootstrap.Modal(document.getElementById('khoModal')).show();
+}
+
+async function saveKho() {
+    const id = document.getElementById('formKhoId').value;
+    const tenKho = document.getElementById('formTenKho').value.trim();
+    const diaChi = document.getElementById('formDiaChiKho').value.trim() || null;
+    const moTa = document.getElementById('formGhiChuKho').value.trim() || null;
+
+    if (!tenKho) {
+        showToast('Tên kho không được để trống.', 'error');
+        return;
+    }
+
+    try {
+        let result;
+        if (id) {
+            result = await AdminAPI.updateKho({ id: parseInt(id), tenKho, diaChi, moTa });
+        } else {
+            result = await AdminAPI.createKho({ tenKho, diaChi, moTa });
+        }
+
+        if (result && result.success) {
+            bootstrap.Modal.getInstance(document.getElementById('khoModal'))?.hide();
+            showToast(result.message, 'success');
+            await loadKho();
+        } else {
+            showToast(result?.message || 'Lỗi không xác định', 'error');
+        }
+    } catch (e) {
+        showToast('Lỗi: ' + e.message, 'error');
+    }
+}
+
+async function confirmDeleteKho(id, tenKho) {
+    if (!confirm(`Bạn chắc chắn muốn XÓA kho "${tenKho}"?\nHành động này không thể hoàn tác.`)) return;
+
+    try {
+        const result = await AdminAPI.deleteKho(id);
+        if (result && result.success) {
+            showToast(result.message, 'success');
+            await loadKho();
         } else {
             showToast(result?.message || 'Thất bại', 'error');
         }

@@ -161,6 +161,34 @@ function filterVatLieuTable(searchText) {
 }
 
 /* ══════════════════════════════════════════
+   KHO TABLE
+   ══════════════════════════════════════════ */
+function renderKhoTable(khoList) {
+    const tbody = document.getElementById('khoTableBody');
+    if (!khoList || khoList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">
+            <i class="bi bi-building d-block mb-2" style="font-size:2rem;opacity:.3"></i>Chưa có kho nào</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = khoList.map((k, i) => `
+        <tr>
+            <td class="text-center">${i + 1}</td>
+            <td><strong>${escapeHtml(k.tenKho)}</strong></td>
+            <td>${escapeHtml(k.moTa || '-')}</td>
+            <td class="text-nowrap">
+                <button class="btn btn-action btn-outline-primary me-1" title="Sửa" onclick="openEditKho(${k.id})">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-action btn-outline-danger" title="Xóa" onclick="confirmDeleteKho(${k.id}, '${escapeHtml(k.tenKho)}')">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+/* ══════════════════════════════════════════
    NHẬT KÝ NHẬP – XUẤT – ĐIỀU CHUYỂN TABLE
    ══════════════════════════════════════════ */
 function renderSystemLogTable(data) {

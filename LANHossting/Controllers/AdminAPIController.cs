@@ -144,6 +144,48 @@ namespace LANHossting.Controllers
         }
 
         // ══════════════════════════════════════════
+        // KHO
+        // ══════════════════════════════════════════
+
+        // GET: api/admin/kho
+        [HttpGet("kho")]
+        public async Task<IActionResult> GetDanhSachKho()
+        {
+            var result = await _adminService.GetDanhSachKhoAdminAsync();
+            return Ok(result);
+        }
+
+        // POST: api/admin/kho
+        [HttpPost("kho")]
+        public async Task<IActionResult> CreateKho([FromBody] AdminKhoDto dto)
+        {
+            var userId = GetCurrentUserId();
+            var ip = GetClientIP();
+            var result = await _adminService.CreateKhoAsync(dto.TenKho, dto.DiaChi, dto.MoTa, userId, ip);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        // PUT: api/admin/kho
+        [HttpPut("kho")]
+        public async Task<IActionResult> UpdateKho([FromBody] AdminKhoDto dto)
+        {
+            var userId = GetCurrentUserId();
+            var ip = GetClientIP();
+            var result = await _adminService.UpdateKhoAsync(dto.Id, dto.TenKho, dto.DiaChi, dto.MoTa, userId, ip);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        // DELETE: api/admin/kho/{id}
+        [HttpDelete("kho/{id:int}")]
+        public async Task<IActionResult> DeleteKho(int id)
+        {
+            var userId = GetCurrentUserId();
+            var ip = GetClientIP();
+            var result = await _adminService.DeleteKhoAsync(id, userId, ip);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        // ══════════════════════════════════════════
         // HELPERS
         // ══════════════════════════════════════════
 

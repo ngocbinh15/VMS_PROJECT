@@ -277,6 +277,89 @@ namespace LANHossting.Infrastructure.Repositories
         }
 
         // ══════════════════════════════════════════
+        // KHO
+        // ══════════════════════════════════════════
+
+        public async Task<List<KhoDto>> GetDanhSachKhoAsync()
+        {
+            return await _context.Kho
+                .OrderBy(k => k.Id)
+                .Select(k => new KhoDto
+                {
+                    Id = k.Id,
+                    MaKho = k.MaKho,
+                    TenKho = k.TenKho,
+                    LoaiKho = k.LoaiKho,
+                    DiaChi = k.DiaChi,
+                    KhoMeId = k.KhoMeId,
+                    MoTa = k.MoTa
+                })
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<int> CreateKhoAsync(string tenKho, string? diaChi, string? moTa)
+        {
+            // Auto-generate MaKho: KHO_XX
+            var maxId = await _context.Kho.MaxAsync(k => (int?)k.Id) ?? 0;
+            var maKho = "KHO_" + (maxId + 1).ToString("D2");
+
+            var khoMe = await _context.Kho.FirstOrDefaultAsync(k => k.LoaiKho == "KHO_ME");
+
+            var entity = new Kho
+            {
+                MaKho = maKho,
+                TenKho = tenKho.Trim(),
+                LoaiKho = "KHO_CON",
+                KhoMeId = khoMe?.Id,
+                DiaChi = diaChi?.Trim(),
+                MoTa = moTa?.Trim(),
+                TrangThai = "Hoạt động",
+                NgayTao = DateTime.Now
+            };
+
+            _context.Kho.Add(entity);
+            await _context.SaveChangesAsync();
+            return entity.Id;
+        }
+
+        public async Task<bool> UpdateKhoAsync(int id, string tenKho, string? diaChi, string? moTa)
+        {
+            var entity = await _context.Kho.FindAsync(id);
+            if (entity == null) return false;
+
+            entity.TenKho = tenKho.Trim();
+            entity.DiaChi = diaChi?.Trim();
+            entity.MoTa = moTa?.Trim();
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteKhoAsync(int id)
+        {
+            var entity = await _context.Kho.FindAsync(id);
+            if (entity == null) return false;
+
+            _context.Kho.Remove(entity);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> KhoHasReferencesAsync(int id)
+        {
+            if (await _context.TonKho.AnyAsync(tk => tk.KhoId == id))
+                return true;
+            if (await _context.PhieuNhapXuat.AnyAsync(p => p.KhoNguonId == id || p.KhoNhapId == id))
+                return true;
+            if (await _context.LichSuVatLieu.AnyAsync(l => l.KhoId == id || l.KhoLienQuanId == id))
+                return true;
+            if (await _context.Kho.AnyAsync(k => k.KhoMeId == id))
+                return true;
+            return false;
+        }
+
+        // ══════════════════════════════════════════
         // HELPERS
         // ══════════════════════════════════════════
 

@@ -236,5 +236,61 @@ namespace LANHossting.Application.Services
 
             return new ServiceResult { Success = true, Message = "Xóa vĩnh viễn vật liệu thành công!" };
         }
+
+        // ══════════════════════════════════════════
+        // KHO
+        // ══════════════════════════════════════════
+
+        public async Task<List<KhoDto>> GetDanhSachKhoAdminAsync()
+        {
+            return await _adminRepo.GetDanhSachKhoAsync();
+        }
+
+        public async Task<ServiceResult> CreateKhoAsync(string tenKho, string? diaChi, string? moTa, int nguoiThucHienId, string? ip)
+        {
+            if (string.IsNullOrWhiteSpace(tenKho))
+                return new ServiceResult { Success = false, Message = "Tên kho là bắt buộc." };
+
+            var newId = await _adminRepo.CreateKhoAsync(tenKho, diaChi, moTa);
+
+            await _logRepo.WriteLogAsync(nguoiThucHienId, "TAO", "KHO", newId,
+                $"Tạo kho '{tenKho.Trim()}'", ip);
+
+            return new ServiceResult { Success = true, Message = "Tạo kho thành công!" };
+        }
+
+        public async Task<ServiceResult> UpdateKhoAsync(int id, string tenKho, string? diaChi, string? moTa, int nguoiThucHienId, string? ip)
+        {
+            if (id <= 0)
+                return new ServiceResult { Success = false, Message = "ID kho không hợp lệ." };
+
+            if (string.IsNullOrWhiteSpace(tenKho))
+                return new ServiceResult { Success = false, Message = "Tên kho là bắt buộc." };
+
+            var result = await _adminRepo.UpdateKhoAsync(id, tenKho, diaChi, moTa);
+            if (!result)
+                return new ServiceResult { Success = false, Message = "Không tìm thấy kho." };
+
+            await _logRepo.WriteLogAsync(nguoiThucHienId, "SUA", "KHO", id,
+                $"Cập nhật kho ID={id} - {tenKho.Trim()}", ip);
+
+            return new ServiceResult { Success = true, Message = "Cập nhật kho thành công!" };
+        }
+
+        public async Task<ServiceResult> DeleteKhoAsync(int id, int nguoiThucHienId, string? ip)
+        {
+            var hasRefs = await _adminRepo.KhoHasReferencesAsync(id);
+            if (hasRefs)
+                return new ServiceResult { Success = false, Message = "Không thể xóa. Kho đang có tồn kho, phiếu nhập/xuất, hoặc kho con liên quan." };
+
+            var result = await _adminRepo.DeleteKhoAsync(id);
+            if (!result)
+                return new ServiceResult { Success = false, Message = "Không tìm thấy kho." };
+
+            await _logRepo.WriteLogAsync(nguoiThucHienId, "XOA", "KHO", id,
+                $"Xóa kho ID={id}", ip);
+
+            return new ServiceResult { Success = true, Message = "Xóa kho thành công!" };
+        }
     }
 }

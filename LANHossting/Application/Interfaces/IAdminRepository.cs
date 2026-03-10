@@ -26,6 +26,13 @@ namespace LANHossting.Application.Interfaces
         Task<bool> UpdateVatLieuAsync(UpdateVatLieuDto dto);
         Task<bool> DeleteVatLieuAsync(int id);
 
+        // ── KHO ──
+        Task<List<KhoDto>> GetDanhSachKhoAsync();
+        Task<int> CreateKhoAsync(string tenKho, string? diaChi, string? moTa);
+        Task<bool> UpdateKhoAsync(int id, string tenKho, string? diaChi, string? moTa);
+        Task<bool> DeleteKhoAsync(int id);
+        Task<bool> KhoHasReferencesAsync(int id);
+
         // ── FK CONSTRAINT CHECKS ──
         Task<bool> TaiKhoanHasReferencesAsync(int id);
         Task<bool> VatLieuHasReferencesAsync(int id);

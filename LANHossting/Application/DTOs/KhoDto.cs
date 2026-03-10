@@ -8,5 +8,6 @@ namespace LANHossting.Application.DTOs
         public string LoaiKho { get; set; } = string.Empty;
         public string? DiaChi { get; set; }
         public int? KhoMeId { get; set; }
+        public string? MoTa { get; set; }
     }
 }

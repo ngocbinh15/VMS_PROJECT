@@ -48,6 +48,12 @@ const AdminAPI = (() => {
         updateVatLieu:    (dto)     => _json(`${BASE}/vatlieu`, { method: 'PUT',  body: JSON.stringify(dto) }),
         deleteVatLieu:    (id)      => _json(`${BASE}/vatlieu/${id}`, { method: 'DELETE' }),
 
+        // ── KHO ──
+        getKho:           ()        => _json(`${BASE}/kho`),
+        createKho:        (dto)     => _json(`${BASE}/kho`, { method: 'POST', body: JSON.stringify(dto) }),
+        updateKho:        (dto)     => _json(`${BASE}/kho`, { method: 'PUT',  body: JSON.stringify(dto) }),
+        deleteKho:        (id)      => _json(`${BASE}/kho/${id}`, { method: 'DELETE' }),
+
         // ── NHẬT KÝ NHẬP – XUẤT – ĐIỀU CHUYỂN ──
         getLichSuKho:     (qs)      => _json(`/api/kho/lichsu?${qs}`),
         getChiTietPhieu:  (id)      => _json(`/api/kho/lichsu/${id}`),
