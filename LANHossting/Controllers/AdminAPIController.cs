@@ -272,9 +272,11 @@ namespace LANHossting.Controllers
             var result = await _giaoDichService.DuyetPhieuAsync(id, userId, phienId);
             if (result.Success)
             {
-                await _hubContext.Clients.All.SendAsync("ReceivePendingTicketsUpdate");
-                await _hubContext.Clients.All.SendAsync("ReceiveStockUpdate", 0);
-                await _hubContext.Clients.All.SendAsync("ReceiveLogUpdate");
+                var adminName = HttpContext.Session.GetString("TenNguoiDung") ?? "Quản trị viên";
+                await _hubContext.Clients.All.SendAsync("ReceivePendingTicketsUpdate", result.Message, adminName, "DUYET");
+                await _hubContext.Clients.All.SendAsync("ReceiveTicketStatusUpdate", id.ToString(), "Đã duyệt", null);
+                await _hubContext.Clients.All.SendAsync("ReceiveStockUpdate", 0, result.Message);
+                await _hubContext.Clients.All.SendAsync("ReceiveLogUpdate", result.Message);
                 return Ok(result);
             }
             return BadRequest(result);
@@ -288,8 +290,10 @@ namespace LANHossting.Controllers
             var result = await _giaoDichService.TuChoiPhieuAsync(id, userId, dto?.LyDo);
             if (result.Success)
             {
-                await _hubContext.Clients.All.SendAsync("ReceivePendingTicketsUpdate");
-                await _hubContext.Clients.All.SendAsync("ReceiveLogUpdate");
+                var adminName = HttpContext.Session.GetString("TenNguoiDung") ?? "Quản trị viên";
+                await _hubContext.Clients.All.SendAsync("ReceivePendingTicketsUpdate", result.Message, adminName, "TU_CHOI");
+                await _hubContext.Clients.All.SendAsync("ReceiveTicketStatusUpdate", id.ToString(), "Từ chối", dto?.LyDo);
+                await _hubContext.Clients.All.SendAsync("ReceiveLogUpdate", result.Message);
                 return Ok(result);
             }
             return BadRequest(result);
@@ -304,9 +308,11 @@ namespace LANHossting.Controllers
             var result = await _giaoDichService.RollbackPhieuAsync(id, userId, phienId, dto?.LyDo);
             if (result.Success)
             {
-                await _hubContext.Clients.All.SendAsync("ReceivePendingTicketsUpdate");
-                await _hubContext.Clients.All.SendAsync("ReceiveStockUpdate", 0);
-                await _hubContext.Clients.All.SendAsync("ReceiveLogUpdate");
+                var adminName = HttpContext.Session.GetString("TenNguoiDung") ?? "Quản trị viên";
+                await _hubContext.Clients.All.SendAsync("ReceivePendingTicketsUpdate", result.Message, adminName, "HOAN_TAC");
+                await _hubContext.Clients.All.SendAsync("ReceiveTicketStatusUpdate", id.ToString(), "Đã hoàn tác", dto?.LyDo);
+                await _hubContext.Clients.All.SendAsync("ReceiveStockUpdate", 0, result.Message);
+                await _hubContext.Clients.All.SendAsync("ReceiveLogUpdate", result.Message);
                 return Ok(result);
             }
             return BadRequest(result);

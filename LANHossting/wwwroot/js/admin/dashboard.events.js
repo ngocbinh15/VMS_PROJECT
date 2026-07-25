@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Load initial data
     await loadDashboardOverview();
-    try { await loadPhieuChoDuyet(); } catch (_) {}
+    try { await loadPhieuChoDuyet(); } catch (_) { }
 
     // Bind search inputs
     const vatLieuSearch = document.getElementById('vatLieuSearchInput');
@@ -46,20 +46,25 @@ function initRealtimeSignalR() {
         .withAutomaticReconnect()
         .build();
 
-    connection.on("ReceivePendingTicketsUpdate", async () => {
-        console.log("[SignalR] Pending tickets updated");
-        try { await loadPhieuChoDuyet(); } catch (_) {}
-        try { await loadDashboardOverview(); } catch (_) {}
+    connection.on("ReceivePendingTicketsUpdate", async (maPhieu, nguoiTao, action) => {
+        console.log("[SignalR] Pending tickets updated:", maPhieu, nguoiTao, action);
+        try { await loadPhieuChoDuyet(); } catch (_) { }
+        try { await loadDashboardOverview(); } catch (_) { }
+
+        if (action === 'CREATING') {
+            playNotificationSound('info');
+            showToast(`Có phiếu giao dịch mới vừa gửi bởi <strong>${nguoiTao || 'Thủ kho'}</strong> cần duyệt!`, 'info');
+        }
     });
 
-    connection.on("ReceiveLogUpdate", async () => {
-        console.log("[SignalR] Log updated");
-        try { await loadSystemLog(_logCurrentPage); } catch (_) {}
+    connection.on("ReceiveLogUpdate", async (msg) => {
+        console.log("[SignalR] Log updated:", msg);
+        try { await loadSystemLog(_logCurrentPage); } catch (_) { }
     });
 
-    connection.on("ReceiveStockUpdate", async () => {
-        console.log("[SignalR] Stock updated");
-        try { await loadDashboardOverview(); } catch (_) {}
+    connection.on("ReceiveStockUpdate", async (khoId, msg) => {
+        console.log("[SignalR] Stock updated:", khoId, msg);
+        try { await loadDashboardOverview(); } catch (_) { }
     });
 
     connection.start().then(() => {
@@ -318,10 +323,10 @@ let _donViTinhList = [];
 async function openCreateVatLieu() {
     // Load dropdowns if not loaded yet
     if (_nhomVatLieuList.length === 0) {
-        try { _nhomVatLieuList = await AdminAPI.getNhomVatLieu() || []; } catch (_) {}
+        try { _nhomVatLieuList = await AdminAPI.getNhomVatLieu() || []; } catch (_) { }
     }
     if (_donViTinhList.length === 0) {
-        try { _donViTinhList = await AdminAPI.getDonViTinh() || []; } catch (_) {}
+        try { _donViTinhList = await AdminAPI.getDonViTinh() || []; } catch (_) { }
     }
 
     // Populate dropdowns
@@ -392,10 +397,10 @@ async function openEditVatLieu(id) {
     if (!vl) return;
 
     if (_nhomVatLieuList.length === 0) {
-        try { _nhomVatLieuList = await AdminAPI.getNhomVatLieu() || []; } catch (_) {}
+        try { _nhomVatLieuList = await AdminAPI.getNhomVatLieu() || []; } catch (_) { }
     }
     if (_donViTinhList.length === 0) {
-        try { _donViTinhList = await AdminAPI.getDonViTinh() || []; } catch (_) {}
+        try { _donViTinhList = await AdminAPI.getDonViTinh() || []; } catch (_) { }
     }
 
     const nhomSel = document.getElementById('editNhomVatLieu');
@@ -608,8 +613,8 @@ function _renderAddVlTable(items) {
             <td>${escapeHtml(v.tenDonViTinh)}</td>
             <td class="text-center">
                 ${v.daTonTai
-                    ? '<span class="badge bg-secondary">Đã có</span>'
-                    : '<span class="badge bg-light text-dark border">Chưa có</span>'}
+            ? '<span class="badge bg-secondary">Đã có</span>'
+            : '<span class="badge bg-light text-dark border">Chưa có</span>'}
             </td>
         </tr>
     `).join('');
@@ -858,7 +863,7 @@ function viewChiTietPhieuChoDuyet(id) {
     if (!p) return;
 
     document.getElementById('modalChiTietPhieuTitle').innerHTML = `<i class="bi bi-receipt me-2"></i>Chi Tiết Phiếu: ${escapeHtml(p.maPhieu)}`;
-    
+
     let itemsHtml = (p.chiTietList || []).map((ct, idx) => {
         const nsx = ct.ngaySanXuat ? new Date(ct.ngaySanXuat).toLocaleDateString('vi-VN') : '—';
         const hsd = ct.ngayHetHan ? new Date(ct.ngayHetHan).toLocaleDateString('vi-VN') : '—';

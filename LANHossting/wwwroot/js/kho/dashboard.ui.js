@@ -8,17 +8,19 @@
 // ═══ NOTIFICATION SYSTEM ═══════════════════════════════
 var _toastIcons = {
     success: 'bi-check-circle-fill',
-    error:   'bi-exclamation-triangle-fill',
-    warning: 'bi-exclamation-circle-fill'
+    error:   'bi-x-circle-fill',
+    warning: 'bi-exclamation-triangle-fill',
+    info:    'bi-bell-fill'
 };
 
 function showToast(type, message, duration) {
     if (duration === undefined) duration = 4000;
     var container = document.getElementById('toastContainer');
+    if (!container) return;
     var toast = document.createElement('div');
     toast.className = 'toast-custom toast-' + type;
     toast.innerHTML =
-        '<i class="bi ' + (_toastIcons[type] || _toastIcons.error) + ' toast-icon"></i>' +
+        '<i class="bi ' + (_toastIcons[type] || _toastIcons.info) + ' toast-icon"></i>' +
         '<div class="toast-body">' + message + '</div>' +
         '<button class="toast-close" onclick="dismissToast(this.parentElement)">&times;</button>';
     container.appendChild(toast);
@@ -31,6 +33,37 @@ function dismissToast(el) {
     clearTimeout(el._timer);
     el.classList.add('toast-hiding');
     el.addEventListener('animationend', function () { el.remove(); });
+}
+
+function playNotificationSound(type) {
+    try {
+        var AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        var ctx = new AudioCtx();
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+
+        osc.type = 'sine';
+        if (type === 'success') {
+            osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+            osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1);
+        } else if (type === 'error') {
+            osc.frequency.setValueAtTime(440, ctx.currentTime);
+            osc.frequency.setValueAtTime(349.23, ctx.currentTime + 0.1);
+        } else {
+            osc.frequency.setValueAtTime(659.25, ctx.currentTime);
+            osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.1);
+        }
+
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+    } catch (_) {}
 }
 
 // ═══ INLINE VALIDATION ═════════════════════════════════

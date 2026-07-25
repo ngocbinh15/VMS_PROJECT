@@ -55,10 +55,28 @@ function initRealtimeSignalR() {
         .withAutomaticReconnect()
         .build();
 
-    connection.on("ReceiveStockUpdate", function (khoId) {
-        console.log("[SignalR] Stock update signal received for khoId:", khoId);
+    connection.on("ReceiveStockUpdate", function (khoId, msg) {
+        console.log("[SignalR] Stock update signal received for khoId:", khoId, msg);
         if (!khoId || khoId === currentWarehouseId) {
             loadStockData();
+        }
+        if (msg) {
+            playNotificationSound('info');
+            showToast('info', msg);
+        }
+    });
+
+    connection.on("ReceiveTicketStatusUpdate", function (maPhieu, trangThai, lyDo) {
+        console.log("[SignalR] Ticket status updated:", maPhieu, trangThai, lyDo);
+        if (trangThai === 'Đã duyệt') {
+            playNotificationSound('success');
+            showToast('success', 'Phiếu giao dịch đã được Admin phê duyệt!');
+        } else if (trangThai === 'Từ chối') {
+            playNotificationSound('error');
+            showToast('error', 'Phiếu giao dịch đã bị từ chối!' + (lyDo ? ' Lý do: ' + lyDo : ''));
+        } else if (trangThai === 'Đã hoàn tác') {
+            playNotificationSound('warning');
+            showToast('warning', 'Phiếu giao dịch đã được Admin hoàn tác!');
         }
     });
 

@@ -122,9 +122,10 @@ namespace LANHossting.Controllers
             if (!result.Success)
                 return BadRequest(result);
 
-            await _hubContext.Clients.All.SendAsync("ReceivePendingTicketsUpdate");
-            await _hubContext.Clients.All.SendAsync("ReceiveStockUpdate", dto.KhoId);
-            await _hubContext.Clients.All.SendAsync("ReceiveLogUpdate");
+            var username = HttpContext.Session.GetString("TenNguoiDung") ?? "Nhân viên kho";
+            await _hubContext.Clients.All.SendAsync("ReceivePendingTicketsUpdate", result.Message, username, "CREATING");
+            await _hubContext.Clients.All.SendAsync("ReceiveStockUpdate", dto.KhoId, $"Có giao dịch mới từ {username}");
+            await _hubContext.Clients.All.SendAsync("ReceiveLogUpdate", $"Đã có phiếu giao dịch mới");
 
             return Ok(result);
         }

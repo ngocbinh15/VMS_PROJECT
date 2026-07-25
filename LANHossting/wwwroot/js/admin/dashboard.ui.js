@@ -6,11 +6,45 @@
 /* ── Toast ────────────────────────────────── */
 function showToast(msg, type = 'success') {
     const container = document.getElementById('toastContainer');
+    if (!container) return;
     const el = document.createElement('div');
     el.className = `toast-custom ${type}`;
-    el.innerHTML = `<i class="bi ${type === 'success' ? 'bi-check-circle' : type === 'error' ? 'bi-x-circle' : 'bi-info-circle'} me-2"></i>${msg}`;
+    const iconClass = type === 'success' ? 'bi-check-circle-fill' : type === 'error' ? 'bi-x-circle-fill' : type === 'warning' ? 'bi-exclamation-triangle-fill' : 'bi-bell-fill';
+    el.innerHTML = `<i class="bi ${iconClass} me-2 fs-5 align-middle"></i><span>${msg}</span>`;
     container.appendChild(el);
     setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3500);
+}
+
+/* ── Sound Synth ──────────────────────────── */
+function playNotificationSound(type = 'info') {
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        if (type === 'success') {
+            osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+            osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1);
+        } else if (type === 'error') {
+            osc.frequency.setValueAtTime(440, ctx.currentTime);
+            osc.frequency.setValueAtTime(349.23, ctx.currentTime + 0.1);
+        } else {
+            osc.frequency.setValueAtTime(659.25, ctx.currentTime);
+            osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.1);
+        }
+
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+    } catch (_) {}
 }
 
 /* ── Section Navigation ───────────────────── */
