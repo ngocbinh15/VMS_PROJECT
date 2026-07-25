@@ -177,4 +177,26 @@ namespace LANHossting.Application.DTOs
         public decimal MucToiThieu { get; set; }
         public string MucDoCanhBao { get; set; } = "SAP_HET";
     }
+
+    public class BieuDoThongKeDto
+    {
+        public List<ThongKeNgayDto> ThongKeTheoNgay { get; set; } = new();
+        public List<TopVatLieuXuatDto> TopVatLieuXuat { get; set; } = new();
+    }
+
+    public class ThongKeNgayDto
+    {
+        public string Ngay { get; set; } = string.Empty;
+        public decimal SoLuongNhap { get; set; }
+        public decimal SoLuongXuat { get; set; }
+        public decimal SoLuongChuyen { get; set; }
+    }
+
+    public class TopVatLieuXuatDto
+    {
+        public int VatLieuId { get; set; }
+        public string TenVatLieu { get; set; } = string.Empty;
+        public string DonViTinh { get; set; } = string.Empty;
+        public decimal TongSoLuongXuat { get; set; }
+    }
 }

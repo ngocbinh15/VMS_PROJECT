@@ -419,13 +419,26 @@ namespace LANHossting.Infrastructure.Repositories
         // CẢNH BÁO TỒN KHO TỐI THIỂU
         // ══════════════════════════════════════════
 
-        public async Task<List<CanhBaoTonKhoDto>> GetDanhSachCanhBaoTonKhoAsync()
+        public async Task<List<CanhBaoTonKhoDto>> GetDanhSachCanhBaoTonKhoAsync(string? search, List<int>? khoIds)
         {
-            return await _context.TonKho
+            var query = _context.TonKho
                 .Include(tk => tk.VatLieu).ThenInclude(vl => vl!.DonViTinh)
                 .Include(tk => tk.Kho)
                 .Where(tk => tk.VatLieu != null && tk.VatLieu.TrangThai == "Đang sử dụng")
-                .Where(tk => tk.SoLuongTon <= (tk.VatLieu!.MucToiThieu ?? 10))
+                .Where(tk => tk.SoLuongTon <= (tk.VatLieu!.MucToiThieu ?? 10));
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim().ToLower();
+                query = query.Where(tk => tk.VatLieu!.MaVatLieu.ToLower().Contains(s) || tk.VatLieu.TenVatLieu.ToLower().Contains(s));
+            }
+
+            if (khoIds != null && khoIds.Count > 0)
+            {
+                query = query.Where(tk => khoIds.Contains(tk.KhoId));
+            }
+
+            return await query
                 .AsNoTracking()
                 .Select(tk => new CanhBaoTonKhoDto
                 {
@@ -442,6 +455,96 @@ namespace LANHossting.Infrastructure.Repositories
                 .OrderBy(c => c.SoLuongTon)
                 .ThenBy(c => c.TenVatLieu)
                 .ToListAsync();
+        }
+
+        // ══════════════════════════════════════════
+        // BIỂU ĐỒ THỐNG KÊ
+        // ══════════════════════════════════════════
+
+        public async Task<BieuDoThongKeDto> GetThongKeBieuDoAsync(DateTime? tuNgay, DateTime? denNgay, List<int>? khoIds)
+        {
+            var end = denNgay?.Date.AddDays(1).AddTicks(-1) ?? DateTime.Now;
+            var start = tuNgay?.Date ?? DateTime.Now.Date.AddDays(-6);
+
+            if (start > end)
+            {
+                var temp = start;
+                start = end.Date;
+                end = temp.Date.AddDays(1).AddTicks(-1);
+            }
+
+            var hasKhoFilter = khoIds != null && khoIds.Count > 0;
+
+            var phieuQuery = _context.PhieuNhapXuat
+                .Include(p => p.ChiTietList)
+                .Where(p => p.TrangThai == "Hoàn thành" && p.NgayTao >= start && p.NgayTao <= end);
+
+            if (hasKhoFilter)
+            {
+                phieuQuery = phieuQuery.Where(p => 
+                    (p.KhoNhapId.HasValue && khoIds!.Contains(p.KhoNhapId.Value)) ||
+                    (p.KhoNguonId.HasValue && khoIds!.Contains(p.KhoNguonId.Value))
+                );
+            }
+
+            var phieuList = await phieuQuery.AsNoTracking().ToListAsync();
+            var result = new BieuDoThongKeDto();
+
+            for (var dt = start.Date; dt <= end.Date; dt = dt.AddDays(1))
+            {
+                var dateStr = dt.ToString("dd/MM");
+                var phieuTrongNgay = phieuList.Where(p => p.NgayTao.Date == dt).ToList();
+
+                var nhapSum = phieuTrongNgay
+                    .Where(p => (p.LoaiPhieu == "NHAP_KHO" || p.LoaiPhieu == "NHAP") && (!hasKhoFilter || (p.KhoNhapId.HasValue && khoIds!.Contains(p.KhoNhapId.Value))))
+                    .Sum(p => p.ChiTietList.Sum(ct => ct.SoLuong));
+
+                var xuatSum = phieuTrongNgay
+                    .Where(p => (p.LoaiPhieu == "XUAT_KHO" || p.LoaiPhieu == "XUAT") && (!hasKhoFilter || (p.KhoNguonId.HasValue && khoIds!.Contains(p.KhoNguonId.Value))))
+                    .Sum(p => p.ChiTietList.Sum(ct => ct.SoLuong));
+
+                var chuyenSum = phieuTrongNgay
+                    .Where(p => (p.LoaiPhieu == "CHUYEN_KHO" || p.LoaiPhieu == "CHUYEN") && (!hasKhoFilter || (p.KhoNguonId.HasValue && khoIds!.Contains(p.KhoNguonId.Value)) || (p.KhoNhapId.HasValue && khoIds!.Contains(p.KhoNhapId.Value))))
+                    .Sum(p => p.ChiTietList.Sum(ct => ct.SoLuong));
+
+                result.ThongKeTheoNgay.Add(new ThongKeNgayDto
+                {
+                    Ngay = dateStr,
+                    SoLuongNhap = nhapSum,
+                    SoLuongXuat = xuatSum,
+                    SoLuongChuyen = chuyenSum
+                });
+            }
+
+            var topXuatQuery = _context.ChiTietPhieuNhapXuat
+                .Include(ct => ct.PhieuNhapXuat)
+                .Include(ct => ct.VatLieu).ThenInclude(v => v!.DonViTinh)
+                .Where(ct => ct.PhieuNhapXuat != null && 
+                             ct.PhieuNhapXuat.TrangThai == "Hoàn thành" && 
+                             (ct.PhieuNhapXuat.LoaiPhieu == "XUAT_KHO" || ct.PhieuNhapXuat.LoaiPhieu == "XUAT") &&
+                             ct.PhieuNhapXuat.NgayTao >= start && ct.PhieuNhapXuat.NgayTao <= end);
+
+            if (hasKhoFilter)
+            {
+                topXuatQuery = topXuatQuery.Where(ct => ct.PhieuNhapXuat!.KhoNguonId.HasValue && khoIds!.Contains(ct.PhieuNhapXuat.KhoNguonId.Value));
+            }
+
+            var topXuat = await topXuatQuery
+                .GroupBy(ct => new { ct.VatLieuId, ct.VatLieu!.TenVatLieu, TenDonVi = ct.VatLieu.DonViTinh != null ? ct.VatLieu.DonViTinh.TenDonVi : "" })
+                .Select(g => new TopVatLieuXuatDto
+                {
+                    VatLieuId = g.Key.VatLieuId,
+                    TenVatLieu = g.Key.TenVatLieu,
+                    DonViTinh = g.Key.TenDonVi,
+                    TongSoLuongXuat = g.Sum(ct => ct.SoLuong)
+                })
+                .OrderByDescending(x => x.TongSoLuongXuat)
+                .Take(5)
+                .AsNoTracking()
+                .ToListAsync();
+
+            result.TopVatLieuXuat = topXuat;
+            return result;
         }
 
         // ══════════════════════════════════════════

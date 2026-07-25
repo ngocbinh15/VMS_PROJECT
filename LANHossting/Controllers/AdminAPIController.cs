@@ -324,9 +324,21 @@ namespace LANHossting.Controllers
 
         // GET: api/admin/canh-bao-ton-kho
         [HttpGet("canh-bao-ton-kho")]
-        public async Task<IActionResult> GetCanhBaoTonKho()
+        public async Task<IActionResult> GetCanhBaoTonKho([FromQuery] string? search, [FromQuery] List<int>? khoIds)
         {
-            var result = await _adminService.GetDanhSachCanhBaoTonKhoAsync();
+            var result = await _adminService.GetDanhSachCanhBaoTonKhoAsync(search, khoIds);
+            return Ok(result);
+        }
+
+        // ══════════════════════════════════════════
+        // BIỂU ĐỒ THỐNG KÊ
+        // ══════════════════════════════════════════
+
+        // GET: api/admin/thong-ke-bieu-do
+        [HttpGet("thong-ke-bieu-do")]
+        public async Task<IActionResult> GetThongKeBieuDo([FromQuery] DateTime? tuNgay, [FromQuery] DateTime? denNgay, [FromQuery] List<int>? khoIds)
+        {
+            var result = await _adminService.GetThongKeBieuDoAsync(tuNgay, denNgay, khoIds);
             return Ok(result);
         }
 

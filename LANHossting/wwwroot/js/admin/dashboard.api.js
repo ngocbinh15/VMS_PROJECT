@@ -73,6 +73,28 @@ const AdminAPI = (() => {
         rollbackPhieu:    (id, lyDo)=> _json(`${BASE}/phieu/${id}/rollback`, { method: 'POST', body: JSON.stringify({ lyDo }) }),
 
         // ── CẢNH BÁO TỒN KHO TỐI THIỂU ──
-        getCanhBaoTonKho: ()        => _json(`${BASE}/canh-bao-ton-kho`),
+        getCanhBaoTonKho: (search, khoIds) => {
+            let url = `${BASE}/canh-bao-ton-kho`;
+            const params = [];
+            if (search) params.push(`search=${encodeURIComponent(search)}`);
+            if (khoIds && khoIds.length > 0) {
+                khoIds.forEach(id => params.push(`khoIds=${encodeURIComponent(id)}`));
+            }
+            if (params.length > 0) url += '?' + params.join('&');
+            return _json(url);
+        },
+
+        // ── BIỂU ĐỒ THỐNG KÊ ──
+        getThongKeBieuDo: (tuNgay, denNgay, khoIds) => {
+            let url = `${BASE}/thong-ke-bieu-do`;
+            const params = [];
+            if (tuNgay) params.push(`tuNgay=${encodeURIComponent(tuNgay)}`);
+            if (denNgay) params.push(`denNgay=${encodeURIComponent(denNgay)}`);
+            if (khoIds && khoIds.length > 0) {
+                khoIds.forEach(id => params.push(`khoIds=${encodeURIComponent(id)}`));
+            }
+            if (params.length > 0) url += '?' + params.join('&');
+            return _json(url);
+        }
     };
 })();

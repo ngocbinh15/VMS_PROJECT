@@ -35,6 +35,9 @@ namespace LANHossting.Application.Interfaces
         Task<ServiceResult> AddVatLieuToKhoAsync(int khoId, List<int> vatLieuIds, int nguoiThucHienId, string? ip);
 
         // ── CẢNH BÁO TỒN KHO TỐI THIỂU ──
-        Task<List<CanhBaoTonKhoDto>> GetDanhSachCanhBaoTonKhoAsync();
+        Task<List<CanhBaoTonKhoDto>> GetDanhSachCanhBaoTonKhoAsync(string? search, List<int>? khoIds);
+
+        // ── BIỂU ĐỒ THỐNG KÊ ──
+        Task<BieuDoThongKeDto> GetThongKeBieuDoAsync(DateTime? tuNgay, DateTime? denNgay, List<int>? khoIds);
     }
 }

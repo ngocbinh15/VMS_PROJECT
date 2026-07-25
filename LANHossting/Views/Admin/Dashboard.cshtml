@@ -132,13 +132,70 @@
             </div>
         </div>
 
+        <!-- ── BIỂU ĐỒ THỐNG KÊ TRỰC QUAN ── -->
+        <div class="admin-card mb-4 p-3">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
+                <h5 class="mb-0 fw-bold fs-6 text-primary">
+                    <i class="bi bi-bar-chart-line-fill me-2"></i>Biểu Đồ Thống Kê Giao Dịch & Tiêu Thụ Kho
+                </h5>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <div class="input-group input-group-sm" style="width: auto;">
+                        <span class="input-group-text bg-light text-muted small">Từ</span>
+                        <input type="date" class="form-control form-control-sm" id="chartTuNgay">
+                        <span class="input-group-text bg-light text-muted small">Đến</span>
+                        <input type="date" class="form-control form-control-sm" id="chartDenNgay">
+                        <button class="btn btn-primary btn-sm" onclick="applyChartDateFilter()">
+                            <i class="bi bi-funnel-fill me-1"></i>Lọc
+                        </button>
+                    </div>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary active" id="btnChart7Days" onclick="loadChartByQuickDays(7)">7 ngày</button>
+                        <button type="button" class="btn btn-outline-primary" id="btnChart30Days" onclick="loadChartByQuickDays(30)">30 ngày</button>
+                    </div>
+                    <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3 ms-1" onclick="openChartWarehouseModal()">
+                        <i class="bi bi-building me-1"></i><span id="lblChartWarehouseCount">Tất cả kho</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <!-- Biểu đồ 1: Xu hướng giao dịch theo ngày -->
+                <div class="col-lg-7">
+                    <div class="p-3 bg-light rounded-3 h-100 border">
+                        <div class="fw-bold small text-secondary mb-2"><i class="bi bi-graph-up me-1"></i>Xu Hướng Nhập – Xuất – Điều Chuyển (Số lượng vật tư)</div>
+                        <div style="position: relative; height: 260px;">
+                            <canvas id="chartGiaoDichOverview"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <!-- Biểu đồ 2: Top 5 vật tư xuất kho -->
+                <div class="col-lg-5">
+                    <div class="p-3 bg-light rounded-3 h-100 border">
+                        <div class="fw-bold small text-secondary mb-2"><i class="bi bi-pie-chart-fill me-1"></i>Top 5 Vật Tư Tiêu Thụ Nhiều Nhất</div>
+                        <div style="position: relative; height: 260px;">
+                            <canvas id="chartTopVatLieuOverview"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- ── Bảng Cảnh Báo Tồn Kho Tối Thiểu ── -->
         <div class="admin-card mb-4">
-            <div class="d-flex align-items-center justify-content-between px-3 py-3 border-bottom">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 px-3 py-3 border-bottom">
                 <h5 class="mb-0 fw-bold text-danger fs-6">
                     <i class="bi bi-exclamation-octagon-fill me-2"></i>Danh Sách Vật Tư Chạm Mức Tồn Kho Tối Thiểu
                 </h5>
-                <span class="badge bg-danger rounded-pill" id="badgeLowStockCount">0 cảnh báo</span>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <div class="input-group input-group-sm" style="max-width: 220px;">
+                        <span class="input-group-text bg-light text-muted"><i class="bi bi-search"></i></span>
+                        <input type="search" class="form-control form-control-sm" id="lowStockSearchInput" name="low_stock_search_query" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" placeholder="Tìm mã, tên vật tư..." oninput="onLowStockSearchInput()" style="border-top-right-radius: 8px; border-bottom-right-radius: 8px;">
+                    </div>
+                    <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="openLowStockWarehouseModal()">
+                        <i class="bi bi-building me-1"></i><span id="lblLowStockWarehouseCount">Tất cả kho</span>
+                    </button>
+                    <span class="badge bg-danger rounded-pill px-3 py-2 fw-bold" id="badgeLowStockCount">0 cảnh báo</span>
+                </div>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle custom-table mb-0">
@@ -159,6 +216,12 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+            <!-- Thanh phân trang 10 dòng/trang (Chuẩn Nút Số 1..5 + Đi Tới Trang) -->
+            <div class="d-flex flex-wrap align-items-center justify-content-between px-3 py-2 border-top bg-light small" id="lowStockPaginationBar">
+                <div class="text-muted" id="lowStockPageInfo">Hiển thị 0 - 0 trên tổng số 0 mục</div>
+                <div class="d-flex flex-wrap align-items-center gap-1" id="lowStockPaginationButtons">
+                </div>
             </div>
         </div>
 
@@ -834,6 +897,100 @@
     </div>
 </div>
 
+<!-- ═══ MODAL: Lọc Kho Cho Biểu Đồ Thống Kê (Chuẩn UI Xuất Excel 100%) ═══ -->
+<div class="modal fade" id="modalChartWarehouseFilter" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                <div class="d-flex align-items-center">
+                    <div class="p-2 rounded-3 bg-success-subtle text-success me-3">
+                        <i class="bi bi-file-earmark-spreadsheet-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-dark mb-0">Xuất Excel / Lọc Kho</h5>
+                        <p class="text-muted small mb-0">Chọn kho cần xuất báo cáo kiểm kê hoặc lọc thống kê</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm px-3 fw-medium" style="border-radius: 8px;" onclick="selectAllChartWarehouses()">
+                            <i class="bi bi-check-all me-1"></i>Chọn tất cả
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm px-3 fw-medium" style="border-radius: 8px;" onclick="deselectAllChartWarehouses()">
+                            <i class="bi bi-x-lg me-1"></i>Bỏ chọn tất cả
+                        </button>
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 fw-bold" style="border-radius: 8px;" id="badgeChartWarehouseSelected">
+                        0 kho
+                    </span>
+                </div>
+
+                <div id="chartWarehouseModalList" class="pe-1" style="max-height: 320px; overflow-y: auto;">
+                    <div class="text-center text-muted py-4"><i class="bi bi-arrow-repeat spin me-2"></i>Đang tải danh sách kho...</div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0 pb-4 px-4 justify-content-end gap-2">
+                <button type="button" class="btn btn-light px-4 fw-medium" style="border-radius: 8px;" data-bs-dismiss="modal">
+                    <i class="bi bi-x me-1"></i>Hủy
+                </button>
+                <button type="button" class="btn btn-success px-4 fw-bold shadow-sm" style="border-radius: 8px; background-color: #5bb385; border-color: #5bb385;" onclick="applyChartWarehouseFilter()">
+                    <i class="bi bi-download me-1"></i>Áp Dụng Lọc
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ MODAL: Lọc Kho Cho Bảng Cảnh Báo Tồn Kho (Chuẩn UI Xuất Excel 100%) ═══ -->
+<div class="modal fade" id="modalLowStockWarehouseFilter" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                <div class="d-flex align-items-center">
+                    <div class="p-2 rounded-3 bg-danger-subtle text-danger me-3">
+                        <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-dark mb-0">Lọc Kho Cảnh Báo Tồn Kho</h5>
+                        <p class="text-muted small mb-0">Chọn các kho cần kiểm tra vật tư chạm mức tối thiểu</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm px-3 fw-medium" style="border-radius: 8px;" onclick="selectAllLowStockWarehouses()">
+                            <i class="bi bi-check-all me-1"></i>Chọn tất cả
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm px-3 fw-medium" style="border-radius: 8px;" onclick="deselectAllLowStockWarehouses()">
+                            <i class="bi bi-x-lg me-1"></i>Bỏ chọn tất cả
+                        </button>
+                    </div>
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 fw-bold" style="border-radius: 8px;" id="badgeLowStockWarehouseSelected">
+                        0 kho
+                    </span>
+                </div>
+
+                <div id="lowStockWarehouseModalList" class="pe-1" style="max-height: 320px; overflow-y: auto;">
+                    <div class="text-center text-muted py-4"><i class="bi bi-arrow-repeat spin me-2"></i>Đang tải danh sách kho...</div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0 pb-4 px-4 justify-content-end gap-2">
+                <button type="button" class="btn btn-light px-4 fw-medium" style="border-radius: 8px;" data-bs-dismiss="modal">
+                    <i class="bi bi-x me-1"></i>Hủy
+                </button>
+                <button type="button" class="btn btn-danger px-4 fw-bold shadow-sm" style="border-radius: 8px;" onclick="applyLowStockWarehouseFilter()">
+                    <i class="bi bi-check2-circle me-1"></i>Áp Dụng Lọc
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
     #modalConfirmRollbackPhieu,
     #modalConfirmDuyetPhieu,
@@ -843,6 +1000,7 @@
 </style>
 
 @section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
 <script src="~/js/admin/dashboard.api.js" asp-append-version="true"></script>
 <script src="~/js/admin/dashboard.ui.js" asp-append-version="true"></script>

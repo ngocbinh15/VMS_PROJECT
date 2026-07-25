@@ -406,3 +406,117 @@ function renderTransactionDetailView(data) {
         });
     }
 }
+
+/* ── Chart Rendering ──────────────────────── */
+let _chartGiaoDichInstance = null;
+let _chartTopVatLieuInstance = null;
+
+function renderOverviewCharts(data) {
+    if (typeof Chart === 'undefined') return;
+
+    const thongKeNgay = (data && data.thongKeTheoNgay) || [];
+    const topVatLieu = (data && data.topVatLieuXuat) || [];
+
+    const ctx1 = document.getElementById('chartGiaoDichOverview');
+    if (ctx1) {
+        if (_chartGiaoDichInstance) _chartGiaoDichInstance.destroy();
+
+        const labels = thongKeNgay.map(d => d.ngay);
+        const dataNhap = thongKeNgay.map(d => d.soLuongNhap);
+        const dataXuat = thongKeNgay.map(d => d.soLuongXuat);
+        const dataChuyen = thongKeNgay.map(d => d.soLuongChuyen);
+
+        _chartGiaoDichInstance = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Nhập kho',
+                        data: dataNhap,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Xuất kho',
+                        data: dataXuat,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Điều chuyển',
+                        data: dataChuyen,
+                        borderColor: '#0d6efd',
+                        backgroundColor: 'rgba(13, 110, 253, 0.12)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { size: 12 } } },
+                    tooltip: { mode: 'index', intersect: false, padding: 10, cornerRadius: 8 }
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, grid: { color: 'rgba(0, 0, 0, 0.05)' } }
+                }
+            }
+        });
+    }
+
+    const ctx2 = document.getElementById('chartTopVatLieuOverview');
+    if (ctx2) {
+        if (_chartTopVatLieuInstance) _chartTopVatLieuInstance.destroy();
+
+        const labels2 = topVatLieu.length > 0 ? topVatLieu.map(v => v.tenVatLieu) : ['Chưa có dữ liệu'];
+        const data2 = topVatLieu.length > 0 ? topVatLieu.map(v => v.tongSoLuongXuat) : [1];
+        const colors2 = ['#0d6efd', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4'];
+
+        _chartTopVatLieuInstance = new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: labels2,
+                datasets: [{
+                    data: data2,
+                    backgroundColor: topVatLieu.length > 0 ? colors2 : ['#e2e8f0'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { size: 11 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: function (ctx) {
+                                if (topVatLieu.length === 0) return ' Không có xuất kho';
+                                const item = topVatLieu[ctx.dataIndex];
+                                return ` ${item.tenVatLieu}: ${Number(item.tongSoLuongXuat).toLocaleString('vi-VN')} ${item.donViTinh || ''}`;
+                            }
+                        }
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+    }
+}
