@@ -50,6 +50,14 @@
             <span>Quản Lý Kho</span>
         </a>
 
+        <a class="ap-nav-item nav-link d-flex align-items-center justify-content-between" data-section="sectionDuyetPhieu" href="#">
+            <div>
+                <i class="bi bi-check2-square"></i>
+                <span>Duyệt Phiếu Giao Dịch</span>
+            </div>
+            <span class="badge bg-warning text-dark ms-2" id="badgePendingCount" style="display:none">0</span>
+        </a>
+
         <div class="ap-nav-divider">Hệ thống</div>
 
         <a class="ap-nav-item nav-link" data-section="sectionSystemLog" href="#">
@@ -86,7 +94,7 @@
             <h4><i class="bi bi-speedometer2 me-2 text-primary"></i>Tổng Quan</h4>
         </div>
         <div class="row g-3 mb-4">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="stat-card" style="cursor:pointer" onclick="goToSection('sectionTaiKhoan')">
                     <div class="stat-icon blue"><i class="bi bi-people-fill"></i></div>
                     <div>
@@ -95,16 +103,16 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="stat-card">
                     <div class="stat-icon green"><i class="bi bi-person-check-fill"></i></div>
                     <div>
                         <div class="stat-value" id="statActiveAccounts">-</div>
-                        <div class="stat-label">Tổng tài khoản khả dụng</div>
+                        <div class="stat-label">Tài khoản hoạt động</div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="stat-card" style="cursor:pointer" onclick="goToSection('sectionVatLieu')">
                     <div class="stat-icon amber"><i class="bi bi-box-seam-fill"></i></div>
                     <div>
@@ -112,6 +120,45 @@
                         <div class="stat-label">Tổng vật liệu</div>
                     </div>
                 </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon red"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                    <div>
+                        <div class="stat-value text-danger" id="statLowStockCount">0</div>
+                        <div class="stat-label">Cảnh báo tồn tối thiểu</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Bảng Cảnh Báo Tồn Kho Tối Thiểu ── -->
+        <div class="admin-card mb-4">
+            <div class="d-flex align-items-center justify-content-between px-3 py-3 border-bottom">
+                <h5 class="mb-0 fw-bold text-danger fs-6">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i>Danh Sách Vật Tư Chạm Mức Tồn Kho Tối Thiểu
+                </h5>
+                <span class="badge bg-danger rounded-pill" id="badgeLowStockCount">0 cảnh báo</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle custom-table mb-0">
+                    <thead class="table-light small">
+                        <tr>
+                            <th class="ps-3">Mã VL</th>
+                            <th>Tên Vật Liệu</th>
+                            <th class="text-center">ĐVT</th>
+                            <th>Kho Chứa</th>
+                            <th class="text-end">Tồn Thực Tế</th>
+                            <th class="text-end">Mức Tối Thiểu</th>
+                            <th class="text-center">Cấp Độ Cảnh Báo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="overviewLowStockTableBody">
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">Đang kiểm tra tồn kho...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -128,21 +175,21 @@
                     </div>
                 </div>
             </div>
-<div class="col-md-6">
-    <div class="admin-card">
-        <div class="card-body text-center py-4">
-            <div class="stat-icon cyan mx-auto mb-3">
-                <i class="bi bi-box-seam-fill"></i>
+            <div class="col-md-6">
+                <div class="admin-card">
+                    <div class="card-body text-center py-4">
+                        <div class="stat-icon cyan mx-auto mb-3">
+                            <i class="bi bi-box-seam-fill"></i>
+                        </div>
+                        <h5 class="fw-bold">Quản Lý Phao</h5>
+                        <p class="text-muted small mb-3">Quản lý phao báo hiệu, tuyến luồng, vị trí phao</p>
+                        <a href="@Url.Action("Dashboard", "Phao")"
+                           class="btn btn-info btn-sm rounded-pill px-4 text-white">
+                            <i class="bi bi-arrow-right-circle me-1"></i>Truy cập
+                        </a>
+                    </div>
+                </div>
             </div>
-            <h5 class="fw-bold">Quản Lý Phao</h5>
-            <p class="text-muted small mb-3">Quản lý phao báo hiệu, tuyến luồng, vị trí phao</p>
-            <a href="@Url.Action("Dashboard", "Phao")"
-               class="btn btn-info btn-sm rounded-pill px-4 text-white">
-                <i class="bi bi-arrow-right-circle me-1"></i>Truy cập
-            </a>
-        </div>
-    </div>
-</div>
         </div>
     </section>
 
@@ -255,6 +302,39 @@
         </div>
     </section>
 
+    <!-- ── SECTION: Duyệt Phiếu Giao Dịch ── -->
+    <section id="sectionDuyetPhieu" class="admin-section">
+        <div class="admin-page-header">
+            <h4><i class="bi bi-check2-square me-2 text-warning"></i>Phê Duyệt Phiếu Giao Dịch Kho</h4>
+            <button class="btn btn-outline-primary btn-sm" onclick="loadPhieuChoDuyet()">
+                <i class="bi bi-arrow-clockwise me-1"></i>Làm mới
+            </button>
+        </div>
+
+        <div class="admin-card">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle custom-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Mã Phiếu</th>
+                            <th>Loại Giao Dịch</th>
+                            <th>Kho Liên Quan</th>
+                            <th>Người Lập</th>
+                            <th>Ngày Tạo</th>
+                            <th>Mô Tả / Lý Do</th>
+                            <th class="text-end">Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pendingTicketsTableBody">
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">Đang tải danh sách phiếu chờ duyệt...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
     <!-- ── SECTION: Nhật Ký Nhập – Xuất – Điều Chuyển ── -->
     <section id="sectionSystemLog" class="admin-section">
         <div class="admin-page-header">
@@ -287,6 +367,15 @@
                 </select>
             </div>
             <div>
+                <label class="form-label">Trạng thái</label>
+                <select class="form-select form-select-sm" id="logTrangThai" style="width:140px">
+                    <option value="">Tất cả</option>
+                    <option value="Hoàn thành">Hoàn thành</option>
+                    <option value="CHO_DUYET">Chờ duyệt</option>
+                    <option value="Từ chối">Từ chối</option>
+                </select>
+            </div>
+            <div>
                 <label class="form-label">Tìm vật tư</label>
                 <input type="text" class="form-control form-control-sm" id="logSearchVatLieu" placeholder="Tên/mã vật tư..." style="width:160px">
             </div>
@@ -309,6 +398,7 @@
                                 <th>Mã Phiếu</th>
                                 <th>Loại</th>
                                 <th>Kho</th>
+                                <th>Trạng Thái</th>
                                 <th>Người Thực Hiện</th>
                                 <th>Ngày</th>
                                 <th class="text-center">Số VT</th>
@@ -317,7 +407,7 @@
                         </thead>
                         <tbody id="systemLogTableBody">
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-4">Đang tải...</td>
+                                <td colspan="8" class="text-center text-muted py-4">Đang tải...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -406,7 +496,7 @@
 
 <!-- ═══ MODAL: Edit Vật Liệu ═══ -->
 <div class="modal fade" id="vatLieuModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editVatLieuTitle">Sửa Vật Liệu</h5>
@@ -414,31 +504,50 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="editVatLieuId">
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Mã Vật Liệu <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="editMaVatLieu" maxlength="50">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Tên Vật Liệu <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="editTenVatLieu">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Đơn Giá <span class="text-danger">*</span></label>
-                    <input type="number" class="form-control" id="editDonGia" min="0" step="1">
-                </div>
-                <div class="row">
-                    <div class="col-6 mb-3">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Mã Vật Liệu <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="editMaVatLieu" maxlength="50">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Tên Vật Liệu <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="editTenVatLieu" maxlength="200">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nhóm Vật Tư <span class="text-danger">*</span></label>
+                        <select class="form-select" id="editNhomVatLieu">
+                            <option value="">-- Chọn nhóm --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Đơn Vị Tính <span class="text-danger">*</span></label>
+                        <select class="form-select" id="editDonViTinh">
+                            <option value="">-- Chọn ĐVT --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Đơn Giá (VNĐ) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="editDonGia" min="0" step="1">
+                    </div>
+                    <div class="col-md-4">
                         <label class="form-label fw-semibold">Mức Tối Thiểu</label>
-                        <input type="number" class="form-control" id="editMucToiThieu" min="0">
+                        <input type="number" class="form-control" id="editMucToiThieu" min="0" step="1">
                     </div>
-                    <div class="col-6 mb-3">
+                    <div class="col-md-4">
                         <label class="form-label fw-semibold">Mức Tối Đa</label>
-                        <input type="number" class="form-control" id="editMucToiDa" min="0">
+                        <input type="number" class="form-control" id="editMucToiDa" min="0" step="1">
                     </div>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Ghi Chú</label>
-                    <textarea class="form-control" id="editMoTa" rows="2"></textarea>
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold">Trạng Thái</label>
+                        <select class="form-select" id="editTrangThai">
+                            <option value="Đang sử dụng">Đang sử dụng</option>
+                            <option value="Không sử dụng">Không sử dụng</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Ghi Chú / Mô Tả</label>
+                        <textarea class="form-control" id="editMoTa" rows="2"></textarea>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -633,6 +742,68 @@
             </div>
             <div class="modal-footer border-0 py-2 px-4">
                 <button type="button" class="btn btn-sm btn-secondary fw-bold" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ MODAL: Chi Tiết Phiếu Chờ Duyệt ═══ -->
+<div class="modal fade" id="modalChiTietPhieu" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalChiTietPhieuTitle"><i class="bi bi-receipt me-2"></i>Chi Tiết Phiếu Giao Dịch</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalChiTietPhieuBody">
+                <!-- Populated by JS -->
+            </div>
+            <div class="modal-footer" id="modalChiTietPhieuFooter">
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ MODAL: Xác Nhận Phê Duyệt Phiếu (Chuẩn UI Hệ Thống) ═══ -->
+<div class="modal fade" id="modalConfirmDuyetPhieu" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-body text-center py-4">
+                <input type="hidden" id="confirmDuyetPhieuId">
+                <div class="text-success mb-3"><i class="bi bi-check-circle" style="font-size: 2.8rem;"></i></div>
+                <h6 class="fw-bold" id="confirmDuyetMaPhieuText">Xác nhận phê duyệt</h6>
+                <p class="text-muted small mb-0">Bạn có chắc chắn muốn phê duyệt phiếu giao dịch này?</p>
+                <small class="text-danger small d-block mt-2"><i class="bi bi-info-circle me-1"></i>Tồn kho CSDL sẽ cập nhật ngay.</small>
+            </div>
+            <div class="modal-footer border-top-0 justify-content-center pt-0 pb-4">
+                <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success fw-bold px-4" onclick="confirmDuyetPhieuSubmit()">
+                    <i class="bi bi-check-lg me-1"></i>Duyệt
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ MODAL: Từ Chối Phiếu (Chuẩn UI Hệ Thống) ═══ -->
+<div class="modal fade" id="modalConfirmTuChoiPhieu" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-body text-center py-4 px-4">
+                <input type="hidden" id="confirmTuChoiPhieuId">
+                <div class="text-danger mb-3"><i class="bi bi-x-circle" style="font-size: 2.8rem;"></i></div>
+                <h6 class="fw-bold" id="confirmTuChoiMaPhieuText">Từ chối phiếu giao dịch</h6>
+                <p class="text-muted small mb-3">Nhập lý do từ chối phiếu giao dịch (tùy chọn):</p>
+                <div class="text-start mb-1">
+                    <textarea class="form-control shadow-none bg-light border-0" id="confirmTuChoiLyDoInput" rows="3" placeholder="VD: Dữ liệu không chính xác, thiếu chứng từ..." style="border-radius: 10px; font-size: 0.88rem;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 justify-content-center pt-0 pb-4">
+                <button type="button" class="btn btn-light fw-bold px-4" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger fw-bold px-4" onclick="confirmTuChoiPhieuSubmit()">
+                    <i class="bi bi-x-lg me-1"></i>Từ chối
+                </button>
             </div>
         </div>
     </div>

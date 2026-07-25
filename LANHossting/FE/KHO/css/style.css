@@ -112,9 +112,12 @@ body {
   transition: 0.2s;
 }
 
-.btn-primary-modern:hover {
+.btn-primary-modern:hover,
+.btn-primary-modern:focus,
+.btn-primary-modern:active {
   transform: translateY(-2px);
   box-shadow: 0 10px 15px -3px rgba(67, 97, 238, 0.5);
+  color: #ffffff !important;
 }
 
 .btn-outline-modern {

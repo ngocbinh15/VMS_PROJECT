@@ -153,9 +153,21 @@
       width: 100%;
     }
 
-    .btn-primary-modern:hover {
+    .btn-primary-modern:hover,
+    .btn-primary-modern:focus,
+    .btn-primary-modern:active,
+    .btn-primary-modern:disabled,
+    .btn-primary-modern[disabled] {
       transform: translateY(-2px);
       box-shadow: 0 10px 20px -5px rgba(67, 97, 238, 0.5);
+      color: #ffffff !important;
+    }
+
+    .btn-primary-modern:disabled,
+    .btn-primary-modern[disabled] {
+      transform: none;
+      opacity: 0.85;
+      color: #ffffff !important;
     }
 
     .btn-primary-modern:active {
@@ -238,6 +250,13 @@
                 Vui lòng nhập mật khẩu.
               </div>
             </div>
+
+            <!-- Alert thông báo lỗi đăng nhập đồng bộ -->
+            <div id="loginErrorAlert" class="alert alert-danger d-none align-items-center border-0 shadow-sm mb-3" style="border-radius: 12px; background: #fee2e2; color: #991b1b; font-weight: 500; font-size: 0.88rem; padding: 10px 14px; animation: fadeIn 0.3s ease-out;">
+              <i class="bi bi-exclamation-triangle-fill me-2 fs-6" style="color: #ef476f;"></i>
+              <span id="loginErrorText">Mật khẩu không chính xác!</span>
+            </div>
+
             <button type="submit" class="btn btn-primary-modern">
               Đăng Nhập
             </button>
@@ -275,6 +294,13 @@
       const username = document.getElementById('username');
       const password = document.getElementById('password');
 
+      // Ẩn alert lỗi cũ nếu có
+      const errorAlert = document.getElementById('loginErrorAlert');
+      if (errorAlert) {
+        errorAlert.classList.remove('d-flex');
+        errorAlert.classList.add('d-none');
+      }
+
       if (!username.value) {
         username.parentElement.classList.add('is-invalid');
         document.getElementById('usernameFeedback').style.display = 'block';
@@ -294,7 +320,7 @@
       }
 
       if (isValid) {
-        const btn = document.querySelector('.btn-primary-modern');
+        const btn = document.querySelector('.btn-primary-modern, .btn-danger, .btn-success');
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang xử lý...';
         btn.disabled = true;
 
@@ -314,7 +340,7 @@
           if (data.success) {
             // Hiển thị thông báo thành công
             btn.innerHTML = '<i class="bi bi-check-circle me-2"></i> Thành công!';
-            btn.classList.remove('btn-primary-modern');
+            btn.classList.remove('btn-primary-modern', 'btn-danger');
             btn.classList.add('btn-success');
             
             // Redirect sau 500ms
@@ -322,16 +348,46 @@
               window.location.href = data.redirectUrl;
             }, 500);
           } else {
-            // Hiển thị lỗi
-            alert(data.message);
-            btn.innerHTML = 'Đăng Nhập';
+            // Hiển thị lỗi đồng bộ & đẹp mắt
+            const errorAlert = document.getElementById('loginErrorAlert');
+            const errorText = document.getElementById('loginErrorText');
+            if (errorAlert && errorText) {
+              errorText.textContent = data.message || 'Tài khoản hoặc mật khẩu không chính xác!';
+              errorAlert.classList.remove('d-none');
+              errorAlert.classList.add('d-flex');
+            }
+
+            btn.innerHTML = '<i class="bi bi-x-circle me-2"></i> Thất bại';
+            btn.classList.remove('btn-primary-modern');
+            btn.classList.add('btn-danger');
             btn.disabled = false;
+
+            setTimeout(() => {
+              btn.innerHTML = 'Đăng Nhập';
+              btn.classList.remove('btn-danger');
+              btn.classList.add('btn-primary-modern');
+            }, 1800);
           }
         })
         .catch(error => {
-          alert('Lỗi kết nối: ' + error);
-          btn.innerHTML = 'Đăng Nhập';
+          const errorAlert = document.getElementById('loginErrorAlert');
+          const errorText = document.getElementById('loginErrorText');
+          if (errorAlert && errorText) {
+            errorText.textContent = 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau!';
+            errorAlert.classList.remove('d-none');
+            errorAlert.classList.add('d-flex');
+          }
+
+          btn.innerHTML = '<i class="bi bi-x-circle me-2"></i> Thất bại';
+          btn.classList.remove('btn-primary-modern');
+          btn.classList.add('btn-danger');
           btn.disabled = false;
+
+          setTimeout(() => {
+            btn.innerHTML = 'Đăng Nhập';
+            btn.classList.remove('btn-danger');
+            btn.classList.add('btn-primary-modern');
+          }, 1800);
         });
       }
     });
@@ -342,7 +398,14 @@
       input.addEventListener('input', function () {
         this.parentElement.classList.remove('is-invalid');
         const feedbackId = this.id + 'Feedback';
-        document.getElementById(feedbackId).style.display = 'none';
+        const feedbackEl = document.getElementById(feedbackId);
+        if (feedbackEl) feedbackEl.style.display = 'none';
+
+        const errorAlert = document.getElementById('loginErrorAlert');
+        if (errorAlert) {
+          errorAlert.classList.remove('d-flex');
+          errorAlert.classList.add('d-none');
+        }
       });
     });
 

@@ -112,10 +112,12 @@
       box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
     }
 
-    .btn-primary-modern:hover {
+    .btn-primary-modern:hover,
+    .btn-primary-modern:focus,
+    .btn-primary-modern:active {
       transform: translateY(-2px);
       box-shadow: 0 6px 15px rgba(67, 97, 238, 0.4);
-      color: white;
+      color: #ffffff !important;
     }
 
     .search-input {

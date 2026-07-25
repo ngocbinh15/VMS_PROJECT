@@ -199,7 +199,7 @@ function renderSystemLogTable(data) {
     const items = data.items || [];
 
     if (items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">
             <i class="bi bi-journal d-block mb-2" style="font-size:2rem;opacity:.3"></i>Không có phiếu nào</td></tr>`;
         renderLogPagination(data);
         return;
@@ -210,10 +210,19 @@ function renderSystemLogTable(data) {
         if (p.loaiPhieu === 'CHUYEN_KHO' && p.tenKhoNhap) {
             khoText = escapeHtml(p.tenKhoNguon) + ' → ' + escapeHtml(p.tenKhoNhap);
         }
+
+        let statusBadge = '<span class="badge bg-success">Hoàn thành</span>';
+        if (p.trangThai === 'CHO_DUYET' || p.trangThai === 'Chờ duyệt') {
+            statusBadge = '<span class="badge bg-warning text-dark">Chờ duyệt</span>';
+        } else if (p.trangThai === 'Từ chối' || p.trangThai === 'TU_CHOI') {
+            statusBadge = '<span class="badge bg-danger">Từ chối</span>';
+        }
+
         return `<tr style="cursor:pointer" onclick="showTransactionDetail(${p.phieuId})">
             <td class="ps-3 fw-semibold text-primary">${escapeHtml(p.maPhieu)}</td>
             <td><span class="badge bg-${loaiPhieuColor(p.loaiPhieu)}">${loaiPhieuLabel(p.loaiPhieu)}</span></td>
             <td>${khoText}</td>
+            <td>${statusBadge}</td>
             <td>${escapeHtml(p.nguoiThucHien)}</td>
             <td class="text-nowrap">${formatDateTime(p.ngayThucHien)}</td>
             <td class="text-center"><span class="badge bg-light text-dark">${p.tongSoVatTu}</span></td>
@@ -298,6 +307,13 @@ function renderTransactionDetailView(data) {
 
     // Info cards
     var cardsHtml = '';
+    if (data.trangThai === 'Từ chối' || data.trangThai === 'TU_CHOI') {
+        var lyDoText = data.lyDo ? ('<strong>Lý do từ chối:</strong> ' + escapeHtml(data.lyDo)) : 'Phiếu đã bị Quản trị viên từ chối.';
+        cardsHtml += '<div class="col-12 mb-2"><div class="alert alert-danger py-2 px-3 mb-0 small shadow-sm"><i class="bi bi-x-circle-fill me-2"></i>' + lyDoText + '</div></div>';
+    } else if (data.trangThai === 'CHO_DUYET' || data.trangThai === 'Chờ duyệt') {
+        cardsHtml += '<div class="col-12 mb-2"><div class="alert alert-warning py-2 px-3 mb-0 small shadow-sm"><i class="bi bi-clock-history me-2"></i>Phiếu đang chờ phê duyệt. Tồn kho chưa thay đổi.</div></div>';
+    }
+
     var khoText = data.tenKhoNguon || '';
     if (data.loaiPhieu === 'CHUYEN_KHO' && data.tenKhoNhap) khoText += ' → ' + data.tenKhoNhap;
     cardsHtml += '<div class="col-auto"><span class="badge bg-light text-dark border px-3 py-2"><i class="bi bi-building me-1"></i>' + escapeHtml(khoText) + '</span></div>';

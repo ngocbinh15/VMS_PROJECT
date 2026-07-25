@@ -89,6 +89,7 @@ namespace LANHossting.Application.DTOs
         public decimal DonGia { get; set; }
         public decimal? MucToiThieu { get; set; }
         public decimal? MucToiDa { get; set; }
+        public string? TrangThai { get; set; }
         public string? MoTa { get; set; }
     }
 
@@ -157,5 +158,23 @@ namespace LANHossting.Application.DTOs
     public class AddVatLieuToKhoRequest
     {
         public List<int> VatLieuIds { get; set; } = new();
+    }
+
+    public class TuChoiPhieuDto
+    {
+        public string? LyDo { get; set; }
+    }
+
+    public class CanhBaoTonKhoDto
+    {
+        public int VatLieuId { get; set; }
+        public string MaVatLieu { get; set; } = string.Empty;
+        public string TenVatLieu { get; set; } = string.Empty;
+        public string DonViTinh { get; set; } = string.Empty;
+        public int KhoId { get; set; }
+        public string TenKho { get; set; } = string.Empty;
+        public decimal SoLuongTon { get; set; }
+        public decimal MucToiThieu { get; set; }
+        public string MucDoCanhBao { get; set; } = "SAP_HET";
     }
 }

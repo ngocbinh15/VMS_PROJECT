@@ -172,6 +172,16 @@
   },
   {
     "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "GetCanhBaoTonKho",
+    "RelativePath": "api/admin/canh-bao-ton-kho",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
     "Method": "GetDonViTinh",
     "RelativePath": "api/admin/donvitinh",
     "HttpMethod": "GET",
@@ -283,6 +293,53 @@
     "IsController": true,
     "Order": 0,
     "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "GetDanhSachPhieuChoDuyet",
+    "RelativePath": "api/admin/phieu-cho-duyet",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "DuyetPhieu",
+    "RelativePath": "api/admin/phieu/{id}/duyet",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "TuChoiPhieu",
+    "RelativePath": "api/admin/phieu/{id}/tu-choi",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "LANHossting.Application.DTOs.TuChoiPhieuDto",
+        "IsRequired": false
+      }
+    ],
     "ReturnTypes": []
   },
   {
@@ -587,6 +644,11 @@
       {
         "Name": "taiKhoanId",
         "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "trangThai",
+        "Type": "System.String",
         "IsRequired": false
       },
       {

@@ -13,6 +13,7 @@ namespace LANHossting.Application.DTOs
         public int? VatLieuId { get; set; }
         public string? SearchVatLieu { get; set; }
         public int? TaiKhoanId { get; set; }
+        public string? TrangThai { get; set; }
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 20;
     }

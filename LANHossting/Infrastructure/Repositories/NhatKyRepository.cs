@@ -1,4 +1,4 @@
-﻿using LANHossting.Application.DTOs;
+using LANHossting.Application.DTOs;
 using LANHossting.Application.Interfaces;
 using LANHossting.Data;
 using Microsoft.EntityFrameworkCore;
@@ -21,15 +21,18 @@ namespace LANHossting.Infrastructure.Repositories
 
         public async Task<PagedResult<NhatKyPhieuDto>> GetDanhSachPhieuAsync(NhatKyFilterDto filter)
         {
-            // Base query: only completed phiếu with at least 1 LichSuVatLieu record
             var query = _context.PhieuNhapXuat
                 .Include(p => p.TaiKhoan)
                 .Include(p => p.KhoNguon)
                 .Include(p => p.KhoNhap)
-                .Where(p => p.TrangThai == "Hoàn thành")
                 .AsNoTracking();
 
             // ── Filters ──────────────────────────────────────
+            if (!string.IsNullOrWhiteSpace(filter.TrangThai))
+            {
+                query = query.Where(p => p.TrangThai == filter.TrangThai);
+            }
+
             if (filter.TuNgay.HasValue)
             {
                 var from = filter.TuNgay.Value.Date;
@@ -151,9 +154,34 @@ namespace LANHossting.Infrastructure.Repositories
                     SoLuongSau = ls.SoLuongSau ?? 0,
                     ThoiGian = ls.ThoiGian,
                     NguoiThucHien = ls.TaiKhoan != null ? ls.TaiKhoan.HoTen : "",
-                    GhiChu = ls.GhiChu
                 })
                 .ToListAsync();
+
+            if (lichSu.Count == 0)
+            {
+                var chiTietList = await _context.ChiTietPhieuNhapXuat
+                    .Include(ct => ct.VatLieu).ThenInclude(vl => vl!.DonViTinh)
+                    .Where(ct => ct.PhieuNhapXuatId == phieuId)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                lichSu = chiTietList.Select(ct => new NhatKyChiTietDto
+                {
+                    Id = ct.Id,
+                    MaVatLieu = ct.VatLieu != null ? ct.VatLieu.MaVatLieu : "",
+                    TenVatLieu = ct.VatLieu != null ? ct.VatLieu.TenVatLieu : "",
+                    DonViTinh = ct.VatLieu?.DonViTinh?.TenDonVi ?? "",
+                    TenKho = phieu.KhoNguon?.TenKho ?? phieu.KhoNhap?.TenKho ?? "",
+                    TenKhoLienQuan = phieu.KhoNhap?.TenKho,
+                    LoaiThayDoi = phieu.LoaiPhieu,
+                    SoLuongTruoc = 0,
+                    SoLuongThayDoi = ct.SoLuong,
+                    SoLuongSau = 0,
+                    ThoiGian = phieu.NgayPhieu,
+                    NguoiThucHien = phieu.TaiKhoan?.HoTen ?? "",
+                    GhiChu = ct.GhiChu
+                }).ToList();
+            }
 
             return new NhatKyPhieuHeaderDto
             {

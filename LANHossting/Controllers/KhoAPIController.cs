@@ -157,6 +157,7 @@ namespace LANHossting.Controllers
             [FromQuery] int? vatLieuId,
             [FromQuery] string? searchVatLieu,
             [FromQuery] int? taiKhoanId,
+            [FromQuery] string? trangThai,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20)
         {
@@ -169,6 +170,7 @@ namespace LANHossting.Controllers
                 VatLieuId = vatLieuId,
                 SearchVatLieu = searchVatLieu,
                 TaiKhoanId = taiKhoanId,
+                TrangThai = trangThai,
                 Page = page,
                 PageSize = pageSize
             };

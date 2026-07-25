@@ -79,5 +79,26 @@ namespace LANHossting.Application.Services
             // ── Delegate to repository (runs in DB transaction) ──
             return await _repository.ExecuteBatchAsync(batch, taiKhoanId, phienLamViecId);
         }
+
+        public async Task<List<PhieuChoDuyetDto>> GetDanhSachPhieuChoDuyetAsync()
+        {
+            return await _repository.GetDanhSachPhieuChoDuyetAsync();
+        }
+
+        public async Task<ServiceResult> DuyetPhieuAsync(int phieuId, int nguoiDuyetId, int phienLamViecId)
+        {
+            if (phieuId <= 0)
+                return new ServiceResult { Success = false, Message = "Mã phiếu không hợp lệ." };
+
+            return await _repository.DuyetPhieuAsync(phieuId, nguoiDuyetId, phienLamViecId);
+        }
+
+        public async Task<ServiceResult> TuChoiPhieuAsync(int phieuId, int nguoiDuyetId, string? lyDo)
+        {
+            if (phieuId <= 0)
+                return new ServiceResult { Success = false, Message = "Mã phiếu không hợp lệ." };
+
+            return await _repository.TuChoiPhieuAsync(phieuId, nguoiDuyetId, lyDo);
+        }
     }
 }

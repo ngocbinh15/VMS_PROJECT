@@ -40,5 +40,8 @@ namespace LANHossting.Application.Interfaces
         // ── FK CONSTRAINT CHECKS ──
         Task<bool> TaiKhoanHasReferencesAsync(int id);
         Task<bool> VatLieuHasReferencesAsync(int id);
+
+        // ── CẢNH BÁO TỒN KHO TỐI THIỂU ──
+        Task<List<CanhBaoTonKhoDto>> GetDanhSachCanhBaoTonKhoAsync();
     }
 }

@@ -33,5 +33,8 @@ namespace LANHossting.Application.Interfaces
         // ── THÊM VẬT LIỆU VÀO KHO ──
         Task<List<VatLieuForKhoDto>> GetVatLieuForKhoAsync(int khoId);
         Task<ServiceResult> AddVatLieuToKhoAsync(int khoId, List<int> vatLieuIds, int nguoiThucHienId, string? ip);
+
+        // ── CẢNH BÁO TỒN KHO TỐI THIỂU ──
+        Task<List<CanhBaoTonKhoDto>> GetDanhSachCanhBaoTonKhoAsync();
     }
 }

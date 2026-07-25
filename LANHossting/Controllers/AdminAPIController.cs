@@ -18,12 +18,14 @@ namespace LANHossting.Controllers
         private readonly IAdminService _adminService;
         private readonly ISystemLogService _logService;
         private readonly IVatLieuService _vatLieuService;
+        private readonly IGiaoDichService _giaoDichService;
 
-        public AdminAPIController(IAdminService adminService, ISystemLogService logService, IVatLieuService vatLieuService)
+        public AdminAPIController(IAdminService adminService, ISystemLogService logService, IVatLieuService vatLieuService, IGiaoDichService giaoDichService)
         {
             _adminService = adminService;
             _logService = logService;
             _vatLieuService = vatLieuService;
+            _giaoDichService = giaoDichService;
         }
 
         // ══════════════════════════════════════════
@@ -243,6 +245,49 @@ namespace LANHossting.Controllers
             var ip = GetClientIP();
             var result = await _adminService.AddVatLieuToKhoAsync(khoId, dto.VatLieuIds, userId, ip);
             return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        // ══════════════════════════════════════════
+        // PHÊ DUYỆT PHIẾU GIAO DỊCH
+        // ══════════════════════════════════════════
+
+        // GET: api/admin/phieu-cho-duyet
+        [HttpGet("phieu-cho-duyet")]
+        public async Task<IActionResult> GetDanhSachPhieuChoDuyet()
+        {
+            var result = await _giaoDichService.GetDanhSachPhieuChoDuyetAsync();
+            return Ok(result);
+        }
+
+        // POST: api/admin/phieu/{id}/duyet
+        [HttpPost("phieu/{id:int}/duyet")]
+        public async Task<IActionResult> DuyetPhieu(int id)
+        {
+            var userId = GetCurrentUserId();
+            var phienId = HttpContext.Session.GetInt32("PhienLamViecId") ?? 1;
+            var result = await _giaoDichService.DuyetPhieuAsync(id, userId, phienId);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        // POST: api/admin/phieu/{id}/tu-choi
+        [HttpPost("phieu/{id:int}/tu-choi")]
+        public async Task<IActionResult> TuChoiPhieu(int id, [FromBody] TuChoiPhieuDto? dto)
+        {
+            var userId = GetCurrentUserId();
+            var result = await _giaoDichService.TuChoiPhieuAsync(id, userId, dto?.LyDo);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        // ══════════════════════════════════════════
+        // CẢNH BÁO TỒN KHO TỐI THIỂU
+        // ══════════════════════════════════════════
+
+        // GET: api/admin/canh-bao-ton-kho
+        [HttpGet("canh-bao-ton-kho")]
+        public async Task<IActionResult> GetCanhBaoTonKho()
+        {
+            var result = await _adminService.GetDanhSachCanhBaoTonKhoAsync();
+            return Ok(result);
         }
 
         // ══════════════════════════════════════════

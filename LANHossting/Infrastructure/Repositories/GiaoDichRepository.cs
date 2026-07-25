@@ -87,10 +87,10 @@ namespace LANHossting.Infrastructure.Repositories
                             NgayPhieu = DateTime.Now,
                             NgayThucHien = DateTime.Now,
                             KhoNguonId = (loaiPhieu == "XUAT" || loaiPhieu == "DIEUCHUYEN") ? batch.KhoId : null,
-                            KhoNhapId = loaiPhieu == "NHAP" ? batch.KhoId : null,
+                            KhoNhapId = (loaiPhieu == "NHAP") ? batch.KhoId : (loaiPhieu == "DIEUCHUYEN" ? items.FirstOrDefault()?.KhoNhanId : null),
                             LyDo = batch.GhiChu,
                             DonViCungCap = loaiPhieu == "NHAP" ? items.FirstOrDefault()?.NhaCungCap : null,
-                            TrangThai = "Hoàn thành",
+                            TrangThai = "CHO_DUYET",
                             GhiChu = batch.GhiChu,
                             NgayTao = DateTime.Now,
                             NgayCapNhat = DateTime.Now
@@ -99,7 +99,7 @@ namespace LANHossting.Infrastructure.Repositories
                         _context.PhieuNhapXuat.Add(phieu);
                         await _context.SaveChangesAsync();
 
-                        // ── Process each line item ───────────────────────
+                        // ── Process each line item (Chỉ tạo ChiTietPhieuNhapXuat, CHƯA cập nhật TonKho) ───────────────────────
                         foreach (var item in items)
                         {
                             // Validate VatLieu exists
@@ -125,34 +125,6 @@ namespace LANHossting.Infrastructure.Repositories
                                 GhiChu = item.GhiChu
                             };
                             _context.ChiTietPhieuNhapXuat.Add(chiTiet);
-
-                            switch (loaiPhieu)
-                            {
-                                case "NHAP":
-                                    await ProcessNhapKho(
-                                        item, vatLieu, batch.KhoId, phieu.Id,
-                                        taiKhoanId, phienLamViecId, donGiaForChiTiet);
-                                    break;
-
-                                case "XUAT":
-                                    await ProcessXuatKho(
-                                        item, vatLieu, batch.KhoId, phieu.Id,
-                                        taiKhoanId, phienLamViecId, donGiaForChiTiet);
-                                    break;
-
-                                case "DIEUCHUYEN":
-                                    if (!item.KhoNhanId.HasValue || item.KhoNhanId.Value <= 0)
-                                        throw new InvalidOperationException("Kho đích là bắt buộc cho điều chuyển.");
-                                    if (item.KhoNhanId.Value == batch.KhoId)
-                                        throw new InvalidOperationException("Kho đích không được trùng kho nguồn.");
-                                    await ProcessDieuChuyen(
-                                        item, vatLieu, batch.KhoId, item.KhoNhanId.Value,
-                                        phieu.Id, taiKhoanId, phienLamViecId, donGiaForChiTiet);
-                                    break;
-
-                                default:
-                                    throw new InvalidOperationException($"Loại giao dịch không hợp lệ: {loaiPhieu}");
-                            }
                         }
 
                         await _context.SaveChangesAsync();
@@ -163,7 +135,7 @@ namespace LANHossting.Infrastructure.Repositories
                     return new ServiceResult
                     {
                         Success = true,
-                        Message = "Giao dịch hoàn tất thành công."
+                        Message = "Tạo phiếu giao dịch thành công. Phiếu đã được chuyển sang trạng thái Chờ duyệt bởi Quản trị viên."
                     };
                 }
                 catch (Exception ex)
@@ -177,6 +149,141 @@ namespace LANHossting.Infrastructure.Repositories
                     };
                 }
             });
+        }
+
+        public async Task<List<PhieuChoDuyetDto>> GetDanhSachPhieuChoDuyetAsync()
+        {
+            var list = await _context.PhieuNhapXuat
+                .Include(p => p.TaiKhoan)
+                .Include(p => p.KhoNguon)
+                .Include(p => p.KhoNhap)
+                .Include(p => p.ChiTietList)
+                    .ThenInclude(ct => ct.VatLieu)
+                        .ThenInclude(v => v.DonViTinh)
+                .Where(p => p.TrangThai == "CHO_DUYET" || p.TrangThai == "Chờ duyệt")
+                .OrderByDescending(p => p.NgayTao)
+                .ToListAsync();
+
+            return list.Select(p => new PhieuChoDuyetDto
+            {
+                Id = p.Id,
+                MaPhieu = p.MaPhieu,
+                LoaiPhieu = p.LoaiPhieu,
+                NgayTao = p.NgayTao,
+                NguoiTao = p.TaiKhoan?.HoTen ?? p.TaiKhoan?.TenDangNhap ?? "N/A",
+                TenKhoNguon = p.KhoNguon?.TenKho,
+                TenKhoNhap = p.KhoNhap?.TenKho,
+                DonViCungCap = p.DonViCungCap,
+                LyDo = p.LyDo,
+                TrangThai = p.TrangThai,
+                ChiTietList = p.ChiTietList.Select(ct => new ChiTietPhieuChoDuyetDto
+                {
+                    VatLieuId = ct.VatLieuId,
+                    MaVatLieu = ct.VatLieu?.MaVatLieu ?? string.Empty,
+                    TenVatLieu = ct.VatLieu?.TenVatLieu ?? string.Empty,
+                    DonViTinh = ct.VatLieu?.DonViTinh?.TenDonVi ?? string.Empty,
+                    SoLuong = ct.SoLuong,
+                    DonGia = ct.DonGia ?? 0,
+                    SoLo = ct.SoLo,
+                    NgaySanXuat = ct.NgaySanXuat,
+                    NgayHetHan = ct.NgayHetHan,
+                    GhiChu = ct.GhiChu
+                }).ToList()
+            }).ToList();
+        }
+
+        public async Task<ServiceResult> DuyetPhieuAsync(int phieuId, int nguoiDuyetId, int phienLamViecId)
+        {
+            var strategy = _context.Database.CreateExecutionStrategy();
+
+            return await strategy.ExecuteAsync(async () =>
+            {
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    var phieu = await _context.PhieuNhapXuat
+                        .Include(p => p.ChiTietList)
+                        .FirstOrDefaultAsync(p => p.Id == phieuId);
+
+                    if (phieu == null)
+                        return new ServiceResult { Success = false, Message = "Không tìm thấy phiếu giao dịch." };
+
+                    if (phieu.TrangThai != "CHO_DUYET" && phieu.TrangThai != "Chờ duyệt")
+                        return new ServiceResult { Success = false, Message = $"Phiếu đang ở trạng thái '{phieu.TrangThai}', không thể duyệt." };
+
+                    int mainKhoId = phieu.KhoNhapId ?? phieu.KhoNguonId ?? 0;
+
+                    foreach (var ct in phieu.ChiTietList)
+                    {
+                        var vatLieu = await _context.VatLieu.FindAsync(ct.VatLieuId);
+                        if (vatLieu == null)
+                            throw new InvalidOperationException($"Vật tư ID={ct.VatLieuId} không tồn tại.");
+
+                        decimal donGiaLine = ct.DonGia ?? vatLieu.DonGia;
+
+                        var itemDto = new GiaoDichItemDto
+                        {
+                            VatLieuId = ct.VatLieuId,
+                            LoaiPhieu = phieu.LoaiPhieu,
+                            SoLuong = ct.SoLuong,
+                            DonGia = donGiaLine,
+                            SoLo = ct.SoLo,
+                            GhiChu = ct.GhiChu
+                        };
+
+                        if (phieu.LoaiPhieu == "NHAP_KHO" || phieu.LoaiPhieu == "NHAP")
+                        {
+                            await ProcessNhapKho(itemDto, vatLieu, mainKhoId, phieu.Id, nguoiDuyetId, phienLamViecId, donGiaLine);
+                        }
+                        else if (phieu.LoaiPhieu == "XUAT_KHO" || phieu.LoaiPhieu == "XUAT")
+                        {
+                            await ProcessXuatKho(itemDto, vatLieu, mainKhoId, phieu.Id, nguoiDuyetId, phienLamViecId, donGiaLine);
+                        }
+                        else if (phieu.LoaiPhieu == "CHUYEN_KHO" || phieu.LoaiPhieu == "DIEUCHUYEN")
+                        {
+                            int khoNhanId = phieu.KhoNhapId ?? 0;
+                            if (khoNhanId <= 0)
+                                throw new InvalidOperationException("Phiếu chuyển kho thiếu thông tin kho nhận.");
+
+                            await ProcessDieuChuyen(itemDto, vatLieu, phieu.KhoNguonId ?? 0, khoNhanId, phieu.Id, nguoiDuyetId, phienLamViecId, donGiaLine);
+                        }
+                    }
+
+                    phieu.TrangThai = "Hoàn thành";
+                    phieu.NgayThucHien = DateTime.Now;
+                    phieu.NgayCapNhat = DateTime.Now;
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return new ServiceResult { Success = true, Message = $"Đã phê duyệt thành công phiếu {phieu.MaPhieu}." };
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return new ServiceResult { Success = false, Message = ex.Message };
+                }
+            });
+        }
+
+        public async Task<ServiceResult> TuChoiPhieuAsync(int phieuId, int nguoiDuyetId, string? lyDo)
+        {
+            var phieu = await _context.PhieuNhapXuat.FindAsync(phieuId);
+            if (phieu == null)
+                return new ServiceResult { Success = false, Message = "Không tìm thấy phiếu giao dịch." };
+
+            if (phieu.TrangThai != "CHO_DUYET" && phieu.TrangThai != "Chờ duyệt")
+                return new ServiceResult { Success = false, Message = $"Phiếu đang ở trạng thái '{phieu.TrangThai}', không thể từ chối." };
+
+            phieu.TrangThai = "Từ chối";
+            if (!string.IsNullOrWhiteSpace(lyDo))
+            {
+                phieu.GhiChu = string.IsNullOrEmpty(phieu.GhiChu) ? $"Lý do từ chối: {lyDo}" : $"{phieu.GhiChu} | Lý do từ chối: {lyDo}";
+            }
+            phieu.NgayCapNhat = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            return new ServiceResult { Success = true, Message = $"Đã từ chối phiếu {phieu.MaPhieu}." };
         }
 
         // ═══════════════════════════════════════════════════════

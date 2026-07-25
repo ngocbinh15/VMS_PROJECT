@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Load initial data
     await loadDashboardOverview();
+    try { await loadPhieuChoDuyet(); } catch (_) {}
 
     // Bind search inputs
     const vatLieuSearch = document.getElementById('vatLieuSearchInput');
@@ -49,6 +50,9 @@ async function onSectionEnter(section) {
         case 'sectionKho':
             await loadKho();
             break;
+        case 'sectionDuyetPhieu':
+            await loadPhieuChoDuyet();
+            break;
         case 'sectionSystemLog':
             _logCurrentPage = 1;
             await loadSystemLog(1);
@@ -57,20 +61,58 @@ async function onSectionEnter(section) {
 }
 
 /* ══════════════════════════════════════════
-   DASHBOARD OVERVIEW
+   DASHBOARD OVERVIEW & CẢNH BÁO TỒN KHO
    ══════════════════════════════════════════ */
 async function loadDashboardOverview() {
     try {
-        const [accounts, materials] = await Promise.all([
+        const [accounts, materials, lowStock] = await Promise.all([
             AdminAPI.getTaiKhoan(),
-            AdminAPI.getVatLieu()
+            AdminAPI.getVatLieu(),
+            AdminAPI.getCanhBaoTonKho()
         ]);
         _accounts = accounts || [];
         _materials = materials || [];
         renderDashboardStats(_accounts, _materials);
+        renderLowStockWarning(lowStock || []);
     } catch (e) {
         showToast('Lỗi tải dữ liệu tổng quan: ' + e.message, 'error');
     }
+}
+
+function renderLowStockWarning(list) {
+    const stat = document.getElementById('statLowStockCount');
+    const badge = document.getElementById('badgeLowStockCount');
+    const tbody = document.getElementById('overviewLowStockTableBody');
+
+    list = list || [];
+    if (stat) stat.textContent = list.length;
+    if (badge) badge.textContent = `${list.length} cảnh báo`;
+
+    if (!tbody) return;
+
+    if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4"><i class="bi bi-check-circle me-1 text-success"></i>Tất cả mặt hàng đều đảm bảo mức tồn kho an toàn.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = list.map(item => {
+        let badgeStatus = '<span class="badge bg-danger">Hết hàng (Tồn 0)</span>';
+        if (item.mucDoCanhBao === 'SAP_HET' || item.soLuongTon > 0) {
+            badgeStatus = '<span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i>Tồn thấp</span>';
+        }
+
+        return `
+            <tr>
+                <td class="ps-3"><strong class="text-primary">${escapeHtml(item.maVatLieu)}</strong></td>
+                <td><span class="fw-semibold">${escapeHtml(item.tenVatLieu)}</span></td>
+                <td class="text-center">${escapeHtml(item.donViTinh || '-')}</td>
+                <td><span class="badge bg-light text-dark border">${escapeHtml(item.tenKho || '-')}</span></td>
+                <td class="text-end font-monospace fw-bold ${item.soLuongTon === 0 ? 'text-danger' : 'text-dark'}">${item.soLuongTon.toLocaleString('vi-VN')}</td>
+                <td class="text-end font-monospace text-muted">${item.mucToiThieu.toLocaleString('vi-VN')}</td>
+                <td class="text-center">${badgeStatus}</td>
+            </tr>
+        `;
+    }).join('');
 }
 
 /* ══════════════════════════════════════════
@@ -313,9 +355,33 @@ async function saveCreateVatLieu() {
     }
 }
 
-function openEditVatLieu(id) {
+async function openEditVatLieu(id) {
     const vl = _materials.find(m => m.id === id);
     if (!vl) return;
+
+    if (_nhomVatLieuList.length === 0) {
+        try { _nhomVatLieuList = await AdminAPI.getNhomVatLieu() || []; } catch (_) {}
+    }
+    if (_donViTinhList.length === 0) {
+        try { _donViTinhList = await AdminAPI.getDonViTinh() || []; } catch (_) {}
+    }
+
+    const nhomSel = document.getElementById('editNhomVatLieu');
+    if (nhomSel) {
+        nhomSel.innerHTML = '<option value="">-- Chọn nhóm --</option>' +
+            _nhomVatLieuList.map(n => `<option value="${n.id}" ${n.id === vl.nhomVatLieuId ? 'selected' : ''}>${escapeHtml(n.ten)}</option>`).join('');
+    }
+
+    const dvtSel = document.getElementById('editDonViTinh');
+    if (dvtSel) {
+        dvtSel.innerHTML = '<option value="">-- Chọn ĐVT --</option>' +
+            _donViTinhList.map(d => `<option value="${d.id}" ${d.id === vl.donViTinhId ? 'selected' : ''}>${escapeHtml(d.ten)}</option>`).join('');
+    }
+
+    const ttSel = document.getElementById('editTrangThai');
+    if (ttSel) {
+        ttSel.value = vl.trangThai || 'Đang sử dụng';
+    }
 
     document.getElementById('editVatLieuTitle').textContent = `Sửa: ${vl.maVatLieu} — ${vl.tenVatLieu}`;
     document.getElementById('editVatLieuId').value = vl.id;
@@ -324,7 +390,7 @@ function openEditVatLieu(id) {
     document.getElementById('editDonGia').value = vl.donGia;
     document.getElementById('editMucToiThieu').value = vl.mucToiThieu ?? '';
     document.getElementById('editMucToiDa').value = vl.mucToiDa ?? '';
-    document.getElementById('editMoTa').value = '';
+    document.getElementById('editMoTa').value = vl.moTa ?? '';
 
     new bootstrap.Modal(document.getElementById('vatLieuModal')).show();
 }
@@ -334,13 +400,25 @@ async function saveVatLieu() {
     const vl = _materials.find(m => m.id === id);
     if (!vl) return;
 
+    const maVatLieu = document.getElementById('editMaVatLieu').value.trim();
+    const tenVatLieu = document.getElementById('editTenVatLieu').value.trim();
+    const nhomVatLieuId = parseInt(document.getElementById('editNhomVatLieu').value) || 0;
+    const donViTinhId = parseInt(document.getElementById('editDonViTinh').value) || 0;
+    const trangThai = document.getElementById('editTrangThai').value;
+
+    if (!maVatLieu || !tenVatLieu || !nhomVatLieuId || !donViTinhId) {
+        showToast('Vui lòng điền đầy đủ các trường bắt buộc (*).', 'error');
+        return;
+    }
+
     try {
         const result = await AdminAPI.updateVatLieu({
             id: id,
-            maVatLieu: document.getElementById('editMaVatLieu').value.trim(),
-            tenVatLieu: document.getElementById('editTenVatLieu').value.trim(),
-            nhomVatLieuId: vl.nhomVatLieuId,
-            donViTinhId: vl.donViTinhId,
+            maVatLieu: maVatLieu,
+            tenVatLieu: tenVatLieu,
+            nhomVatLieuId: nhomVatLieuId,
+            donViTinhId: donViTinhId,
+            trangThai: trangThai,
             donGia: parseFloat(document.getElementById('editDonGia').value) || 0,
             mucToiThieu: parseFloat(document.getElementById('editMucToiThieu').value) || null,
             mucToiDa: parseFloat(document.getElementById('editMucToiDa').value) || null,
@@ -617,12 +695,14 @@ async function loadSystemLog(page) {
     const denNgay = document.getElementById('logDenNgay')?.value;
     const khoId = document.getElementById('logKho')?.value;
     const loai = document.getElementById('logLoaiPhieu')?.value;
+    const trangThai = document.getElementById('logTrangThai')?.value;
     const search = document.getElementById('logSearchVatLieu')?.value?.trim();
 
     if (tuNgay) params.set('tuNgay', tuNgay);
     if (denNgay) params.set('denNgay', denNgay);
     if (khoId) params.set('khoId', khoId);
     if (loai) params.set('loaiThayDoi', loai);
+    if (trangThai) params.set('trangThai', trangThai);
     if (search) params.set('searchVatLieu', search);
 
     try {
@@ -634,11 +714,12 @@ async function loadSystemLog(page) {
 }
 
 function resetLogFilters() {
-    document.getElementById('logTuNgay').value = '';
-    document.getElementById('logDenNgay').value = '';
-    document.getElementById('logKho').value = '';
-    document.getElementById('logLoaiPhieu').value = '';
-    document.getElementById('logSearchVatLieu').value = '';
+    if (document.getElementById('logTuNgay')) document.getElementById('logTuNgay').value = '';
+    if (document.getElementById('logDenNgay')) document.getElementById('logDenNgay').value = '';
+    if (document.getElementById('logKho')) document.getElementById('logKho').value = '';
+    if (document.getElementById('logLoaiPhieu')) document.getElementById('logLoaiPhieu').value = '';
+    if (document.getElementById('logTrangThai')) document.getElementById('logTrangThai').value = '';
+    if (document.getElementById('logSearchVatLieu')) document.getElementById('logSearchVatLieu').value = '';
     loadSystemLog(1);
 }
 
@@ -666,4 +747,267 @@ function logout() {
 function goToSection(sectionId) {
     switchSection(sectionId);
     onSectionEnter(sectionId);
+}
+
+/* ══════════════════════════════════════════
+   PHÊ DUYỆT PHIẾU GIAO DỊCH (2 BƯỚC)
+   ══════════════════════════════════════════ */
+let _phieuChoDuyetList = [];
+
+async function loadPhieuChoDuyet() {
+    try {
+        const list = await AdminAPI.getPhieuChoDuyet() || [];
+        _phieuChoDuyetList = list;
+        updateBadgePendingCount(list.length);
+        renderPhieuChoDuyetTable(list);
+    } catch (e) {
+        showToast('Lỗi tải danh sách phiếu chờ duyệt: ' + e.message, 'error');
+    }
+}
+
+function updateBadgePendingCount(count) {
+    const badge = document.getElementById('badgePendingCount');
+    if (!badge) return;
+    if (count > 0) {
+        badge.textContent = count;
+        badge.style.display = 'inline-block';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+function renderPhieuChoDuyetTable(list) {
+    const tbody = document.getElementById('pendingTicketsTableBody');
+    if (!tbody) return;
+
+    if (!list || list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4"><i class="bi bi-check-circle me-1 text-success"></i>Không có phiếu nào đang chờ duyệt.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = list.map(p => {
+        let loaiBadge = '<span class="badge bg-primary">Nhập kho</span>';
+        if (p.loaiPhieu === 'XUAT_KHO' || p.loaiPhieu === 'XUAT') loaiBadge = '<span class="badge bg-danger">Xuất kho</span>';
+        else if (p.loaiPhieu === 'CHUYEN_KHO' || p.loaiPhieu === 'DIEUCHUYEN') loaiBadge = '<span class="badge bg-info text-dark">Chuyển kho</span>';
+
+        let khoInfo = p.tenKhoNhap || p.tenKhoNguon || '-';
+        if (p.tenKhoNguon && p.tenKhoNhap) khoInfo = `${escapeHtml(p.tenKhoNguon)} ➔ ${escapeHtml(p.tenKhoNhap)}`;
+
+        const itemCount = (p.chiTietList || []).length;
+        const ngayTao = p.ngayTao ? new Date(p.ngayTao).toLocaleString('vi-VN') : '-';
+
+        return `
+            <tr>
+                <td><strong class="text-primary">${escapeHtml(p.maPhieu)}</strong></td>
+                <td>${loaiBadge}</td>
+                <td><span class="fw-semibold">${escapeHtml(khoInfo)}</span></td>
+                <td>${escapeHtml(p.nguoiTao)}</td>
+                <td><small class="text-muted">${ngayTao}</small></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-info" onclick="viewChiTietPhieuChoDuyet(${p.id})">
+                        <i class="bi bi-list-task me-1"></i>Xem ${itemCount} mặt hàng
+                    </button>
+                </td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-success me-1" onclick="duyetPhieuGiaoDich(${p.id})">
+                        <i class="bi bi-check-lg me-1"></i>Duyệt
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="tuChoiPhieuGiaoDich(${p.id})">
+                        <i class="bi bi-x-lg me-1"></i>Từ chối
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function viewChiTietPhieuChoDuyet(id) {
+    const p = _phieuChoDuyetList.find(x => x.id === id);
+    if (!p) return;
+
+    document.getElementById('modalChiTietPhieuTitle').innerHTML = `<i class="bi bi-receipt me-2"></i>Chi Tiết Phiếu: ${escapeHtml(p.maPhieu)}`;
+    
+    let itemsHtml = (p.chiTietList || []).map((ct, idx) => {
+        const nsx = ct.ngaySanXuat ? new Date(ct.ngaySanXuat).toLocaleDateString('vi-VN') : '—';
+        const hsd = ct.ngayHetHan ? new Date(ct.ngayHetHan).toLocaleDateString('vi-VN') : '—';
+        const ncc = p.donViCungCap || '—';
+        const soLo = ct.soLo || '—';
+        const ghiChu = ct.ghiChu || '—';
+
+        return `
+            <tr>
+                <td class="text-center">${idx + 1}</td>
+                <td><strong>${escapeHtml(ct.maVatLieu)}</strong> - ${escapeHtml(ct.tenVatLieu)}</td>
+                <td class="text-center">${escapeHtml(ct.donViTinh || '-')}</td>
+                <td class="text-end font-monospace fw-bold">${ct.soLuong.toLocaleString('vi-VN')}</td>
+                <td class="text-end">${ct.donGia > 0 ? ct.donGia.toLocaleString('vi-VN') + ' đ' : '-'}</td>
+                <td class="text-end fw-bold text-primary">${ct.thanhTien > 0 ? ct.thanhTien.toLocaleString('vi-VN') + ' đ' : '-'}</td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-secondary py-0 px-2 small shadow-none" onclick="toggleItemExtraRow(${idx})" id="btnToggleRow_${idx}" title="Mở rộng/Thu gọn thông tin chi tiết">
+                        <i class="bi bi-chevron-down me-1" id="iconToggleRow_${idx}"></i>Chi tiết
+                    </button>
+                </td>
+            </tr>
+            <tr id="extraRow_${idx}" class="bg-light d-none">
+                <td colspan="7" class="p-3">
+                    <div class="card card-body border-0 shadow-sm bg-white rounded-3 small text-dark py-2 px-3">
+                        <div class="row g-2">
+                            <div class="col-md-3">
+                                <div class="text-muted small"><i class="bi bi-layers text-primary me-1"></i>Số Lô (Lot):</div>
+                                <div class="fw-bold">${escapeHtml(soLo)}</div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-muted small"><i class="bi bi-calendar-event text-info me-1"></i>Ngày sản xuất:</div>
+                                <div class="fw-semibold">${nsx}</div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-muted small"><i class="bi bi-calendar-x text-danger me-1"></i>Ngày hết hạn:</div>
+                                <div class="fw-semibold text-danger">${hsd}</div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-muted small"><i class="bi bi-truck text-success me-1"></i>Nhà cung cấp:</div>
+                                <div class="fw-semibold">${escapeHtml(ncc)}</div>
+                            </div>
+                            ${ghiChu !== '—' ? `
+                            <div class="col-12 border-top pt-2 mt-1">
+                                <span class="text-muted me-2"><i class="bi bi-card-text text-secondary me-1"></i>Ghi chú:</span>
+                                <span class="fst-italic text-dark">${escapeHtml(ghiChu)}</span>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    let totalVal = (p.chiTietList || []).reduce((sum, item) => sum + (item.thanhTien || 0), 0);
+
+    document.getElementById('modalChiTietPhieuBody').innerHTML = `
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div><strong>Người lập:</strong> ${escapeHtml(p.nguoiTao)}</div>
+                <div><strong>Ngày tạo:</strong> ${p.ngayTao ? new Date(p.ngayTao).toLocaleString('vi-VN') : '-'}</div>
+                ${p.donViCungCap ? `<div><strong>Nhà cung cấp:</strong> ${escapeHtml(p.donViCungCap)}</div>` : ''}
+            </div>
+            <div class="col-md-6 text-md-end">
+                <div><strong>Lý do / Ghi chú:</strong> ${escapeHtml(p.lyDo || 'Không có')}</div>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle small mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th>Vật tư</th>
+                        <th class="text-center">ĐVT</th>
+                        <th class="text-end">Số lượng</th>
+                        <th class="text-end">Đơn giá</th>
+                        <th class="text-end">Thành tiền</th>
+                        <th class="text-center">Thông tin</th>
+                    </tr>
+                </thead>
+                <tbody>${itemsHtml}</tbody>
+                <tfoot>
+                    <tr class="table-light">
+                        <td colspan="5" class="text-end fw-bold">Tổng cộng:</td>
+                        <td class="text-end fw-bold text-danger fs-6">${totalVal.toLocaleString('vi-VN')} đ</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    `;
+
+    document.getElementById('modalChiTietPhieuFooter').innerHTML = `
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
+        <button class="btn btn-danger btn-sm" onclick="bootstrap.Modal.getInstance(document.getElementById('modalChiTietPhieu'))?.hide(); tuChoiPhieuGiaoDich(${p.id});">
+            <i class="bi bi-x-lg me-1"></i>Từ chối
+        </button>
+        <button class="btn btn-success btn-sm" onclick="bootstrap.Modal.getInstance(document.getElementById('modalChiTietPhieu'))?.hide(); duyetPhieuGiaoDich(${p.id});">
+            <i class="bi bi-check-lg me-1"></i>Duyệt Phiếu Này
+        </button>
+    `;
+
+    new bootstrap.Modal(document.getElementById('modalChiTietPhieu')).show();
+}
+
+function toggleItemExtraRow(idx) {
+    const row = document.getElementById(`extraRow_${idx}`);
+    const icon = document.getElementById(`iconToggleRow_${idx}`);
+    const btn = document.getElementById(`btnToggleRow_${idx}`);
+
+    if (!row) return;
+
+    if (row.classList.contains('d-none')) {
+        row.classList.remove('d-none');
+        if (icon) icon.className = 'bi bi-chevron-up me-1';
+        if (btn) {
+            btn.classList.remove('btn-outline-secondary');
+            btn.classList.add('btn-secondary', 'text-white');
+        }
+    } else {
+        row.classList.add('d-none');
+        if (icon) icon.className = 'bi bi-chevron-down me-1';
+        if (btn) {
+            btn.classList.remove('btn-secondary', 'text-white');
+            btn.classList.add('btn-outline-secondary');
+        }
+    }
+}
+
+function duyetPhieuGiaoDich(id) {
+    const p = _phieuChoDuyetList.find(x => x.id === id);
+    document.getElementById('confirmDuyetPhieuId').value = id;
+    document.getElementById('confirmDuyetMaPhieuText').textContent = `Duyệt Phiếu: ${p ? p.maPhieu : id}`;
+    new bootstrap.Modal(document.getElementById('modalConfirmDuyetPhieu')).show();
+}
+
+async function confirmDuyetPhieuSubmit() {
+    const id = parseInt(document.getElementById('confirmDuyetPhieuId').value);
+    if (!id) return;
+
+    try {
+        const result = await AdminAPI.duyetPhieu(id);
+        bootstrap.Modal.getInstance(document.getElementById('modalConfirmDuyetPhieu'))?.hide();
+
+        if (result && result.success) {
+            showToast(result.message, 'success');
+            await loadPhieuChoDuyet();
+        } else {
+            showToast(result?.message || 'Không thể duyệt phiếu.', 'error');
+        }
+    } catch (e) {
+        bootstrap.Modal.getInstance(document.getElementById('modalConfirmDuyetPhieu'))?.hide();
+        showToast('Lỗi: ' + e.message, 'error');
+    }
+}
+
+function tuChoiPhieuGiaoDich(id) {
+    const p = _phieuChoDuyetList.find(x => x.id === id);
+    document.getElementById('confirmTuChoiPhieuId').value = id;
+    document.getElementById('confirmTuChoiMaPhieuText').textContent = `Từ Chối Phiếu: ${p ? p.maPhieu : id}`;
+    document.getElementById('confirmTuChoiLyDoInput').value = '';
+    new bootstrap.Modal(document.getElementById('modalConfirmTuChoiPhieu')).show();
+}
+
+async function confirmTuChoiPhieuSubmit() {
+    const id = parseInt(document.getElementById('confirmTuChoiPhieuId').value);
+    if (!id) return;
+
+    const lyDo = document.getElementById('confirmTuChoiLyDoInput').value.trim();
+
+    try {
+        const result = await AdminAPI.tuChoiPhieu(id, lyDo);
+        bootstrap.Modal.getInstance(document.getElementById('modalConfirmTuChoiPhieu'))?.hide();
+
+        if (result && result.success) {
+            showToast(result.message, 'success');
+            await loadPhieuChoDuyet();
+        } else {
+            showToast(result?.message || 'Không thể từ chối phiếu.', 'error');
+        }
+    } catch (e) {
+        bootstrap.Modal.getInstance(document.getElementById('modalConfirmTuChoiPhieu'))?.hide();
+        showToast('Lỗi: ' + e.message, 'error');
+    }
 }

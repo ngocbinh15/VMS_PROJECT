@@ -320,5 +320,14 @@ namespace LANHossting.Application.Services
 
             return new ServiceResult { Success = true, Message = $"Đã thêm {count} vật liệu vào kho thành công!" };
         }
+
+        // ══════════════════════════════════════════
+        // CẢNH BÁO TỒN KHO TỐI THIỂU
+        // ══════════════════════════════════════════
+
+        public async Task<List<CanhBaoTonKhoDto>> GetDanhSachCanhBaoTonKhoAsync()
+        {
+            return await _adminRepo.GetDanhSachCanhBaoTonKhoAsync();
+        }
     }
 }

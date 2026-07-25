@@ -56,4 +56,37 @@ namespace LANHossting.Application.DTOs
         public string? NhaCungCap { get; set; }
         public string? GhiChu { get; set; }
     }
+
+    /// <summary>
+    /// DTO hiển thị phiếu chờ Admin phê duyệt.
+    /// </summary>
+    public class PhieuChoDuyetDto
+    {
+        public int Id { get; set; }
+        public string MaPhieu { get; set; } = string.Empty;
+        public string LoaiPhieu { get; set; } = string.Empty;
+        public DateTime NgayTao { get; set; }
+        public string NguoiTao { get; set; } = string.Empty;
+        public string? TenKhoNguon { get; set; }
+        public string? TenKhoNhap { get; set; }
+        public string? DonViCungCap { get; set; }
+        public string? LyDo { get; set; }
+        public string TrangThai { get; set; } = string.Empty;
+        public List<ChiTietPhieuChoDuyetDto> ChiTietList { get; set; } = new();
+    }
+
+    public class ChiTietPhieuChoDuyetDto
+    {
+        public int VatLieuId { get; set; }
+        public string MaVatLieu { get; set; } = string.Empty;
+        public string TenVatLieu { get; set; } = string.Empty;
+        public string DonViTinh { get; set; } = string.Empty;
+        public decimal SoLuong { get; set; }
+        public decimal DonGia { get; set; }
+        public decimal ThanhTien => SoLuong * DonGia;
+        public string? SoLo { get; set; }
+        public DateTime? NgaySanXuat { get; set; }
+        public DateTime? NgayHetHan { get; set; }
+        public string? GhiChu { get; set; }
+    }
 }

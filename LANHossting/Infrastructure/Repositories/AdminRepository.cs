@@ -211,6 +211,10 @@ namespace LANHossting.Infrastructure.Repositories
             entity.DonGia = dto.DonGia;
             entity.MucToiThieu = dto.MucToiThieu;
             entity.MucToiDa = dto.MucToiDa;
+            if (!string.IsNullOrWhiteSpace(dto.TrangThai))
+            {
+                entity.TrangThai = dto.TrangThai.Trim();
+            }
             entity.MoTa = dto.MoTa?.Trim();
 
             await _context.SaveChangesAsync();
@@ -409,6 +413,35 @@ namespace LANHossting.Infrastructure.Repositories
             _context.TonKho.AddRange(entities);
             await _context.SaveChangesAsync();
             return newIds.Count;
+        }
+
+        // ══════════════════════════════════════════
+        // CẢNH BÁO TỒN KHO TỐI THIỂU
+        // ══════════════════════════════════════════
+
+        public async Task<List<CanhBaoTonKhoDto>> GetDanhSachCanhBaoTonKhoAsync()
+        {
+            return await _context.TonKho
+                .Include(tk => tk.VatLieu).ThenInclude(vl => vl!.DonViTinh)
+                .Include(tk => tk.Kho)
+                .Where(tk => tk.VatLieu != null && tk.VatLieu.TrangThai == "Đang sử dụng")
+                .Where(tk => tk.SoLuongTon <= (tk.VatLieu!.MucToiThieu ?? 10))
+                .AsNoTracking()
+                .Select(tk => new CanhBaoTonKhoDto
+                {
+                    VatLieuId = tk.VatLieuId,
+                    MaVatLieu = tk.VatLieu!.MaVatLieu,
+                    TenVatLieu = tk.VatLieu.TenVatLieu,
+                    DonViTinh = tk.VatLieu.DonViTinh != null ? tk.VatLieu.DonViTinh.TenDonVi : "",
+                    KhoId = tk.KhoId,
+                    TenKho = tk.Kho != null ? tk.Kho.TenKho : "",
+                    SoLuongTon = tk.SoLuongTon,
+                    MucToiThieu = tk.VatLieu.MucToiThieu ?? 10,
+                    MucDoCanhBao = tk.SoLuongTon == 0 ? "HET_HANG" : "SAP_HET"
+                })
+                .OrderBy(c => c.SoLuongTon)
+                .ThenBy(c => c.TenVatLieu)
+                .ToListAsync();
         }
 
         // ══════════════════════════════════════════

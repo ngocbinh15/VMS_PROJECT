@@ -136,9 +136,21 @@ body {
   width: 100%;
 }
 
-.btn-primary-modern:hover {
+.btn-primary-modern:hover,
+.btn-primary-modern:focus,
+.btn-primary-modern:active,
+.btn-primary-modern:disabled,
+.btn-primary-modern[disabled] {
   transform: translateY(-2px);
   box-shadow: 0 10px 20px -5px rgba(67, 97, 238, 0.5);
+  color: #ffffff !important;
+}
+
+.btn-primary-modern:disabled,
+.btn-primary-modern[disabled] {
+  transform: none;
+  opacity: 0.85;
+  color: #ffffff !important;
 }
 
 .btn-primary-modern:active {

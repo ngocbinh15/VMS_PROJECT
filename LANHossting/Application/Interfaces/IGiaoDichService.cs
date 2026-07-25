@@ -17,5 +17,8 @@ namespace LANHossting.Application.Interfaces
         ///   - DIEUCHUYEN requires KhoNhanId != KhoId
         /// </summary>
         Task<ServiceResult> ExecuteAsync(GiaoDichBatchDto batch, int taiKhoanId, int phienLamViecId);
+        Task<List<PhieuChoDuyetDto>> GetDanhSachPhieuChoDuyetAsync();
+        Task<ServiceResult> DuyetPhieuAsync(int phieuId, int nguoiDuyetId, int phienLamViecId);
+        Task<ServiceResult> TuChoiPhieuAsync(int phieuId, int nguoiDuyetId, string? lyDo);
     }
 }

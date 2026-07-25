@@ -17,5 +17,20 @@ namespace LANHossting.Application.Interfaces
         /// All within a single DB transaction — rolls back entirely on any failure.
         /// </summary>
         Task<ServiceResult> ExecuteBatchAsync(GiaoDichBatchDto batch, int taiKhoanId, int phienLamViecId);
+
+        /// <summary>
+        /// Lấy danh sách tất cả các phiếu giao dịch đang ở trạng thái CHO_DUYET.
+        /// </summary>
+        Task<List<PhieuChoDuyetDto>> GetDanhSachPhieuChoDuyetAsync();
+
+        /// <summary>
+        /// Admin phê duyệt phiếu: Cập nhật tồn kho và đổi trạng thái phiếu sang HOAN_THANH.
+        /// </summary>
+        Task<ServiceResult> DuyetPhieuAsync(int phieuId, int nguoiDuyetId, int phienLamViecId);
+
+        /// <summary>
+        /// Admin từ chối phiếu: Đổi trạng thái phiếu sang TU_CHOI (giữ nguyên tồn kho).
+        /// </summary>
+        Task<ServiceResult> TuChoiPhieuAsync(int phieuId, int nguoiDuyetId, string? lyDo);
     }
 }
