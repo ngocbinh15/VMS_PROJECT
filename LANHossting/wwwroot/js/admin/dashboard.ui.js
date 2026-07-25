@@ -177,6 +177,9 @@ function renderKhoTable(khoList) {
             <td><strong>${escapeHtml(k.tenKho)}</strong></td>
             <td>${escapeHtml(k.moTa || '-')}</td>
             <td class="text-nowrap">
+                <button class="btn btn-action btn-outline-success me-1" title="Thêm vật liệu" onclick="openAddVatLieuToKho(${k.id}, '${escapeHtml(k.tenKho)}')">
+                    <i class="bi bi-box-seam"></i>
+                </button>
                 <button class="btn btn-action btn-outline-primary me-1" title="Sửa" onclick="openEditKho(${k.id})">
                     <i class="bi bi-pencil"></i>
                 </button>

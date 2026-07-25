@@ -292,5 +292,33 @@ namespace LANHossting.Application.Services
 
             return new ServiceResult { Success = true, Message = "Xóa kho thành công!" };
         }
+
+        // ══════════════════════════════════════════
+        // THÊM VẬT LIỆU VÀO KHO
+        // ══════════════════════════════════════════
+
+        public async Task<List<VatLieuForKhoDto>> GetVatLieuForKhoAsync(int khoId)
+        {
+            return await _adminRepo.GetVatLieuForKhoAsync(khoId);
+        }
+
+        public async Task<ServiceResult> AddVatLieuToKhoAsync(int khoId, List<int> vatLieuIds, int nguoiThucHienId, string? ip)
+        {
+            if (khoId <= 0)
+                return new ServiceResult { Success = false, Message = "ID kho không hợp lệ." };
+
+            if (vatLieuIds == null || vatLieuIds.Count == 0)
+                return new ServiceResult { Success = false, Message = "Chưa chọn vật liệu nào." };
+
+            var count = await _adminRepo.AddVatLieuToKhoAsync(khoId, vatLieuIds);
+
+            if (count == 0)
+                return new ServiceResult { Success = false, Message = "Tất cả vật liệu đã có trong kho." };
+
+            await _logRepo.WriteLogAsync(nguoiThucHienId, "TAO", "TON_KHO", khoId,
+                $"Thêm {count} vật liệu vào kho ID={khoId}", ip);
+
+            return new ServiceResult { Success = true, Message = $"Đã thêm {count} vật liệu vào kho thành công!" };
+        }
     }
 }

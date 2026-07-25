@@ -489,7 +489,7 @@ function buildExcelHtmlForKho(whName, khoData) {
         var cr = startRow + index;
         h += '<tr>';
         h += '<td>' + (index + 1) + '</td>';
-        h += '<td class="text-left" style="mso-number-format:\'\\@@\'">' + item.maVatLieu + '</td>';
+        h += '<td class="text-left" style="mso-number-format:\'\\@\'">' + item.maVatLieu + '</td>';
         h += '<td class="text-left">' + item.tenVatLieu + '</td>';
         h += '<td>' + item.donViTinh + '</td>';
         h += '<td class="text-right" x:num="' + price + '" style="mso-number-format:\'#,##0.00\'">' + price + '</td>';

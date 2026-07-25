@@ -142,4 +142,20 @@ namespace LANHossting.Application.DTOs
         public string? DiaChi { get; set; }
         public string? MoTa { get; set; }
     }
+
+    // ── THÊM VẬT LIỆU VÀO KHO ─────────────────
+
+    public class VatLieuForKhoDto
+    {
+        public int Id { get; set; }
+        public string MaVatLieu { get; set; } = string.Empty;
+        public string TenVatLieu { get; set; } = string.Empty;
+        public string TenDonViTinh { get; set; } = string.Empty;
+        public bool DaTonTai { get; set; }
+    }
+
+    public class AddVatLieuToKhoRequest
+    {
+        public List<int> VatLieuIds { get; set; } = new();
+    }
 }

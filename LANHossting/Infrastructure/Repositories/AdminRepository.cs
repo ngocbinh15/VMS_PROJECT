@@ -360,6 +360,58 @@ namespace LANHossting.Infrastructure.Repositories
         }
 
         // ══════════════════════════════════════════
+        // THÊM VẬT LIỆU VÀO KHO
+        // ══════════════════════════════════════════
+
+        public async Task<List<VatLieuForKhoDto>> GetVatLieuForKhoAsync(int khoId)
+        {
+            var existingVatLieuIds = await _context.TonKho
+                .Where(tk => tk.KhoId == khoId)
+                .Select(tk => tk.VatLieuId)
+                .ToListAsync();
+
+            return await _context.VatLieu
+                .Include(v => v.DonViTinh)
+                .Where(v => v.TrangThai == "Đang sử dụng")
+                .OrderBy(v => v.MaVatLieu)
+                .Select(v => new VatLieuForKhoDto
+                {
+                    Id = v.Id,
+                    MaVatLieu = v.MaVatLieu,
+                    TenVatLieu = v.TenVatLieu,
+                    TenDonViTinh = v.DonViTinh != null ? v.DonViTinh.TenDonVi : "",
+                    DaTonTai = existingVatLieuIds.Contains(v.Id)
+                })
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<int> AddVatLieuToKhoAsync(int khoId, List<int> vatLieuIds)
+        {
+            // Lọc bỏ những vật liệu đã có trong kho
+            var existingIds = await _context.TonKho
+                .Where(tk => tk.KhoId == khoId && vatLieuIds.Contains(tk.VatLieuId))
+                .Select(tk => tk.VatLieuId)
+                .ToListAsync();
+
+            var newIds = vatLieuIds.Except(existingIds).ToList();
+            if (newIds.Count == 0) return 0;
+
+            var entities = newIds.Select(vlId => new TonKho
+            {
+                VatLieuId = vlId,
+                KhoId = khoId,
+                SoLuongTon = 0,
+                SoLuongDatCho = 0,
+                NgayCapNhat = DateTime.Now
+            }).ToList();
+
+            _context.TonKho.AddRange(entities);
+            await _context.SaveChangesAsync();
+            return newIds.Count;
+        }
+
+        // ══════════════════════════════════════════
         // HELPERS
         // ══════════════════════════════════════════
 

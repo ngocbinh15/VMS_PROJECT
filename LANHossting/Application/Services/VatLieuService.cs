@@ -43,9 +43,6 @@ namespace LANHossting.Application.Services
             if (dto.DonGia < 0)
                 errors.Add("Đơn giá phải >= 0.");
 
-            if (dto.KhoId <= 0)
-                errors.Add("Kho là bắt buộc.");
-
             if (errors.Count > 0)
             {
                 return new ServiceResult

@@ -17,11 +17,13 @@ namespace LANHossting.Controllers
     {
         private readonly IAdminService _adminService;
         private readonly ISystemLogService _logService;
+        private readonly IVatLieuService _vatLieuService;
 
-        public AdminAPIController(IAdminService adminService, ISystemLogService logService)
+        public AdminAPIController(IAdminService adminService, ISystemLogService logService, IVatLieuService vatLieuService)
         {
             _adminService = adminService;
             _logService = logService;
+            _vatLieuService = vatLieuService;
         }
 
         // ══════════════════════════════════════════
@@ -182,6 +184,64 @@ namespace LANHossting.Controllers
             var userId = GetCurrentUserId();
             var ip = GetClientIP();
             var result = await _adminService.DeleteKhoAsync(id, userId, ip);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        // ══════════════════════════════════════════
+        // THÊM VẬT TƯ MỚI (ADMIN)
+        // ══════════════════════════════════════════
+
+        // POST: api/admin/vatlieu
+        [HttpPost("vatlieu")]
+        public async Task<IActionResult> CreateVatLieu([FromBody] CreateVatLieuDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return BadRequest(new ServiceResult { Success = false, Message = "Dữ liệu không hợp lệ.", Errors = errors });
+            }
+            var result = await _vatLieuService.CreateVatLieuAsync(dto);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
+        // GET: api/admin/nhomvatlieu
+        [HttpGet("nhomvatlieu")]
+        public async Task<IActionResult> GetNhomVatLieu()
+        {
+            var result = await _vatLieuService.GetNhomVatLieuAsync();
+            return Ok(result);
+        }
+
+        // GET: api/admin/donvitinh
+        [HttpGet("donvitinh")]
+        public async Task<IActionResult> GetDonViTinh()
+        {
+            var result = await _vatLieuService.GetDonViTinhAsync();
+            return Ok(result);
+        }
+
+        // ══════════════════════════════════════════
+        // THÊM VẬT LIỆU VÀO KHO
+        // ══════════════════════════════════════════
+
+        // GET: api/admin/kho/{khoId}/vatlieu
+        [HttpGet("kho/{khoId:int}/vatlieu")]
+        public async Task<IActionResult> GetVatLieuForKho(int khoId)
+        {
+            var result = await _adminService.GetVatLieuForKhoAsync(khoId);
+            return Ok(result);
+        }
+
+        // POST: api/admin/kho/{khoId}/vatlieu
+        [HttpPost("kho/{khoId:int}/vatlieu")]
+        public async Task<IActionResult> AddVatLieuToKho(int khoId, [FromBody] AddVatLieuToKhoRequest dto)
+        {
+            var userId = GetCurrentUserId();
+            var ip = GetClientIP();
+            var result = await _adminService.AddVatLieuToKhoAsync(khoId, dto.VatLieuIds, userId, ip);
             return result.Success ? Ok(result) : BadRequest(result);
         }
 

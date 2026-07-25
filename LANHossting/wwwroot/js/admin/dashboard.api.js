@@ -45,14 +45,21 @@ const AdminAPI = (() => {
 
         // ── VẬT LIỆU ──
         getVatLieu:       ()        => _json(`${BASE}/vatlieu`),
+        createVatLieu:    (dto)     => _json(`${BASE}/vatlieu`, { method: 'POST', body: JSON.stringify(dto) }),
         updateVatLieu:    (dto)     => _json(`${BASE}/vatlieu`, { method: 'PUT',  body: JSON.stringify(dto) }),
         deleteVatLieu:    (id)      => _json(`${BASE}/vatlieu/${id}`, { method: 'DELETE' }),
+        getNhomVatLieu:   ()        => _json(`${BASE}/nhomvatlieu`),
+        getDonViTinh:     ()        => _json(`${BASE}/donvitinh`),
 
         // ── KHO ──
         getKho:           ()        => _json(`${BASE}/kho`),
         createKho:        (dto)     => _json(`${BASE}/kho`, { method: 'POST', body: JSON.stringify(dto) }),
         updateKho:        (dto)     => _json(`${BASE}/kho`, { method: 'PUT',  body: JSON.stringify(dto) }),
         deleteKho:        (id)      => _json(`${BASE}/kho/${id}`, { method: 'DELETE' }),
+
+        // ── THÊM VẬT LIỆU VÀO KHO ──
+        getVatLieuForKho: (khoId)   => _json(`${BASE}/kho/${khoId}/vatlieu`),
+        addVatLieuToKho:  (khoId, vatLieuIds) => _json(`${BASE}/kho/${khoId}/vatlieu`, { method: 'POST', body: JSON.stringify({ vatLieuIds }) }),
 
         // ── NHẬT KÝ NHẬP – XUẤT – ĐIỀU CHUYỂN ──
         getLichSuKho:     (qs)      => _json(`/api/kho/lichsu?${qs}`),

@@ -48,17 +48,20 @@ namespace LANHossting.Infrastructure.Repositories
             await _context.SaveChangesAsync();
 
             // Create TonKho = 0 ONLY for the specified warehouse (dto.KhoId).
-            // Other warehouses must NOT see this material until explicit nhập kho / điều chuyển.
-            _context.TonKho.Add(new TonKho
+            // If KhoId = 0 (Admin create without kho), skip TonKho creation.
+            if (dto.KhoId > 0)
             {
-                KhoId = dto.KhoId,
-                VatLieuId = vatLieu.Id,
-                SoLuongTon = 0,
-                SoLuongDatCho = 0,
-                NgayCapNhat = DateTime.Now
-            });
+                _context.TonKho.Add(new TonKho
+                {
+                    KhoId = dto.KhoId,
+                    VatLieuId = vatLieu.Id,
+                    SoLuongTon = 0,
+                    SoLuongDatCho = 0,
+                    NgayCapNhat = DateTime.Now
+                });
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
+            }
         }
 
         /// <inheritdoc />

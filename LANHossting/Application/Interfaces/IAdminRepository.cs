@@ -33,6 +33,10 @@ namespace LANHossting.Application.Interfaces
         Task<bool> DeleteKhoAsync(int id);
         Task<bool> KhoHasReferencesAsync(int id);
 
+        // ── THÊM VẬT LIỆU VÀO KHO ──
+        Task<List<VatLieuForKhoDto>> GetVatLieuForKhoAsync(int khoId);
+        Task<int> AddVatLieuToKhoAsync(int khoId, List<int> vatLieuIds);
+
         // ── FK CONSTRAINT CHECKS ──
         Task<bool> TaiKhoanHasReferencesAsync(int id);
         Task<bool> VatLieuHasReferencesAsync(int id);

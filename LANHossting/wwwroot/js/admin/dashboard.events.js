@@ -238,6 +238,81 @@ async function loadVatLieu() {
     }
 }
 
+let _nhomVatLieuList = [];
+let _donViTinhList = [];
+
+async function openCreateVatLieu() {
+    // Load dropdowns if not loaded yet
+    if (_nhomVatLieuList.length === 0) {
+        try { _nhomVatLieuList = await AdminAPI.getNhomVatLieu() || []; } catch (_) {}
+    }
+    if (_donViTinhList.length === 0) {
+        try { _donViTinhList = await AdminAPI.getDonViTinh() || []; } catch (_) {}
+    }
+
+    // Populate dropdowns
+    const nhomSel = document.getElementById('createVl_NhomVatLieu');
+    nhomSel.innerHTML = '<option value="">-- Chọn nhóm --</option>' +
+        _nhomVatLieuList.map(n => `<option value="${n.id}">${escapeHtml(n.ten)}</option>`).join('');
+
+    const dvtSel = document.getElementById('createVl_DonViTinh');
+    dvtSel.innerHTML = '<option value="">-- Chọn ĐVT --</option>' +
+        _donViTinhList.map(d => `<option value="${d.id}">${escapeHtml(d.ten)}</option>`).join('');
+
+    // Reset form
+    document.getElementById('createVl_MaVatLieu').value = '';
+    document.getElementById('createVl_TenVatLieu').value = '';
+    document.getElementById('createVl_DonGia').value = '0';
+    document.getElementById('createVl_MucToiThieu').value = '';
+    document.getElementById('createVl_TrangThai').value = 'Đang sử dụng';
+    document.getElementById('createVl_MoTa').value = '';
+
+    new bootstrap.Modal(document.getElementById('createVatLieuModal')).show();
+}
+
+async function saveCreateVatLieu() {
+    const maVatLieu = document.getElementById('createVl_MaVatLieu').value.trim();
+    const tenVatLieu = document.getElementById('createVl_TenVatLieu').value.trim();
+    const nhomVatLieuId = parseInt(document.getElementById('createVl_NhomVatLieu').value) || 0;
+    const donViTinhId = parseInt(document.getElementById('createVl_DonViTinh').value) || 0;
+    const donGia = parseFloat(document.getElementById('createVl_DonGia').value) || 0;
+    const mucToiThieu = parseFloat(document.getElementById('createVl_MucToiThieu').value) || null;
+    const moTa = document.getElementById('createVl_MoTa').value.trim() || null;
+
+    if (!maVatLieu || !tenVatLieu || !nhomVatLieuId || !donViTinhId) {
+        showToast('Vui lòng điền đầy đủ các trường bắt buộc (*).', 'error');
+        return;
+    }
+
+    try {
+        const btn = document.getElementById('btnSaveCreateVatLieu');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang lưu...';
+
+        const result = await AdminAPI.createVatLieu({
+            maVatLieu, tenVatLieu, nhomVatLieuId, donViTinhId, donGia,
+            khoId: 0, mucToiThieu, moTa
+        });
+
+        if (result && result.success) {
+            bootstrap.Modal.getInstance(document.getElementById('createVatLieuModal'))?.hide();
+            showToast(result.message, 'success');
+            await loadVatLieu();
+        } else {
+            const msg = result?.errors?.join(', ') || result?.message || 'Lỗi không xác định';
+            showToast(msg, 'error');
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Lưu';
+    } catch (e) {
+        showToast('Lỗi: ' + e.message, 'error');
+        const btn = document.getElementById('btnSaveCreateVatLieu');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Lưu';
+    }
+}
+
 function openEditVatLieu(id) {
     const vl = _materials.find(m => m.id === id);
     if (!vl) return;
@@ -377,6 +452,134 @@ async function confirmDeleteKho(id, tenKho) {
         }
     } catch (e) {
         showToast('Lỗi: ' + e.message, 'error');
+    }
+}
+
+/* ══════════════════════════════════════════
+   THÊM VẬT LIỆU VÀO KHO
+   ══════════════════════════════════════════ */
+let _addVlList = []; // full list from API
+
+async function openAddVatLieuToKho(khoId, tenKho) {
+    document.getElementById('addVlKhoId').value = khoId;
+    document.getElementById('addVlKhoTenKho').textContent = tenKho;
+    document.getElementById('addVlSearchInput').value = '';
+    document.getElementById('addVlSelectAll').checked = false;
+    document.getElementById('addVlTableBody').innerHTML =
+        '<tr><td colspan="5" class="text-center text-muted py-4">Đang tải...</td></tr>';
+    document.getElementById('addVlSummary').textContent = '';
+
+    new bootstrap.Modal(document.getElementById('addVatLieuKhoModal')).show();
+
+    try {
+        _addVlList = await AdminAPI.getVatLieuForKho(khoId) || [];
+        _renderAddVlTable(_addVlList);
+    } catch (e) {
+        showToast('Lỗi tải danh sách vật liệu: ' + e.message, 'error');
+    }
+}
+
+function _renderAddVlTable(items) {
+    const tbody = document.getElementById('addVlTableBody');
+    if (!items || items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Không có vật liệu nào</td></tr>';
+        document.getElementById('addVlSummary').textContent = '';
+        return;
+    }
+
+    tbody.innerHTML = items.map(v => `
+        <tr class="${v.daTonTai ? 'table-secondary' : ''}">
+            <td class="text-center">
+                <input class="form-check-input addVlCheckbox" type="checkbox"
+                       value="${v.id}" ${v.daTonTai ? 'disabled checked' : ''}>
+            </td>
+            <td>${escapeHtml(v.maVatLieu)}</td>
+            <td>${escapeHtml(v.tenVatLieu)}</td>
+            <td>${escapeHtml(v.tenDonViTinh)}</td>
+            <td class="text-center">
+                ${v.daTonTai
+                    ? '<span class="badge bg-secondary">Đã có</span>'
+                    : '<span class="badge bg-light text-dark border">Chưa có</span>'}
+            </td>
+        </tr>
+    `).join('');
+
+    _updateAddVlSummary();
+}
+
+function _updateAddVlSummary() {
+    const total = document.querySelectorAll('.addVlCheckbox:not(:disabled)').length;
+    const checked = document.querySelectorAll('.addVlCheckbox:not(:disabled):checked').length;
+    const existing = document.querySelectorAll('.addVlCheckbox:disabled').length;
+    document.getElementById('addVlSummary').textContent =
+        `Đã chọn ${checked}/${total} vật liệu chưa có trong kho. (${existing} vật liệu đã có)`;
+}
+
+// Search filter
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('addVlSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            const keyword = searchInput.value.trim().toLowerCase();
+            if (!keyword) {
+                _renderAddVlTable(_addVlList);
+                return;
+            }
+            const filtered = _addVlList.filter(v =>
+                v.maVatLieu.toLowerCase().includes(keyword) ||
+                v.tenVatLieu.toLowerCase().includes(keyword)
+            );
+            _renderAddVlTable(filtered);
+        });
+    }
+
+    const selectAll = document.getElementById('addVlSelectAll');
+    if (selectAll) {
+        selectAll.addEventListener('change', () => {
+            const boxes = document.querySelectorAll('.addVlCheckbox:not(:disabled)');
+            boxes.forEach(cb => cb.checked = selectAll.checked);
+            _updateAddVlSummary();
+        });
+    }
+
+    // Update summary on individual checkbox change
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('addVlCheckbox') && !e.target.disabled) {
+            _updateAddVlSummary();
+        }
+    });
+});
+
+async function submitAddVatLieuToKho() {
+    const khoId = parseInt(document.getElementById('addVlKhoId').value);
+    const checkedBoxes = document.querySelectorAll('.addVlCheckbox:not(:disabled):checked');
+    const vatLieuIds = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+
+    if (vatLieuIds.length === 0) {
+        showToast('Chưa chọn vật liệu nào.', 'error');
+        return;
+    }
+
+    try {
+        const btn = document.getElementById('btnSubmitAddVatLieu');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang thêm...';
+
+        const result = await AdminAPI.addVatLieuToKho(khoId, vatLieuIds);
+        if (result && result.success) {
+            bootstrap.Modal.getInstance(document.getElementById('addVatLieuKhoModal'))?.hide();
+            showToast(result.message, 'success');
+        } else {
+            showToast(result?.message || 'Lỗi không xác định', 'error');
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-plus-lg me-1"></i>Thêm vào kho';
+    } catch (e) {
+        showToast('Lỗi: ' + e.message, 'error');
+        const btn = document.getElementById('btnSubmitAddVatLieu');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-plus-lg me-1"></i>Thêm vào kho';
     }
 }
 

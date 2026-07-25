@@ -29,5 +29,9 @@ namespace LANHossting.Application.Interfaces
         Task<ServiceResult> CreateKhoAsync(string tenKho, string? diaChi, string? moTa, int nguoiThucHienId, string? ip);
         Task<ServiceResult> UpdateKhoAsync(int id, string tenKho, string? diaChi, string? moTa, int nguoiThucHienId, string? ip);
         Task<ServiceResult> DeleteKhoAsync(int id, int nguoiThucHienId, string? ip);
+
+        // ── THÊM VẬT LIỆU VÀO KHO ──
+        Task<List<VatLieuForKhoDto>> GetVatLieuForKhoAsync(int khoId);
+        Task<ServiceResult> AddVatLieuToKhoAsync(int khoId, List<int> vatLieuIds, int nguoiThucHienId, string? ip);
     }
 }

@@ -172,6 +172,16 @@
   },
   {
     "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "GetDonViTinh",
+    "RelativePath": "api/admin/donvitinh",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
     "Method": "GetDanhSachKho",
     "RelativePath": "api/admin/kho",
     "HttpMethod": "GET",
@@ -226,6 +236,53 @@
         "IsRequired": true
       }
     ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "GetVatLieuForKho",
+    "RelativePath": "api/admin/kho/{khoId}/vatlieu",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "khoId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "AddVatLieuToKho",
+    "RelativePath": "api/admin/kho/{khoId}/vatlieu",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "khoId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "LANHossting.Application.DTOs.AddVatLieuToKhoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "GetNhomVatLieu",
+    "RelativePath": "api/admin/nhomvatlieu",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
     "ReturnTypes": []
   },
   {
@@ -400,6 +457,22 @@
       {
         "Name": "dto",
         "Type": "LANHossting.Application.DTOs.UpdateVatLieuDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "LANHossting.Controllers.AdminAPIController",
+    "Method": "CreateVatLieu",
+    "RelativePath": "api/admin/vatlieu",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "LANHossting.Application.DTOs.CreateVatLieuDto",
         "IsRequired": true
       }
     ],

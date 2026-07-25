@@ -26,8 +26,9 @@ namespace LANHossting.Application.DTOs
         [Range(0, double.MaxValue, ErrorMessage = "Đơn giá phải >= 0")]
         public decimal DonGia { get; set; }
 
-        [Required(ErrorMessage = "Kho là bắt buộc")]
-        [Range(1, int.MaxValue, ErrorMessage = "Kho là bắt buộc")]
+        /// <summary>
+        /// Kho để tạo TonKho ban đầu. Tuỳ chọn — nếu = 0/null, chỉ tạo VatLieu mà không tạo TonKho.
+        /// </summary>
         public int KhoId { get; set; }
 
         public string? MoTa { get; set; }
