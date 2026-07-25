@@ -216,6 +216,8 @@ function renderSystemLogTable(data) {
             statusBadge = '<span class="badge bg-warning text-dark">Chờ duyệt</span>';
         } else if (p.trangThai === 'Từ chối' || p.trangThai === 'TU_CHOI') {
             statusBadge = '<span class="badge bg-danger">Từ chối</span>';
+        } else if (p.trangThai === 'Đã hoàn tác' || p.trangThai === 'DA_HOAN_TAC') {
+            statusBadge = '<span class="badge bg-secondary">Đã hoàn tác</span>';
         }
 
         return `<tr style="cursor:pointer" onclick="showTransactionDetail(${p.phieuId})">
@@ -312,6 +314,9 @@ function renderTransactionDetailView(data) {
         cardsHtml += '<div class="col-12 mb-2"><div class="alert alert-danger py-2 px-3 mb-0 small shadow-sm"><i class="bi bi-x-circle-fill me-2"></i>' + lyDoText + '</div></div>';
     } else if (data.trangThai === 'CHO_DUYET' || data.trangThai === 'Chờ duyệt') {
         cardsHtml += '<div class="col-12 mb-2"><div class="alert alert-warning py-2 px-3 mb-0 small shadow-sm"><i class="bi bi-clock-history me-2"></i>Phiếu đang chờ phê duyệt. Tồn kho chưa thay đổi.</div></div>';
+    } else if (data.trangThai === 'Đã hoàn tác' || data.trangThai === 'DA_HOAN_TAC') {
+        var lyDoRollback = data.lyDo ? ('<strong>Lý do hoàn tác:</strong> ' + escapeHtml(data.lyDo)) : 'Phiếu này đã được Quản trị viên hoàn tác và đảo ngược tồn kho.';
+        cardsHtml += '<div class="col-12 mb-2"><div class="alert alert-secondary py-2 px-3 mb-0 small shadow-sm"><i class="bi bi-arrow-counterclockwise me-2"></i>' + lyDoRollback + '</div></div>';
     }
 
     var khoText = data.tenKhoNguon || '';
@@ -320,6 +325,10 @@ function renderTransactionDetailView(data) {
     cardsHtml += '<div class="col-auto"><span class="badge bg-light text-dark border px-3 py-2"><i class="bi bi-person me-1"></i>' + escapeHtml(data.nguoiThucHien) + '</span></div>';
     cardsHtml += '<div class="col-auto"><span class="badge bg-' + loaiColor + ' px-3 py-2">' + loaiLabel + '</span></div>';
     if (data.ghiChu) cardsHtml += '<div class="col-auto"><span class="badge bg-light text-dark border px-3 py-2"><i class="bi bi-chat-text me-1"></i>' + escapeHtml(data.ghiChu) + '</span></div>';
+
+    if (data.trangThai === 'Hoàn thành' || data.trangThai === 'HOAN_THANH') {
+        cardsHtml += '<div class="col-auto ms-auto"><button class="btn btn-warning btn-sm fw-semibold shadow-sm px-3" onclick="openRollbackModal(' + data.phieuId + ', \'' + escapeHtml(data.maPhieu) + '\')"><i class="bi bi-arrow-counterclockwise me-1"></i>Hoàn tác phiếu</button></div>';
+    }
     document.getElementById('detailInfoCards').innerHTML = cardsHtml;
 
     // Detail table

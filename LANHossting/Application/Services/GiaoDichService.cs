@@ -100,5 +100,13 @@ namespace LANHossting.Application.Services
 
             return await _repository.TuChoiPhieuAsync(phieuId, nguoiDuyetId, lyDo);
         }
+
+        public async Task<ServiceResult> RollbackPhieuAsync(int phieuId, int nguoiRollbackId, int phienLamViecId, string? lyDo)
+        {
+            if (phieuId <= 0)
+                return new ServiceResult { Success = false, Message = "Mã phiếu không hợp lệ." };
+
+            return await _repository.RollbackPhieuAsync(phieuId, nguoiRollbackId, phienLamViecId, lyDo);
+        }
     }
 }

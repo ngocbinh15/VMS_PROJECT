@@ -103,6 +103,15 @@ function escapeHtml(str) {
 }
 
 // ═══ MAIN TABLE RENDERING ═════════════════════════════
+function getFilteredStockData() {
+    var searchEl = document.getElementById('searchInput');
+    var query = searchEl ? searchEl.value.trim() : '';
+    if (!query) return stockData;
+    return stockData.filter(function (m) {
+        return searchMatch(m.maVatLieu || '', query) || searchMatch(m.tenVatLieu || '', query);
+    });
+}
+
 function renderEmptyTable() {
     var tbody = document.getElementById('materialTableBody');
     tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-5">' +
@@ -118,18 +127,22 @@ function renderEmptyTable() {
 
 function renderTable() {
     var tbody = document.getElementById('materialTableBody');
+    var displayData = getFilteredStockData();
     var start = (currentPage - 1) * itemsPerPage;
     var end = start + itemsPerPage;
-    var paginatedData = stockData.slice(start, end);
+    var paginatedData = displayData.slice(start, end);
 
     tbody.innerHTML = '';
     var totalStock = 0;
     var totalValue = 0;
 
-    if (stockData.length === 0) {
+    if (displayData.length === 0) {
+        var msg = stockData.length === 0 
+            ? 'Không có dữ liệu tồn kho cho kho này' 
+            : 'Không tìm thấy vật tư phù hợp với từ khóa';
         tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-5">' +
             '<i class="bi bi-box-seam fs-1 d-block mb-2 opacity-50"></i>' +
-            'Kh\u00f4ng c\u00f3 d\u1eef li\u1ec7u t\u1ed3n kho cho kho n\u00e0y' +
+            msg +
             '</td></tr>';
     } else {
         paginatedData.forEach(function (item, index) {
@@ -143,9 +156,9 @@ function renderTable() {
 
             var row = '<tr class="animate-fade-in">' +
                 '<td class="ps-4 text-center text-muted">' + stt + '</td>' +
-                '<td><span class="badge bg-secondary bg-opacity-10 text-dark px-2 py-1">' + item.maVatLieu + '</span></td>' +
-                '<td>' + item.tenVatLieu + '</td>' +
-                '<td><span class="text-muted">' + item.donViTinh + '</span></td>' +
+                '<td><span class="badge bg-secondary bg-opacity-10 text-dark px-2 py-1">' + escapeHtml(item.maVatLieu) + '</span></td>' +
+                '<td>' + escapeHtml(item.tenVatLieu) + '</td>' +
+                '<td><span class="text-muted">' + escapeHtml(item.donViTinh) + '</span></td>' +
                 '<td class="text-end currency-num">' + donGia.toLocaleString('vi-VN', { minimumFractionDigits: 2 }) + '</td>' +
                 '<td class="text-center"><span class="badge ' + (stock < 10 ? 'bg-danger' : 'bg-success') + ' rounded-pill px-3">' + stock.toLocaleString('vi-VN') + '</span></td>' +
                 '<td class="text-center"><span class="badge ' + (khaDung < 10 ? 'bg-warning text-dark' : 'bg-info text-dark') + ' rounded-pill px-3">' + khaDung.toLocaleString('vi-VN') + '</span></td>' +
@@ -155,23 +168,24 @@ function renderTable() {
         });
     }
 
-    // Total stats from all stock data (not just paginated)
-    totalStock = stockData.reduce(function (sum, i) { return sum + (i.soLuongTon || 0); }, 0);
-    totalValue = stockData.reduce(function (sum, i) {
+    // Total stats from displayed stock data
+    totalStock = displayData.reduce(function (sum, i) { return sum + (i.soLuongTon || 0); }, 0);
+    totalValue = displayData.reduce(function (sum, i) {
         var qty = i.soLuongTon || 0;
         var price = i.donGia || 0;
         return sum + (qty * price);
     }, 0);
 
-    document.getElementById('totalItems').textContent = stockData.length;
+    document.getElementById('totalItems').textContent = displayData.length;
     document.getElementById('totalStock').textContent = totalStock.toLocaleString('vi-VN');
     document.getElementById('totalValue').textContent = totalValue.toLocaleString('vi-VN') + ' \u0111';
-    document.getElementById('displayCount').textContent = stockData.length;
-    renderPagination();
+    document.getElementById('displayCount').textContent = displayData.length;
+    renderPagination(displayData.length);
 }
 
-function renderPagination() {
-    var totalPages = Math.ceil(stockData.length / itemsPerPage);
+function renderPagination(totalCount) {
+    if (totalCount === undefined) totalCount = stockData.length;
+    var totalPages = Math.ceil(totalCount / itemsPerPage);
     var pagination = document.getElementById('pagination');
     pagination.innerHTML = '';
     for (var i = 1; i <= totalPages; i++) {

@@ -1011,3 +1011,55 @@ async function confirmTuChoiPhieuSubmit() {
         showToast('Lỗi: ' + e.message, 'error');
     }
 }
+
+function openRollbackModal(id, maPhieu) {
+    document.getElementById('confirmRollbackPhieuId').value = id;
+    document.getElementById('confirmRollbackMaPhieuText').textContent = `Hoàn Tác Phiếu: ${maPhieu || id}`;
+    document.getElementById('confirmRollbackLyDoInput').value = '';
+
+    const detailEl = document.getElementById('modalChiTietPhieu');
+    const detailModal = bootstrap.Modal.getInstance(detailEl);
+
+    const showRollback = () => {
+        const rollbackModal = new bootstrap.Modal(document.getElementById('modalConfirmRollbackPhieu'));
+        rollbackModal.show();
+    };
+
+    if (detailModal && detailEl.classList.contains('show')) {
+        const onHidden = () => {
+            detailEl.removeEventListener('hidden.bs.modal', onHidden);
+            showRollback();
+        };
+        detailEl.addEventListener('hidden.bs.modal', onHidden);
+        detailModal.hide();
+    } else {
+        showRollback();
+    }
+}
+
+async function confirmRollbackPhieuSubmit() {
+    const id = parseInt(document.getElementById('confirmRollbackPhieuId').value);
+    if (!id) return;
+
+    const lyDo = document.getElementById('confirmRollbackLyDoInput').value.trim();
+
+    try {
+        const result = await AdminAPI.rollbackPhieu(id, lyDo);
+        bootstrap.Modal.getInstance(document.getElementById('modalConfirmRollbackPhieu'))?.hide();
+
+        if (result && result.success) {
+            showToast(result.message, 'success');
+            if (typeof loadSystemLog === 'function') {
+                loadSystemLog(_logCurrentPage || 1);
+            }
+            if (typeof loadDashboardOverview === 'function') {
+                loadDashboardOverview();
+            }
+        } else {
+            showToast(result?.message || 'Không thể hoàn tác phiếu.', 'error');
+        }
+    } catch (e) {
+        bootstrap.Modal.getInstance(document.getElementById('modalConfirmRollbackPhieu'))?.hide();
+        showToast('Lỗi: ' + e.message, 'error');
+    }
+}

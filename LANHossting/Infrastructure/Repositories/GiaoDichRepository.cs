@@ -286,6 +286,212 @@ namespace LANHossting.Infrastructure.Repositories
             return new ServiceResult { Success = true, Message = $"Đã từ chối phiếu {phieu.MaPhieu}." };
         }
 
+        public async Task<ServiceResult> RollbackPhieuAsync(int phieuId, int nguoiRollbackId, int phienLamViecId, string? lyDo)
+        {
+            var strategy = _context.Database.CreateExecutionStrategy();
+            int validPhienId = phienLamViecId > 0 ? phienLamViecId : 1;
+
+            return await strategy.ExecuteAsync(async () =>
+            {
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    var phieu = await _context.PhieuNhapXuat
+                        .Include(p => p.ChiTietList).ThenInclude(ct => ct.VatLieu)
+                        .FirstOrDefaultAsync(p => p.Id == phieuId);
+
+                    if (phieu == null)
+                        return new ServiceResult { Success = false, Message = "Không tìm thấy phiếu giao dịch." };
+
+                    if (phieu.TrangThai != "Hoàn thành" && phieu.TrangThai != "HOAN_THANH")
+                        return new ServiceResult { Success = false, Message = $"Chỉ được hoàn tác phiếu đã ở trạng thái 'Hoàn thành'. Trạng thái hiện tại: '{phieu.TrangThai}'." };
+
+                    foreach (var ct in phieu.ChiTietList)
+                    {
+                        var vatLieu = ct.VatLieu ?? await _context.VatLieu.FindAsync(ct.VatLieuId);
+                        var tenVl = vatLieu?.TenVatLieu ?? ct.VatLieuId.ToString();
+
+                        if (phieu.LoaiPhieu == "NHAP_KHO" || phieu.LoaiPhieu == "NHAP")
+                        {
+                            int khoId = phieu.KhoNhapId ?? phieu.KhoNguonId ?? 0;
+                            var tonKho = await _context.TonKho.FirstOrDefaultAsync(t => t.VatLieuId == ct.VatLieuId && t.KhoId == khoId);
+
+                            if (tonKho == null || tonKho.SoLuongTon < ct.SoLuong)
+                            {
+                                var currentTon = tonKho?.SoLuongTon ?? 0;
+                                var nextTicket = await _context.PhieuNhapXuat
+                                    .Include(p => p.ChiTietList)
+                                    .Where(p => p.Id > phieu.Id && p.TrangThai == "Hoàn thành")
+                                    .Where(p => (p.KhoNguonId == khoId || p.KhoNhapId == khoId) && p.ChiTietList.Any(c => c.VatLieuId == ct.VatLieuId))
+                                    .OrderByDescending(p => p.Id)
+                                    .FirstOrDefaultAsync();
+
+                                var hint = nextTicket != null
+                                    ? $" do đã xuất hàng ở phiếu '{nextTicket.MaPhieu}'. Vui lòng hoàn tác phiếu '{nextTicket.MaPhieu}' trước!"
+                                    : ". Vui lòng hoàn tác các phiếu xuất phát sinh sau đó trước!";
+
+                                return new ServiceResult
+                                {
+                                    Success = false,
+                                    Message = $"Không thể hoàn tác phiếu nhập {phieu.MaPhieu}: Tồn kho '{tenVl}' hiện chỉ còn {currentTon.ToString("G29")} (nhỏ hơn {ct.SoLuong.ToString("G29")} cần trừ)" + hint
+                                };
+                            }
+
+                            decimal soLuongTruoc = tonKho.SoLuongTon;
+                            tonKho.SoLuongTon -= ct.SoLuong;
+                            tonKho.NgayCapNhat = DateTime.Now;
+                            _context.TonKho.Update(tonKho);
+
+                            _context.LichSuVatLieu.Add(new LichSuVatLieu
+                            {
+                                VatLieuId = ct.VatLieuId,
+                                KhoId = khoId,
+                                PhieuNhapXuatId = phieu.Id,
+                                PhienLamViecId = validPhienId,
+                                TaiKhoanId = nguoiRollbackId,
+                                LoaiThayDoi = "HOAN_TAC_NHAP",
+                                SoLuongTruoc = soLuongTruoc,
+                                SoLuongThayDoi = -ct.SoLuong,
+                                SoLuongSau = tonKho.SoLuongTon,
+                                LyDo = $"Hoàn tác phiếu {phieu.MaPhieu}. {lyDo}".Trim(),
+                                ThoiGian = DateTime.Now
+                            });
+                        }
+                        else if (phieu.LoaiPhieu == "XUAT_KHO" || phieu.LoaiPhieu == "XUAT")
+                        {
+                            int khoId = phieu.KhoNguonId ?? phieu.KhoNhapId ?? 0;
+                            var tonKho = await _context.TonKho.FirstOrDefaultAsync(t => t.VatLieuId == ct.VatLieuId && t.KhoId == khoId);
+
+                            decimal soLuongTruoc = 0;
+                            if (tonKho == null)
+                            {
+                                tonKho = new TonKho
+                                {
+                                    VatLieuId = ct.VatLieuId,
+                                    KhoId = khoId,
+                                    SoLuongTon = ct.SoLuong,
+                                    SoLuongDatCho = 0,
+                                    NgayCapNhat = DateTime.Now
+                                };
+                                _context.TonKho.Add(tonKho);
+                            }
+                            else
+                            {
+                                soLuongTruoc = tonKho.SoLuongTon;
+                                tonKho.SoLuongTon += ct.SoLuong;
+                                tonKho.NgayCapNhat = DateTime.Now;
+                                _context.TonKho.Update(tonKho);
+                            }
+
+                            _context.LichSuVatLieu.Add(new LichSuVatLieu
+                            {
+                                VatLieuId = ct.VatLieuId,
+                                KhoId = khoId,
+                                PhieuNhapXuatId = phieu.Id,
+                                PhienLamViecId = validPhienId,
+                                TaiKhoanId = nguoiRollbackId,
+                                LoaiThayDoi = "HOAN_TAC_XUAT",
+                                SoLuongTruoc = soLuongTruoc,
+                                SoLuongThayDoi = ct.SoLuong,
+                                SoLuongSau = tonKho.SoLuongTon,
+                                LyDo = $"Hoàn tác phiếu {phieu.MaPhieu}. {lyDo}".Trim(),
+                                ThoiGian = DateTime.Now
+                            });
+                        }
+                        else if (phieu.LoaiPhieu == "CHUYEN_KHO" || phieu.LoaiPhieu == "CHUYEN")
+                        {
+                            int khoNguonId = phieu.KhoNguonId ?? 0;
+                            int khoNhapId = phieu.KhoNhapId ?? 0;
+
+                            var tonKhoNhap = await _context.TonKho.FirstOrDefaultAsync(t => t.VatLieuId == ct.VatLieuId && t.KhoId == khoNhapId);
+                            if (tonKhoNhap == null || tonKhoNhap.SoLuongTon < ct.SoLuong)
+                            {
+                                var currentTon = tonKhoNhap?.SoLuongTon ?? 0;
+                                var nextTicket = await _context.PhieuNhapXuat
+                                    .Include(p => p.ChiTietList)
+                                    .Where(p => p.Id > phieu.Id && p.TrangThai == "Hoàn thành")
+                                    .Where(p => (p.KhoNguonId == khoNhapId || p.KhoNhapId == khoNhapId) && p.ChiTietList.Any(c => c.VatLieuId == ct.VatLieuId))
+                                    .OrderByDescending(p => p.Id)
+                                    .FirstOrDefaultAsync();
+
+                                var hint = nextTicket != null
+                                    ? $" do đã xuất hàng ở phiếu '{nextTicket.MaPhieu}'. Vui lòng hoàn tác phiếu '{nextTicket.MaPhieu}' trước!"
+                                    : ". Vui lòng hoàn tác các phiếu xuất phát sinh sau đó trước!";
+
+                                return new ServiceResult
+                                {
+                                    Success = false,
+                                    Message = $"Không thể hoàn tác chuyển kho {phieu.MaPhieu}: Tồn kho '{tenVl}' tại kho nhận hiện chỉ còn {currentTon.ToString("G29")} (nhỏ hơn {ct.SoLuong.ToString("G29")} cần trừ)" + hint
+                                };
+                            }
+
+                            decimal truocNhap = tonKhoNhap.SoLuongTon;
+                            tonKhoNhap.SoLuongTon -= ct.SoLuong;
+                            tonKhoNhap.NgayCapNhat = DateTime.Now;
+                            _context.TonKho.Update(tonKhoNhap);
+
+                            var tonKhoNguon = await _context.TonKho.FirstOrDefaultAsync(t => t.VatLieuId == ct.VatLieuId && t.KhoId == khoNguonId);
+                            decimal truocNguon = 0;
+                            if (tonKhoNguon == null)
+                            {
+                                tonKhoNguon = new TonKho
+                                {
+                                    VatLieuId = ct.VatLieuId,
+                                    KhoId = khoNguonId,
+                                    SoLuongTon = ct.SoLuong,
+                                    SoLuongDatCho = 0,
+                                    NgayCapNhat = DateTime.Now
+                                };
+                                _context.TonKho.Add(tonKhoNguon);
+                            }
+                            else
+                            {
+                                truocNguon = tonKhoNguon.SoLuongTon;
+                                tonKhoNguon.SoLuongTon += ct.SoLuong;
+                                tonKhoNguon.NgayCapNhat = DateTime.Now;
+                                _context.TonKho.Update(tonKhoNguon);
+                            }
+
+                            _context.LichSuVatLieu.Add(new LichSuVatLieu
+                            {
+                                VatLieuId = ct.VatLieuId,
+                                KhoId = khoNguonId,
+                                PhieuNhapXuatId = phieu.Id,
+                                PhienLamViecId = validPhienId,
+                                TaiKhoanId = nguoiRollbackId,
+                                LoaiThayDoi = "HOAN_TAC_CHUYEN",
+                                SoLuongTruoc = truocNguon,
+                                SoLuongThayDoi = ct.SoLuong,
+                                SoLuongSau = tonKhoNguon.SoLuongTon,
+                                KhoLienQuanId = khoNhapId,
+                                LyDo = $"Hoàn tác chuyển kho phiếu {phieu.MaPhieu}. {lyDo}".Trim(),
+                                ThoiGian = DateTime.Now
+                            });
+                        }
+                    }
+
+                    phieu.TrangThai = "Đã hoàn tác";
+                    phieu.LyDo = !string.IsNullOrWhiteSpace(lyDo) ? lyDo.Trim() : phieu.LyDo;
+                    if (!string.IsNullOrWhiteSpace(lyDo))
+                    {
+                        phieu.GhiChu = string.IsNullOrEmpty(phieu.GhiChu) ? $"Lý do hoàn tác: {lyDo}" : $"{phieu.GhiChu} | Lý do hoàn tác: {lyDo}";
+                    }
+                    phieu.NgayCapNhat = DateTime.Now;
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return new ServiceResult { Success = true, Message = $"Đã hoàn tác phiếu {phieu.MaPhieu} thành công và đảo ngược tồn kho!" };
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    var errMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                    return new ServiceResult { Success = false, Message = "Lỗi hoàn tác phiếu: " + errMsg };
+                }
+            });
+        }
+
         // ═══════════════════════════════════════════════════════
         // NHẬP KHO
         // ═══════════════════════════════════════════════════════

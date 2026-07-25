@@ -66,10 +66,11 @@ const AdminAPI = (() => {
         getChiTietPhieu:  (id)      => _json(`/api/kho/lichsu/${id}`),
         getDanhSachKho:   ()        => _json(`/api/kho/danhsachkho`),
 
-        // ── PHÊ DUYỆT PHIẾU GIAO DỊCH ──
+        // ── PHÊ DUYỆT & HOÀN TÁC PHIẾU GIAO DỊCH ──
         getPhieuChoDuyet: ()        => _json(`${BASE}/phieu-cho-duyet`),
         duyetPhieu:       (id)      => _json(`${BASE}/phieu/${id}/duyet`, { method: 'POST' }),
         tuChoiPhieu:      (id, lyDo)=> _json(`${BASE}/phieu/${id}/tu-choi`, { method: 'POST', body: JSON.stringify({ lyDo }) }),
+        rollbackPhieu:    (id, lyDo)=> _json(`${BASE}/phieu/${id}/rollback`, { method: 'POST', body: JSON.stringify({ lyDo }) }),
 
         // ── CẢNH BÁO TỒN KHO TỐI THIỂU ──
         getCanhBaoTonKho: ()        => _json(`${BASE}/canh-bao-ton-kho`),

@@ -72,8 +72,8 @@ namespace LANHossting.Infrastructure.Repositories
             if (!string.IsNullOrWhiteSpace(filter.SearchVatLieu))
             {
                 var search = filter.SearchVatLieu.Trim().ToLower();
-                query = query.Where(p => _context.ChiTietPhieuNhapXuat
-                    .Any(ct => ct.PhieuNhapXuatId == p.Id &&
+                query = query.Where(p => p.MaPhieu.ToLower().Contains(search) ||
+                    _context.ChiTietPhieuNhapXuat.Any(ct => ct.PhieuNhapXuatId == p.Id &&
                         (ct.VatLieu!.MaVatLieu.ToLower().Contains(search) ||
                          ct.VatLieu.TenVatLieu.ToLower().Contains(search))));
             }

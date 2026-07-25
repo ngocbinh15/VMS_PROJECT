@@ -20,5 +20,6 @@ namespace LANHossting.Application.Interfaces
         Task<List<PhieuChoDuyetDto>> GetDanhSachPhieuChoDuyetAsync();
         Task<ServiceResult> DuyetPhieuAsync(int phieuId, int nguoiDuyetId, int phienLamViecId);
         Task<ServiceResult> TuChoiPhieuAsync(int phieuId, int nguoiDuyetId, string? lyDo);
+        Task<ServiceResult> RollbackPhieuAsync(int phieuId, int nguoiRollbackId, int phienLamViecId, string? lyDo);
     }
 }

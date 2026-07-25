@@ -32,5 +32,10 @@ namespace LANHossting.Application.Interfaces
         /// Admin từ chối phiếu: Đổi trạng thái phiếu sang TU_CHOI (giữ nguyên tồn kho).
         /// </summary>
         Task<ServiceResult> TuChoiPhieuAsync(int phieuId, int nguoiDuyetId, string? lyDo);
+
+        /// <summary>
+        /// Admin hoàn tác phiếu đã duyệt: Đảo ngược tồn kho và đổi trạng thái sang DA_HOAN_TAC.
+        /// </summary>
+        Task<ServiceResult> RollbackPhieuAsync(int phieuId, int nguoiRollbackId, int phienLamViecId, string? lyDo);
     }
 }

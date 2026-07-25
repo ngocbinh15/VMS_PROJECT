@@ -278,6 +278,16 @@ namespace LANHossting.Controllers
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
+        // POST: api/admin/phieu/{id}/rollback
+        [HttpPost("phieu/{id:int}/rollback")]
+        public async Task<IActionResult> RollbackPhieu(int id, [FromBody] TuChoiPhieuDto? dto)
+        {
+            var userId = GetCurrentUserId();
+            var phienId = HttpContext.Session.GetInt32("PhienLamViecId") ?? 1;
+            var result = await _giaoDichService.RollbackPhieuAsync(id, userId, phienId, dto?.LyDo);
+            return result.Success ? Ok(result) : BadRequest(result);
+        }
+
         // ══════════════════════════════════════════
         // CẢNH BÁO TỒN KHO TỐI THIỂU
         // ══════════════════════════════════════════

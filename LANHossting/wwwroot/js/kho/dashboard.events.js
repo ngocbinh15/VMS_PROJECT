@@ -130,35 +130,17 @@ function goToPage(page) {
 
 // ═══ SEARCH (MAIN TABLE) ══════════════════════════════
 function searchMaterial() {
-    var query = document.getElementById('searchInput').value.trim();
-    if (query.length === 0) {
-        document.getElementById('searchResults').style.display = 'none';
-        return;
-    }
-
-    var results = stockData.filter(function (m) {
-        return searchMatch(m.maVatLieu, query) || searchMatch(m.tenVatLieu, query);
-    });
     var dropdown = document.getElementById('searchResults');
-    dropdown.innerHTML = '';
-    if (results.length > 0) {
-        results.slice(0, 5).forEach(function (mat) {
-            dropdown.innerHTML += '<div class="result-item" onclick="selectMaterialFromSearch(' + mat.vatLieuId + ')">' +
-                '<span><strong>' + mat.maVatLieu + '</strong> - ' + mat.tenVatLieu + '</span>' +
-                '<span class="badge bg-' + (mat.soLuongTon < 10 ? 'danger' : 'success') + '">' + mat.soLuongTon + '</span>' +
-                '</div>';
-        });
-        dropdown.style.display = 'block';
-    } else {
-        dropdown.innerHTML = '<div class="text-muted text-center p-3">Kh\u00f4ng t\u00ecm th\u1ea5y v\u1eadt t\u01b0</div>';
-        dropdown.style.display = 'block';
-    }
+    if (dropdown) dropdown.style.display = 'none';
+    currentPage = 1;
+    renderTable();
 }
 
 function selectMaterialFromSearch(id) {
     openActionModal(id);
     document.getElementById('searchInput').value = '';
-    document.getElementById('searchResults').style.display = 'none';
+    var dropdown = document.getElementById('searchResults');
+    if (dropdown) dropdown.style.display = 'none';
 }
 
 // ═══ ACTION MODAL ══════════════════════════════════════
