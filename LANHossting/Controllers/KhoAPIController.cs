@@ -1,18 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using LANHossting.Application.Interfaces;
 using LANHossting.Application.DTOs;
 using LANHossting.Filters;
+using LANHossting.Hubs;
 
 namespace LANHossting.Controllers
 {
-    /// <summary>
-    /// Thin API controller for warehouse inventory queries.
-    /// Delegates all logic to ITonKhoService / IVatLieuService / INhatKyService.
-    /// Contains ZERO business logic, ZERO direct DbContext usage.
-    /// 
-    /// PRICING RULE: DonGia = VatLieu.DonGia (exclusively).
-    /// System NEVER derives price from transaction history.
-    /// </summary>
     [AuthorizeRole("ADMIN", "NHAN_VIEN_KHO")]
     [Route("api/kho")]
     [ApiController]
@@ -22,17 +16,20 @@ namespace LANHossting.Controllers
         private readonly IVatLieuService _vatLieuService;
         private readonly IGiaoDichService _giaoDichService;
         private readonly INhatKyService _nhatKyService;
+        private readonly IHubContext<KhoHub> _hubContext;
 
         public KhoAPIController(
             ITonKhoService tonKhoService,
             IVatLieuService vatLieuService,
             IGiaoDichService giaoDichService,
-            INhatKyService nhatKyService)
+            INhatKyService nhatKyService,
+            IHubContext<KhoHub> hubContext)
         {
             _tonKhoService = tonKhoService;
             _vatLieuService = vatLieuService;
             _giaoDichService = giaoDichService;
             _nhatKyService = nhatKyService;
+            _hubContext = hubContext;
         }
 
         // GET: api/kho/tonkho?khoId=1&search=optional
@@ -124,6 +121,10 @@ namespace LANHossting.Controllers
 
             if (!result.Success)
                 return BadRequest(result);
+
+            await _hubContext.Clients.All.SendAsync("ReceivePendingTicketsUpdate");
+            await _hubContext.Clients.All.SendAsync("ReceiveStockUpdate", dto.KhoId);
+            await _hubContext.Clients.All.SendAsync("ReceiveLogUpdate");
 
             return Ok(result);
         }

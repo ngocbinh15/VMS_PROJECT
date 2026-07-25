@@ -1,4 +1,4 @@
-﻿using LANHossting.Data;
+using LANHossting.Data;
 using LANHossting.Application.Interfaces;
 using LANHossting.Application.Services;
 using LANHossting.Infrastructure.Repositories;
@@ -57,6 +57,7 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -75,6 +76,8 @@ app.UseRouting();
 app.UseSession();
 
 app.UseAuthorization();
+
+app.MapHub<LANHossting.Hubs.KhoHub>("/khoHub");
 
 app.MapControllerRoute(
     name: "default",

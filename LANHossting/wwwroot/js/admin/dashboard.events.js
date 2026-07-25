@@ -33,7 +33,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (vatLieuSearch) {
         vatLieuSearch.addEventListener('input', () => filterVatLieuTable(vatLieuSearch.value));
     }
+
+    // Real-Time SignalR
+    initRealtimeSignalR();
 });
+
+function initRealtimeSignalR() {
+    if (typeof signalR === 'undefined') return;
+
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/khoHub")
+        .withAutomaticReconnect()
+        .build();
+
+    connection.on("ReceivePendingTicketsUpdate", async () => {
+        console.log("[SignalR] Pending tickets updated");
+        try { await loadPhieuChoDuyet(); } catch (_) {}
+        try { await loadDashboardOverview(); } catch (_) {}
+    });
+
+    connection.on("ReceiveLogUpdate", async () => {
+        console.log("[SignalR] Log updated");
+        try { await loadSystemLog(_logCurrentPage); } catch (_) {}
+    });
+
+    connection.on("ReceiveStockUpdate", async () => {
+        console.log("[SignalR] Stock updated");
+        try { await loadDashboardOverview(); } catch (_) {}
+    });
+
+    connection.start().then(() => {
+        console.log("[SignalR] Real-time connection established");
+    }).catch(err => console.error("[SignalR] Connection error:", err));
+}
 
 /* ── Section enter handler ────────────────── */
 async function onSectionEnter(section) {

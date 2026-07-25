@@ -1,15 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using LANHossting.Application.Interfaces;
 using LANHossting.Application.DTOs;
 using LANHossting.Filters;
+using LANHossting.Hubs;
 
 namespace LANHossting.Controllers
 {
-    /// <summary>
-    /// Thin API controller for Admin module.
-    /// Delegates ALL logic to IAdminService / ISystemLogService.
-    /// Contains ZERO business logic, ZERO direct DbContext usage.
-    /// </summary>
     [AuthorizeRole("ADMIN")]
     [Route("api/admin")]
     [ApiController]
@@ -19,13 +16,20 @@ namespace LANHossting.Controllers
         private readonly ISystemLogService _logService;
         private readonly IVatLieuService _vatLieuService;
         private readonly IGiaoDichService _giaoDichService;
+        private readonly IHubContext<KhoHub> _hubContext;
 
-        public AdminAPIController(IAdminService adminService, ISystemLogService logService, IVatLieuService vatLieuService, IGiaoDichService giaoDichService)
+        public AdminAPIController(
+            IAdminService adminService,
+            ISystemLogService logService,
+            IVatLieuService vatLieuService,
+            IGiaoDichService giaoDichService,
+            IHubContext<KhoHub> hubContext)
         {
             _adminService = adminService;
             _logService = logService;
             _vatLieuService = vatLieuService;
             _giaoDichService = giaoDichService;
+            _hubContext = hubContext;
         }
 
         // ══════════════════════════════════════════
@@ -266,7 +270,14 @@ namespace LANHossting.Controllers
             var userId = GetCurrentUserId();
             var phienId = HttpContext.Session.GetInt32("PhienLamViecId") ?? 1;
             var result = await _giaoDichService.DuyetPhieuAsync(id, userId, phienId);
-            return result.Success ? Ok(result) : BadRequest(result);
+            if (result.Success)
+            {
+                await _hubContext.Clients.All.SendAsync("ReceivePendingTicketsUpdate");
+                await _hubContext.Clients.All.SendAsync("ReceiveStockUpdate", 0);
+                await _hubContext.Clients.All.SendAsync("ReceiveLogUpdate");
+                return Ok(result);
+            }
+            return BadRequest(result);
         }
 
         // POST: api/admin/phieu/{id}/tu-choi
@@ -275,7 +286,13 @@ namespace LANHossting.Controllers
         {
             var userId = GetCurrentUserId();
             var result = await _giaoDichService.TuChoiPhieuAsync(id, userId, dto?.LyDo);
-            return result.Success ? Ok(result) : BadRequest(result);
+            if (result.Success)
+            {
+                await _hubContext.Clients.All.SendAsync("ReceivePendingTicketsUpdate");
+                await _hubContext.Clients.All.SendAsync("ReceiveLogUpdate");
+                return Ok(result);
+            }
+            return BadRequest(result);
         }
 
         // POST: api/admin/phieu/{id}/rollback
@@ -285,7 +302,14 @@ namespace LANHossting.Controllers
             var userId = GetCurrentUserId();
             var phienId = HttpContext.Session.GetInt32("PhienLamViecId") ?? 1;
             var result = await _giaoDichService.RollbackPhieuAsync(id, userId, phienId, dto?.LyDo);
-            return result.Success ? Ok(result) : BadRequest(result);
+            if (result.Success)
+            {
+                await _hubContext.Clients.All.SendAsync("ReceivePendingTicketsUpdate");
+                await _hubContext.Clients.All.SendAsync("ReceiveStockUpdate", 0);
+                await _hubContext.Clients.All.SendAsync("ReceiveLogUpdate");
+                return Ok(result);
+            }
+            return BadRequest(result);
         }
 
         // ══════════════════════════════════════════

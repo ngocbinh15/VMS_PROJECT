@@ -42,7 +42,30 @@ document.addEventListener('DOMContentLoaded', async function () {
         el.addEventListener('input', function () { el.classList.remove('is-invalid'); });
         el.addEventListener('change', function () { el.classList.remove('is-invalid'); });
     });
+
+    // Setup Real-Time SignalR
+    initRealtimeSignalR();
 });
+
+function initRealtimeSignalR() {
+    if (typeof signalR === 'undefined') return;
+
+    var connection = new signalR.HubConnectionBuilder()
+        .withUrl("/khoHub")
+        .withAutomaticReconnect()
+        .build();
+
+    connection.on("ReceiveStockUpdate", function (khoId) {
+        console.log("[SignalR] Stock update signal received for khoId:", khoId);
+        if (!khoId || khoId === currentWarehouseId) {
+            loadStockData();
+        }
+    });
+
+    connection.start().then(function () {
+        console.log("[SignalR] Real-time connection established for Kho Dashboard");
+    }).catch(function (err) { console.error("[SignalR] Connection error:", err); });
+}
 
 // ═══ DATA LOADING (API → State) ════════════════════════
 async function loadWarehouses() {
